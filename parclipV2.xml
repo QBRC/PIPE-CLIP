@@ -1,0 +1,92 @@
+<tool id="clip_seq" name="PIPECLIP">
+	<description></description>
+	<command interpreter="bash">parclipV2 $input $shortest_match_seg_length $max_mismatch $pcr_dub $fdr_cluster $min_read_in_cluster $clip_type $fdr_mutation $output</command>
+	<inputs>
+		<param name="input" type="data" format="sam" label="Input Sam File"/>
+     		<param name="clip_type" type="select" label="Clip Type" help="">
+        		<option value="0" selected="true">HITS CLIP</option>
+        		<option value="1">PAR CLIP (4SU)</option>
+			<option value="2">PAR CLIP (6SG)</option>
+      		</param>	
+		<param name="pcr_dub" label="Remove PCR Duplicate?" type="boolean" truevalue="1" falsevalue="0" checked="True" help=""/>
+		<param name="shortest_match_seg_length" type="integer" value="20" label="Shortest matched segment length"/>
+		<param name="max_mismatch" type="integer" value="1" label="Maximum mismatch number"/>
+		<param name="fdr_cluster" label="FDR for determining Enriched Cluster" type="float" value="0.01" />
+		<param name="min_read_in_cluster" type="integer" value="10" label="Minimum reads number in a cluster"/>
+		<param name="fdr_mutation" type="float" value="0.01" label="FDR for determining Reliable Mutations"/>
+  	</inputs>
+
+	<outputs>
+		<data format="zip" name="output" />
+
+	</outputs>
+
+
+	<help>
+
+**About**
+
+
+
+Mammalian RNA is regulated through interactions of RNA-binding proteins (RBPs) with their target transcripts. UV-crosslinking and immunoprecipitation combining high-throughput sequencing (CLIP-seq) is able to profile genome-wide RBP-binding regions accurately and efficiently. However, there is few tool to analyze the data. Here we present PIPECLIP, a web tool which provides a pipeline for both bioinformaticians and biologist to identify the most likely cross-linking sites from PAR-CLIP and HITS-CLIP sequencing data.
+
+
+------
+
+
+**Author**
+
+
+PIPE-CLIP is written by Beibei Chen and Min Soo Kim from http://qbrc.swmed.edu/
+
+
+
+------
+
+**Parameters**
+
+
+*Input*
+
+ SAM file from any mapping tool. Make sure the SAM file contains its header, or there will be an error.
+
+*CLIP Type*
+
+ - HITS-CLIP: Deletions, insertions and substitutions will be analyzed separately.
+ - PAR-CLIP (4SU): Only T-C substitution will be analyzed.
+ - PAR-CLIP (6SG): Only G-A substitution will be analyzed.
+
+
+
+
+*Remove PCR duplicate*
+
+ Look for a representative reads for all the reads which have the same genomic starting location. Default is to remove.
+
+*Shortest matched segment length*
+
+ This length is the sum of perfectly matched nucleotides number and insertion number. Reads whose matched segment length less than threshold will not be included in further analysis.
+
+
+*Maximum mismatch number*
+
+ Although this can be set in mapping, here we still provide this filter in case users want to try more stringent criteria than what they set in mapping.
+
+
+*FDR*
+
+ There are two FDR thresholds for clusters and mutations selection respectively. Default for enriched clusters is 0.01 and for reliable mutations is 0.001.
+
+
+
+*Minimum reads number in a cluster*
+
+ For all the clusters exceeded the FDR threshold, users can choose to keep those also have more than N reads. If set to 0, this filter is not in effect. Default is 10. If you do not want to use the FDR cutoff, you can set FDR to a very big number.
+
+------
+
+**Contact**
+
+If you have any comments, suggestions, questions, bug reports, etc., fell free to contact Beibei.Chen@UTSouthwestern.edu or mins.kim@utsouthwestern.edu
+	</help>
+</tool>

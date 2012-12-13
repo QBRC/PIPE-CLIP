@@ -1,0 +1,40 @@
+#!/bin/bash
+#Require pysam,ghmm package, python2.72.7 or higher version
+#Require bedtools and samtools
+#6 required parameters
+#$1: Input SAM file
+#$2: Output prefix
+#$3: Shortest matched segment length
+#$4: Maximum mismatch number
+#$5: Minimux reads number in a cluster
+#$6: Maximum distance between two reads to be clustered together, default is 1nt overlap 
+
+
+############Process SAM################################
+#Get matched entries and make them into sorted bam and index
+awk '{if(!match($2,"4")){print $0}}' $1 >$1.mapped
+samtools view -S -b $1.mapped > $1.mapped.bam
+samtools sort $1.mapped.bam $1.mapped.sorted
+samtools index $1.mapped.sorted.bam
+
+#############Filter BAM by customized parameters#########
+#-i: input file
+#-o: output file prefix, prefix.fileter.sam will be provided to user
+#-m: Shortest matched segment length
+#-n: Maximum number of mismatch
+python SAMFilter.py -i $1.mapped.sorted.bam -o $2.filter.sam -m $3 -n $4
+samtools view -S -b $2.filter.sam > $2.filter.bam
+samtools index $2.filter.bam
+
+#############Clustering the mapped reads################
+bedtools bamtobed $2.filter.bam > $2.filter.bed
+bedtools merge -s -n -nms $2.filter.bed > $2.filter.merge
+python clusterFilter.py $2.filter.merge $5 > $2.filter.cluster.bed
+
+#############Looking for mutations #########################
+python2.7 findMutation.py $2.filter.bam > $2.filter.mutation.bed
+grep T-/>C $2.filter.mutaion.bed > $2.filter.mutation.T2C.bed
+
+##############Intersect cluster with mutations ###############
+intersectBed -wao -a $2.filter.cluster.bed -b $2.filter.mutation.T2C.bed > $2.filter.cluster.intersect.tmp
+python2.7 bedIntersectionFilter.py $2.filter.cluster.intersect.tmp > $2.bindingRegion.xls
