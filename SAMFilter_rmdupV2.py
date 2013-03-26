@@ -26,6 +26,7 @@ def prepare_argparser():
 	#IO arguments
 	argparser.add_argument("-i","--input",dest = "infile", type = str, required = True, help = "input bam file")
 	argparser.add_argument("-o","--output",dest = "outfile", type = str,required = True, help = "output file, default is stdout")
+	argparser.add_argument("-t","--type",dest="clipType",type = int, required = True, help = "CLIP type, 0:HITS-CLIP, 1:PAR-CLIP(4SG),2:PAR_CLIP(6SG),3:iCLIP")
 	
 	#CIGAR tag arguments
 	argparser.add_argument("-m",dest = "matchLength", type = int, help = "Nucleotide number that are mapped to the genome")
@@ -67,8 +68,9 @@ def rmdup(duplist):
 	mn = 0 #match number
 	matchlist = []
 	mq = 0 #match quality
+	#print "begin removal"
 	for i in duplist:
-		#print i.qname,i.mapq
+		#print i.qname,i.seq,i.mapq
 		m = countMatchNumber(i.cigar)
 		q = i.mapq
 		if m>mn  or (m==mn and q>mq):
@@ -79,9 +81,29 @@ def rmdup(duplist):
 			matchlist.append(i)
 	if len(matchlist)>1: #need to select one randomly
 		index =  random.randint(0,len(matchlist)-1)
-		return matchlist[index]
+		#print "result:",matchlist[index].qname
+		return matchlist[index] #return one SAM entry
 	else:
+		#print "result:",matchlist[0].qname
 		return matchlist[0]
+
+
+def rmdup_seq(duplist):
+	'''
+	Consider the same start along with sequence. Reads with same start but different sequences are not considered to be PCR duplicates.
+	This function simply splits the same-start list into sub-list and use rmdup to find the representative sequence.
+	'''
+	seqbase = {}
+	seq_remain = []
+	for item in duplist:
+		if seqbase.has_key(item.seq):
+			seqbase[item.seq].append(item)
+		else:
+			seqbase[item.seq] = [item]
+	for seq in seqbase.values():
+		seq_remain.append(rmdup(seq))
+	
+	return seq_remain # A list of SAM entries
 
 
 def main():
@@ -94,10 +116,10 @@ def main():
 	except IOError,message:
 		print >> sys.stderr, "cannot open SAM file",message
 		sys.exit(1)
-	#print "finish to read file"
-	outname = args.outfile + ".filter.bam"
+	#print "total seq number:",inputfile.mapped
+	outname = args.outfile+".bam"
 	outputfile = pysam.Samfile(outname,'wb',template=inputfile)
-	coverageName = args.outfile + ".filter.bam.coverage"
+	coverageName = args.outfile + ".coverage"
 	coveragefile = open(coverageName,"wa")
 	lenList = []
 	filterFile = []
@@ -124,6 +146,8 @@ def main():
 	else:
 		filterFile = inputfile
 	barcount.append(len(lenList))
+	if args.clipType==3: # if iCLIP, do not remove duplicates
+		args.rm_loc = 0
 	if args.rm_loc > 0: #user require to remove duplicates
 		former = []
 		counter = 0
@@ -137,20 +161,28 @@ def main():
 				checkNewStart = 0
 				counter += 1
 				continue
-			if item.tid == former.tid and item.pos == former.pos: #and (item.is_reverse and former.is_reverse):
+			if item.tid == former.tid and item.pos == former.pos: #and item.pos + len(item.seq) ==former.pos + len(former.seq): #Add stop criteria 2/1/2013 and (item.is_reverse and former.is_reverse):
 				reductantList.append(item)
 				counter += 1
 			else: #not same with existing starts
-				if len(reductantList)<=1: #no reductance
-					#print former
+				if len(reductantList)==1: #no reductance
+					#print "no reductance",former.qname,former.seq
 					outputfile.write(former)
 					lenList.append(countMatchLength(former.cigar))
 					#continue
 				else:
-					remain = rmdup(reductantList)
-					#print remain
-					lenList.append(countMatchLength(remain.cigar))
-					outputfile.write(remain)
+					#print "remove reductance"
+					if args.rm_loc ==1: #remove only by start 1/31/2013
+						remain = rmdup(reductantList)
+						#print remain
+						lenList.append(countMatchLength(remain.cigar))
+						outputfile.write(remain)
+					elif args.rm_loc==2: # remove by start and seq
+						remain = rmdup_seq(reductantList)
+						for r in remain:
+							lenList.append(countMatchLength(r.cigar))
+							outputfile.write(r)
+					
 				former = item
 				reductantList=[item]
 				counter += 1
@@ -177,8 +209,8 @@ def main():
 	barcount.append(len(lenList))
 	print >> coveragefile, sum(lenList)
 #generate remained reads mapped length distribution
-	dis_name = "length_distribution.pdf"	
-	pp = PdfPages(dis_name)
+	name1 = args.outfile + "_length_dis.pdf"
+	pp = PdfPages(name1)
 	fig = plt.figure(frameon = True)
 	ax = fig.add_subplot(111)
 	ax.hist(lenList,50,facecolor='green',alpha=0.5)
@@ -189,8 +221,8 @@ def main():
 	pp.close()
 
 #generate barchar of reads number remained after each filter
-	sta_name = "filter_statistics.pdf"
-	bp = PdfPages(sta_name)
+	name2 = args.outfile + "_filter_statistics.pdf"
+	bp = PdfPages(name2)
 	bfig = plt.figure(frameon = True)
 	bax = bfig.add_subplot(111)
 	bax.bar([0.9,1.9,2.9],barcount,0.2,color='green')
