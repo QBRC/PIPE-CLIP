@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # programmer : bbc
 # usage:
-
+#add test
 import sys
 import re
 import random
