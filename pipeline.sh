@@ -10,7 +10,7 @@
 #$7: Minimum reads number in a cluster
 #$8: CLIP type (0:HITS-CLIP; 1:PAR-CLIP(4SU); 2:PAR-CLIP(6SG); 3:iCLIP)
 #$9: FDR to determine reliable mutations
-#$10: species, recently, should be "mm10" or "hg19"
+#$10: species
 
 
 ############Process input################################
@@ -76,16 +76,22 @@ if test "$8" = "0" #HITS-CLIP, 3 output
 		python finalMerge.py $2.filter.cluster.bed $2.filter.reliable_deletion.bed > $2.clr.deletion.bed
 		python finalMerge.py $2.filter.cluster.bed $2.filter.reliable_insertion.bed > $2.clr.insertion.bed
 		python finalMerge.py $2.filter.cluster.bed $2.filter.reliable_substitution.bed > $2.clr.substitution.bed
-		annotatePeaks.pl $2.clr.deletion.bed ${10} > $2.clr.deletion.annotation
-		annotatePeaks.pl $2.clr.insertion.bed ${10} > $2.clr.insertion.annotation
-		annotatePeaks.pl $2.clr.substitution.bed ${10} > $2.clr.substitution.annotation
+		if test "${10}" != "Null"
+			then
+				annotatePeaks.pl $2.clr.deletion.bed ${10} > $2.clr.deletion.annotation
+				annotatePeaks.pl $2.clr.insertion.bed ${10} > $2.clr.insertion.annotation
+				annotatePeaks.pl $2.clr.substitution.bed ${10} > $2.clr.substitution.annotation
+		fi
 fi	
 
 if test "$8" != "0" #PAR-CLIP and iCLIP, 1 output
 	then
 	#echo $8,"PAR"
 		python finalMerge.py $2.filter.cluster.bed $2.filter.reliable.bed > $2.clr.bed
-		annotatePeaks.pl $2.clr.bed ${10} > $2.clr.clr.annotation
+		if test "${10}" != "Null"
+		then
+			annotatePeaks.pl $2.clr.bed ${10} > $2.clr.clr.annotation
+		fi
 fi
 ###############End of final merge###############################
 
