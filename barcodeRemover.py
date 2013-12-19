@@ -60,9 +60,7 @@ def main():
 		barLen = 5
 	myfq = fqList()
 	myfq.readFq(infile,barLen)
-	#for item in myfq.data:
-	#	print item.seq
-	#print len(myfq.data)
+	
 	for item in myfq.unique.values():
 		if len(item.seq)>=15:
 			print item
