@@ -213,7 +213,7 @@ def main():
 				checkNewStart = 0
 				counter += 1
 				continue
-			if item.tid == former.tid and item.pos == former.pos:
+			if item.tid == former.tid and item.pos == former.pos and (item.is_reverse and former.is_reverse):
 				reductantList.append(item)
 				counter += 1
 			else: #not same with existing starts
