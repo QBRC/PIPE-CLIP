@@ -3,7 +3,7 @@
 #Usage: Get all the reads count and length combinations of enriched clusters
 #Input: BED file with score column as reads number
 #Output: table with reads count, length, p value and fdr
-#Last modification: 19 Dec 2013
+#Last modified: 19 Dec 2013
 
 suppressMessages(require(MASS));
 suppressMessages(require(VGAM));
