@@ -3,7 +3,7 @@
 # Usage:Report the truncation site of iCLIP BAM file 
 # Input: BAM
 # Output: BED
-# Last modification: 19 Dec 2013
+# Last modified: 19 Dec 2013
 
 import sys
 import re
