@@ -3,7 +3,7 @@
 # Usage: Convert SAM to BAM, and sort it
 # Input: SAM/BAM
 # Output: sorted BAM
-# Last mofidication: 19 Dec. 2013
+# Last modified: 19 Dec. 2013
 
 
 import sys
