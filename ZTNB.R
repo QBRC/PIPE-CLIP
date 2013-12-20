@@ -1,5 +1,5 @@
 #Require at least R3.0 and package VGAM and dependencies
-#Programmer: beibei.chen@utsouthwestern.edu and jonghyun.yun@utsouthwestern.edu
+#Programmer: jonghyun.yun@utsouthwestern.edu and beibei.chen@utsouthwestern.edu 
 #Usage: Get all the reads count and length combinations of enriched clusters
 #Input: BED file with score column as reads number
 #Output: table with reads count, length, p value and fdr
