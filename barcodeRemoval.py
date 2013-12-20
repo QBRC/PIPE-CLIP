@@ -3,7 +3,7 @@
 # Usage: remove PCR duplicates by comparing the sequences and return fastq file with barcode removed.
 # Input: fastq file
 # Output: fastq file
-# Last modification: 19 Dec. 2013
+# Last modified: 19 Dec. 2013
 
 import sys
 import re
