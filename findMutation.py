@@ -1,7 +1,9 @@
 #!/usr/bin/python
-# programmer : bbc
-# usage:
-# output in BED format, the score is the offset of the mutation from 5' end
+# Programmer : beibei.chen@utsouthwestern.edu
+# Usage: Find genomic location and type of mutations
+# Input: BAM
+# Output: BED. The score is the offset of the mutation from 5' end
+# Last modified: 19 Dec 2013
 
 import sys
 import re
