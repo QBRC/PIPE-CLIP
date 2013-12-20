@@ -1,12 +1,13 @@
 #!/usr/bin/python
-# programmer : bbc
-# usage:
+# Programmer : beibei.chen@utsouthwestern.edu
+# Usage: generate clusters with reads count for cluster enrichment analysis
+# Input: BAM
+# Output: BED
+# Last modified: 19 Dec. 2013
+
 
 import sys
-import re
-import random
 import string
-import math
 from pysam import *
 from pybedtools import BedTool
 
@@ -22,7 +23,6 @@ def main():
 	mapped_bed = mapped_bam.bam_to_bed()
 	bed_merge = mapped_bed.merge(s=True, n=True)
 	
-	#print "#chr\tstart\tend\tcluster_name\treads_in_cluster\tstrand"
 	count = 1
 	for item in bed_merge:
 		name = "cluster_"+str(count)
