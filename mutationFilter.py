@@ -200,7 +200,7 @@ def main():
 	if args.par > 0: #input is a par,no need to split the file
 		filename = args.output+".bed"
 		outputfile = open(filename,"wa")
-		print >> outputfile,"#chr\tstart\tend\tname\tp\tstrand\ttype\tk\tm\tfdr"
+		print >> outputfile,"#chr\tstart\tend\tname\tp\tstrand\ttype\tk\tm"
 		for reliable_mu in muEvaluate(bamfile,mutationfile,coverage,args.fdr):
 			print >>outputfile,'\t'.join(reliable_mu)
 	else: #splitfile to insertion, deletion, substitution
