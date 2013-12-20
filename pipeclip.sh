@@ -1,3 +1,6 @@
+#Main pipeline connects all the scripts together
+#Programmer: beibei.chen@utsouthwestern.edu
+#Usage: sh pipeclip.sh input.sam output_prefix match_length mismatch_number pcr_rm fdr_cluster clip_type fdr_mutation species
 #Required packages: pysam, ghmm, pybedtools, samtools
 #Required parameters
 #$1: Input SAM/BAM file
@@ -10,7 +13,7 @@
 #$8: FDR for reliable mutations
 #$9: Species ["mm10","hg19"]
 #
-#
+#Last modification: 19 Dec 2013
 #
 ##########################Process input#######################
 python inputProcess.py $1 $2  #output $2.sorted.bam
