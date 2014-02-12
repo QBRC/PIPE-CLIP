@@ -17,6 +17,7 @@ import numpy as np
 import pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+matplotlib.use("PDF")
 
 
 #############Begin functions###########
