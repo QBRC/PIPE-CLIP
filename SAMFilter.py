@@ -13,11 +13,12 @@ import string
 import pysam
 from pysam import *
 import argparse as ap
+import matplotlib
+matplotlib.use("PDF")
 import numpy as np
 import pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-matplotlib.use("PDF")
 
 
 #############Begin functions###########
