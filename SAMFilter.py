@@ -249,6 +249,7 @@ def main():
 			for item in filterFile:
 				outputfile.write(item)
 	outputfile.close()
+	pysam.index(outname)
 	barcount.append(len(lenList))
 	print >> coveragefile, sum(lenList)
 
