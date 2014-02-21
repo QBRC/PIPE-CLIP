@@ -59,33 +59,28 @@ class fqList:
 
 class barcodeRemover:
   def __init__(self,infile,barLen):
-    try:
-		  self.infile = open(infile,"r+")
-	  except IOError,message:
-		  print >> sys.stderr, "cannot open file",message
-		  sys.exit(1)	
-		self.barLen = barLen
-  
-  def run():
+    self.infile = infile
+    self.barLen = barLen
+
+  def run(self):
 	  myfq = fqList()
 	  myfq.readFq(self.infile,self.barLen)
 	  for item in myfq.unique.values():
 		  if len(item.seq)>=15:
 			  print item
 
-def main():
+def barCodeRemovalMain():
 	try:
 		infile = open(sys.argv[1],"r+")
 	except IOError,message:
 		print >> sys.stderr, "cannot open file",message
 		sys.exit(1)	
-	
-	try:
-    barcodeRemover = barcodeRemover(sys.argv[1],sys.argv[2])
-	except:
-    barcodeRemover = barcodeRemover(5)
-
+  try:
+    barLen = int(sys.argv[2])
+  except:
+    barLen = 5
+  barcodeRemover = barcodeRemover(infile,barLen)
   barcodeRemover.run()	
 
 if __name__=="__main__":
-	main()
+	barCodeRemovalMain()
