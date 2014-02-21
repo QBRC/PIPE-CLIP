@@ -3,7 +3,7 @@
 # Usage:pre-process BAM file by user specified paramters
 # Input:Sorted BAM file (index file in the same folder) and parameters
 # Output: Filtered BAM file and two statistic figures
-# Last modification: 19 Dec 2013
+# Last modification: 20 Feb 2014
 
 
 import sys
