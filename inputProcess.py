@@ -15,19 +15,6 @@ from pysam import *
 import argparse as ap
 import mimetypes
 
-def is_binary(filename):
-	fin = open(filename,'rb')
-	try:
-		CHUNKSIZE = 1024
-		while 1:
-			chunk = fin.read(CHUNKSIZE)
-			if '\0' in chunk: #found null byte
-				return True
-			if len(chunk) < CHUNKSIZE:
-				break
-	finally:
-		fin.close()
-	return False
 
 def is_BAM(filename):
 	try:
@@ -42,9 +29,10 @@ def is_BAM(filename):
 		return False
 
 def main():
-	if is_binary(sys.argv[1]): #is binary, BAM file	
+	if is_BAM(sys.argv[1]): #is binary, BAM file	
 		outname = sys.argv[2] + ".sorted"
 		pysam.sort(sys.argv[1],outname)
+		pysam.index(outname+".bam")
 	else:#SAM file
 		try:
 			inputfile = pysam.Samfile(sys.argv[1])
@@ -58,6 +46,7 @@ def main():
 		for item in inputfile.fetch():
 			outputfile.write(item)
 		pysam.sort(bamout,outname)
+		pysam.index(outname+".bam")
 	
 
 if __name__=="__main__":
