@@ -3,7 +3,7 @@
 # Usage: remove PCR duplicates by comparing the sequences and return fastq file with barcode removed.
 # Input: fastq file
 # Output: fastq file
-# Last modified: 19 Dec. 2013
+# Last modified: Feb 19 Dec. 2014 - Eric Roos <eric.roos@utsouthwestern.edu>
 
 import sys
 import re
@@ -15,14 +15,23 @@ class fastq:
 		self.seq = x[1]
 		self.name = x[2]
 		self.quality = x[3]
-	def __str__(self):
+	
+  #Adding a more direct constructor, instead of the paramater array version
+  #this should be a standard
+  def __init__(self,id,seq,name,quality):
+		self.id = id
+		self.seq = seq
+		self.name = name
+		self.quality = quality 
+
+  def __str__(self):
 		st = self.id+self.seq+self.name+self.quality
 		return st
 
 class fqList:
 	def __init__(self):
 		self.data = []
-		self.unique = {} 
+		self.unique = {}
 
 	def readFq(self,fh,bl):
 		st = []
@@ -48,6 +57,22 @@ class fqList:
 		newFq = fastq([s[0],s[1][offset:],s[2],s[3][offset:]])
 		self.unique[seq_key] = newFq
 
+class barcodeRemover:
+  def __init__(self,infile,barLen):
+    try:
+		  self.infile = open(infile,"r+")
+	  except IOError,message:
+		  print >> sys.stderr, "cannot open file",message
+		  sys.exit(1)	
+		self.barLen = barLen
+  
+  def run():
+	  myfq = fqList()
+	  myfq.readFq(self.infile,self.barLen)
+	  for item in myfq.unique.values():
+		  if len(item.seq)>=15:
+			  print item
+
 def main():
 	try:
 		infile = open(sys.argv[1],"r+")
@@ -56,14 +81,11 @@ def main():
 		sys.exit(1)	
 	
 	try:
-		barLen = int(sys.argv[2])
+    barcodeRemover = barcodeRemover(sys.argv[1],sys.argv[2])
 	except:
-		barLen = 5
-	myfq = fqList()
-	myfq.readFq(infile,barLen)
-	for item in myfq.unique.values():
-		if len(item.seq)>=15:
-			print item
+    barcodeRemover = barcodeRemover(5)
+
+  barcodeRemover.run()	
 
 if __name__=="__main__":
 	main()
