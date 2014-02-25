@@ -40,7 +40,7 @@ class inputProcessrunner:
 			return True
 		except:
 			print >> sys.stder, "Cannot read binary header, please check BAM file.)"
-			return Falss
+			return False
 	
 
 	def run(self):
