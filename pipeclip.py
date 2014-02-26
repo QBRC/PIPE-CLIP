@@ -1,3 +1,4 @@
+import sys
 import annotatePeaks
 import barcodeRemoval
 import findMutation
@@ -7,6 +8,18 @@ import getCrosslinking
 import inputProcess
 import mergeReads
 import mutationFilter
+
+
+if __name__=="__main__":
+  infile = sys.argv[1]
+  outputPrefix = sys.argv[2]
+  matchLength = sys.argv[3]
+  mismatch = sys.argv[4]
+  pcr = sys.argv[5]
+  fdrEnrichedCluster = sys.argv[6]
+  clipType =sys.argv[7]
+  fdrReliableMutation = sys.argv[8]
+  species = sys.argv[9]
 
 """
 #Main pipeline connects all the scripts together
