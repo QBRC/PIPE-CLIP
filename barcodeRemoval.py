@@ -67,6 +67,19 @@ class barcodeRemover:
       if len(item.seq)>=15:
         print item
 
+def barCodeRemovalMain(infilePath,barLenStr):
+  try:
+    infile = open(infilePath,"r+")
+  except IOError,message:
+    print >> sys.stderr, "cannot open file",message
+    sys.exit(1)  
+  try:
+    barLen = int(barLenStr)
+  except:
+    barLen = 5
+  barcodeRemover = barcodeRemover(infile,barLen)
+  barcodeRemover.run()
+
 def barCodeRemovalMain():
   try:
     infile = open(sys.argv[1],"r+")

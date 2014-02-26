@@ -20,10 +20,10 @@ import argparse as ap
 stats = importr('stats')
 
 class crossLinkingRunner:
-  def __init__(self,cluster_bed,mutation_bed):
+  def __init__(self,cluster_bed,mutation_bed,producedFile):
     self.cluster_bed = cluster_bed
     self.mutation_bed = mutation_bed
-
+    self.producedFile = producedFile
 
   def fisherTest(p):
     '''First p is cluster p, others are mutation p'''
@@ -56,10 +56,30 @@ class crossLinkingRunner:
           overlap[name]=[item[10]]
           mutationLoc[name] = [item[8]]
           pvalues[name]=[float(item[6]),float(item[11])]
-    print "#chr\tstart\tstop\tname\treads_count\tstrand\t-log(p)\tmutation_in_cluster\tmutation_locations"
+    #print "#chr\tstart\tstop\tname\treads_count\tstrand\t-log(p)\tmutation_in_cluster\tmutation_locations"
+    self.producedFile.write("#chr\tstart\tstop\tname\treads_count\tstrand\t-log(p)\tmutation_in_cluster\tmutation_locations")
     for k in overlap.keys():
       fisher_p = fisherTest(pvalues[k])
-      print "%s\t%f\t%s\t%s" % (k,fisher_p, ','.join(overlap[k]), ','.join(mutationLoc[k]))
+      #print "%s\t%f\t%s\t%s" % (k,fisher_p, ','.join(overlap[k]), ','.join(mutationLoc[k]))
+      producedFile.write("%s\t%f\t%s\t%s" % (k,fisher_p, ','.join(overlap[k]), ','.join(mutationLoc[k])))
+    producedFile.close()
+
+def getCrossLinkingMain(cluster_bed_path,mutation_bed_path,producedFilePath):
+  try:
+    cluster_bed = BedTool(cluster_bed_path)
+  except IOError,message:
+    print >> sys.stderr,"Cannot open BAM file.",message
+    sys.exit(1)
+  
+  try:
+    mutation_bed = BedTool(mutation_bed_path)
+  except IOError,message:
+    print >> sys.stderr,"Cannot open BAM file.",message
+    sys.exit(1)
+
+  producedFile = open(producedFilePath,"w+")
+  crossLinkingRunner = crossLinkingRunner(cluster_bed,mutation_bed,producedFile)
+  crossLinkingRunner.run()
 
 def crossLinkingRunnerMain():
   try:
@@ -73,28 +93,7 @@ def crossLinkingRunnerMain():
   except IOError,message:
     print >> sys.stderr,"Cannot open BAM file.",message
     sys.exit(1)
-  """
-  bed_merge = cluster_bed.intersect(mutation_bed,wao=True)
-  overlap = {}
-  mutationLoc = {}
-  kms = {}
-  pvalues = {}
-  for item in bed_merge:
-    if item[7]!=".":
-      name = "\t".join(item[0:6])
-      if overlap.has_key(name):
-        overlap[name].append(item[10])
-        mutationLoc[name].append(item[8])
-        pvalues[name].append(float(item[11]))
-      else:
-        overlap[name]=[item[10]]
-        mutationLoc[name] = [item[8]]
-        pvalues[name]=[float(item[6]),float(item[11])]
-  print "#chr\tstart\tstop\tname\treads_count\tstrand\t-log(p)\tmutation_in_cluster\tmutation_locations"
-  for k in overlap.keys():
-    fisher_p = fisherTest(pvalues[k])
-    print "%s\t%f\t%s\t%s" % (k,fisher_p, ','.join(overlap[k]), ','.join(mutationLoc[k]))
-  """
+
   crossLinkingRunner = crossLinkingRunner(cluster_bed,mutation_bed)
   crossLinkingRunner.run()
 

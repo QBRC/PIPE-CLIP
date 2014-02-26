@@ -288,10 +288,21 @@ class findMutationRunner:
                 if mu.count("G->A")>0:
                   print >> outputfile, "%s\t%s" % (chr,"\t".join(mu))
 
+def findMutationMain(infilePath,outfilePath,par):
+  try:
+    infile = pysam.Samfile(infilePath,"rb")
+  except IOError,message:
+    print >> sys.stderr, "cannot open SAM file",message
+    sys.exit(1)
+  outputfile = open(outfilePath,"wa") #ouput mutation bed
+
+  findMutationRunner = findMutationRunner(infile,outputfile,par)
+  findMutationRunner.run()
+
 def findMutationMain():
   argparser = prepare_argparser()
   args = argparser.parse_args()
-  
+
   try:
     infile = pysam.Samfile(args.infile,"rb")
   except IOError,message:
@@ -302,48 +313,6 @@ def findMutationMain():
   par = args.par
   findMutationRunner = findMutationRunner(infile,outputfile,par)
   findMutationRunner.run()
-"""
-  #tmp = pysam.Samfile("demo.bam",'wb',template=infile)
-  header = "#"+"\t".join(["chr","start","stop","id","offset","strand","type"])
-  print >>outputfile, header 
-  for item in infile:
-    b= item.tags
-    if countMismatch(b)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
-      #tmp.write(item)
-      sur = survey(item)
-      insertion = sur[0]
-      deletion = sur[1]
-      substi = sur[2]
-      insertionSeqLoc = []
-      if insertion > 0:
-        insertionDic = insertionLocation(item,insertion)
-        for k in insertionDic.keys():
-          for loc_index in range(len(insertionDic[k])):
-            insertionSeqLoc.append(insertionDic[k][loc_index])
-            mu = item.seq[insertionDic[k][loc_index]]
-            loc = k+loc_index+item.pos
-            if item.tid >=0:
-              chr = infile.getrname(item.tid)
-            if item.is_reverse:
-              strand = '-'
-              mu = RC([mu])[0]
-            else:
-              strand = "+"
-            if par==0:
-              print >>outputfile, "%s\t%s\t%s\t%s\t%s\t%s\t%s" % (chr,str(loc),str(loc+1),item.qname,str(insertionDic[k][loc_index]),strand,"Insertion->"+mu )
-        insertionSeqLoc.sort()
-      if deletion + substi > 0:
-        for mu in mutationLocation(item,insertionSeqLoc):
-          if item.tid>=0:
-            chr  = infile.getrname(item.tid)
-            if par==0:
-              print >>outputfile,"%s\t%s" % (chr,"\t".join(mu))
-            elif par==1:
-              if mu.count("T->C")>0:
-                print >>outputfile, "%s\t%s" % (chr,"\t".join(mu))
-            elif par==2:
-              if mu.count("G->A")>0:
-                print >> outputfile, "%s\t%s" % (chr,"\t".join(mu))
-"""
+
 if __name__=="__main__":
   findMutationMain()

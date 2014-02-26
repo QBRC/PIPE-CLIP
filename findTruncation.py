@@ -29,6 +29,16 @@ class findTruncation:
       st = chr +"\t"+str(item.pos) + "\t"+ str(end) +"\t" + item.qname +"\t0\t" + strand+"\ttruncation"
       print st
 
+def findTruncationMain(mapped_bam_path):
+  try:
+    mapped_bam = pysam.Samfile(mapped_bam_path,"rb")
+  except IOError,message:
+    print >> sys.stderr,"Cannot open BAM file.",message
+    sys.exit(1)
+
+  findTruncationRunner = findTruncation(mapped_bam)
+  fundTruncationRunner.run()
+
 def findTruncationMain():
   try:
     mapped_bam = pysam.Samfile(sys.argv[1],"rb")

@@ -17,7 +17,7 @@ import mimetypes
 
 
 class inputProcessrunner:
-	def __init__(self,inputFiltPath,outputRoot):
+	def __init__(self,inputFilePath,outputRoot):
 		self.inputFilePath = inputFilePath
 		self.outputFileRoot = outputRoot
 
@@ -64,12 +64,13 @@ class inputProcessrunner:
 		else: #There is something wrong with the file itself
 			print >> sys.stderr,"File corrupted, please check your file."
 			sys.exit(1)
+def inputProcessMain(inputFilePath,outputRoot):
+	inputProcessRunner = inputProcessRunner(inputFilePath,outputRoot)
+	inputProcessRunner.run()
 	
 def inputProcessMain():
 	inputProcessRunner = inputProcessRunner(sys.argv[1],sys.argv[2])
 	inputProcessRunner.run()
 		
-	
-
 if __name__=="__main__":
 	inputProcessMain()

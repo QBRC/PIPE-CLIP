@@ -44,7 +44,7 @@ def prepare_argparser():
   
   return(argparser)
 class SAMFILTERRunner:
-  def __init__(self,ninputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType):
+  def __init__(self,inputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType):
     self.inputfile = inputfile
     self.outputfile = outputfile
     self.coveragefile = coveragefile

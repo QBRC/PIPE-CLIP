@@ -21,6 +21,31 @@ if __name__=="__main__":
   fdrReliableMutation = sys.argv[8]
   species = sys.argv[9]
 
+  inputProcessMain(infile,outputPrefix)
+  SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
+  mergeReadsMain(outputPrefix+".filter.rehead.bam")
+  #./Rscript ZTNB.R outputPrefix+".filter.rehead.merge" fdrEnrichedCluster
+  getClusterMain(outputPrefix+".filter.rehead.merge",outputPrefix+".reheadmerge.ztnb", outputPrefix+".filter.cluster.bed")
+
+  if clipType == "3":
+    findTruncationMain(outputPrefix+".filter.rehead.bam")
+  else
+    findMutationMain(outputPrefix+".filter.rehead.bam",outputPrefix+".filter.rehead.merge.ztnb",clipType);
+  mutationFilterMain(outputPrefix+".filter.rehead.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
+
+  if clipType == "7":
+    getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_deletion.bed", outputPrefix+"crosslinking.deletion.bed")
+    getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_insertion.bed", outputPrefix+"crosslinking.insertion.bed")
+    getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_substition.bed", outputPrefix+"crosslinking.substition.bed")
+    if species is not None
+        #annotatePeaks.pl $2.crosslinking.deletion.bed $9 > $2.crosslinking.deletion.anno.txt
+        #annotatePeaks.pl $2.crosslinking.insertion.bed $9 > $2.crosslinking.insertion.anno.txt
+        #annotatePeaks.pl $2.crosslinking.substitution.bed $9  > $2.crosslinking.substitution.anno.txt
+    else
+      getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".filter.reliable.bed",outputPrefix+".crosslinking.bed")
+      if ispecifies is not None
+        #annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
+
 """
 #Main pipeline connects all the scripts together
 #Programmer: beibei.chen@utsouthwestern.edu
@@ -41,6 +66,8 @@ if __name__=="__main__":
 #
 ##########################Process input#######################
 python inputProcess.py $1 $2  #output $2.sorted.bam
+""
+""
 samtools index $2.sorted.bam
 samtools view -H $2.sorted.bam > $2.header
 python SAMFilter.py -i $2.sorted.bam -o $2.filter -m $3 -n $4 -r $5 -t $7
@@ -59,33 +86,33 @@ python getCluster.py $2.filter.rehead.merge $2.filter.rehead.merge.ztnb > $2.fil
 
 #BC##########################Mutation#############################
 if test "$7" = "3"  #iCLIP
-	then
-		python findTruncation.py $2.filter.rehead.bam > $2.filter.mutation.bed
-	else
-		python findMutation.py -i $2.filter.rehead.bam -o $2.filter.mutation.bed -p $7
+  then
+    python findTruncation.py $2.filter.rehead.bam > $2.filter.mutation.bed
+  else
+    python findMutation.py -i $2.filter.rehead.bam -o $2.filter.mutation.bed -p $7
 fi
 python mutationFilter.py -a $2.filter.rehead.bam -b $2.filter.mutation.bed -o $2.filter.reliable -p $7 -f $8 -c $2.filter.coverage
 #
 #
 #########################Merge and annotation################
 if test "$7" = "0" #HITS-CLIP
-	then
-	python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable_deletion.bed > $2.crosslinking.deletion.bed
-	python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable_insertion.bed > $2.crosslinking.insertion.bed
-	python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable_substitution.bed > $2.crosslinking.substitution.bed
-#	echo "HITS finish"
-	if test "$9" != "Null"
-		then
-			annotatePeaks.pl $2.crosslinking.deletion.bed $9 > $2.crosslinking.deletion.anno.txt
-			annotatePeaks.pl $2.crosslinking.insertion.bed $9 > $2.crosslinking.insertion.anno.txt
-			annotatePeaks.pl $2.crosslinking.substitution.bed $9  > $2.crosslinking.substitution.anno.txt
-	fi
-	else
-		python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable.bed > $2.crosslinking.bed
-		if test "$9" != "Null"
-			then
-				annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
-		fi
+  then
+  python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable_deletion.bed > $2.crosslinking.deletion.bed
+  python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable_insertion.bed > $2.crosslinking.insertion.bed
+  python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable_substitution.bed > $2.crosslinking.substitution.bed
+#  echo "HITS finish"
+  if test "$9" != "Null"
+    then
+      annotatePeaks.pl $2.crosslinking.deletion.bed $9 > $2.crosslinking.deletion.anno.txt
+      annotatePeaks.pl $2.crosslinking.insertion.bed $9 > $2.crosslinking.insertion.anno.txt
+      annotatePeaks.pl $2.crosslinking.substitution.bed $9  > $2.crosslinking.substitution.anno.txt
+  fi
+  else
+    python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable.bed > $2.crosslinking.bed
+    if test "$9" != "Null"
+      then
+        annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
+    fi
 fi
 #
 """
