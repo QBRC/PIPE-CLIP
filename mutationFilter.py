@@ -45,7 +45,7 @@ class mutationFilterRunner:
     self.fdr = fdr
 
   def RC(strList):
-    rc = []	
+    rc = []  
     for item in strList:
       st = ""
       for chIndex in range(len(item)):
@@ -156,7 +156,7 @@ class mutationFilterRunner:
     pvalues = []
     for k in KM_test:
       parameters = k.split("_")
-      p = R.pbinom(int(parameters[1])-1,int(parameters[0]),P,False)[0]	
+      p = R.pbinom(int(parameters[1])-1,int(parameters[0]),P,False)[0]  
       pvalues.append(p)
       km_p[k]=p
     pCount = dict(Counter(pvalues))
@@ -179,7 +179,7 @@ class mutationFilterRunner:
         record[4]=str(record_p) #modified 10 Dec, p value will be used in Fisher's method
         reliableList.append(record)
     return reliableList
-	
+  
   def run(self):
     coverage = int(self.coverageFile.readline().rstrip())
     if self.isPar: #input is a par,no need to split the file
@@ -217,11 +217,11 @@ class mutationFilterRunner:
         print >> outfile_sub,'\t'.join(reliable_mu)
 
 def mutationFilterMain():
-	
-	argparser = prepare_argparser()
-	args = argparser.parse_args()
+  
+  argparser = prepare_argparser()
+  args = argparser.parse_args()
 
-  saminputPath = args.saminput	
+  saminputPath = args.saminput  
   bedinputPath = args.bedinput
   coveragefilePath = args.coveragefile
   fdr = args.fdr
@@ -229,61 +229,61 @@ def mutationFilterMain():
   par = args.par
   outputRoot = args.output
 
-	try:
-		bamfile = pysam.Samfile(saminputPath,"rb")
-	except IOError,message:
-		print >> sys.stderr, "cannot open mapping BAM file",message
-		sys.exit(1)
+  try:
+    bamfile = pysam.Samfile(saminputPath,"rb")
+  except IOError,message:
+    print >> sys.stderr, "cannot open mapping BAM file",message
+    sys.exit(1)
 
-	try:1G
-		mutationfile = BedTool(bedinputPath)
-	except IOError,message:
-		print >> sys.stderr, "cannot open mutation BED file",message
-		sys.exit(1)
-	
-	try:
-		coverageFile = open(coveragefilePath,"r")
-	except IOError,message:
-		print >> sys.stderr, "cannot open coverage file",message
-		sys.exit(1)
+  try:
+    mutationfile = BedTool(bedinputPath)
+  except IOError,message:
+    print >> sys.stderr, "cannot open mutation BED file",message
+    sys.exit(1)
+  
+  try:
+    coverageFile = open(coveragefilePath,"r")
+  except IOError,message:
+    print >> sys.stderr, "cannot open coverage file",message
+    sys.exit(1)
 
-  mutationFilterRunner = mutationFilterRunner( bamFile,mutationFile,coverageFile,par,outputRoot,fdr):
+  mutationFilterRunner = mutationFilterRunner(bamFile,mutationFile,coverageFile,par,outputRoot,fdr)
   mutationFilterRunner.run()
 """
-	coverage = int(coverageFile.readline().rstrip())
-	if isPar: #input is a par,no need to split the file
-		filename = args.output+".bed"
-		outputfile = open(filename,"wa")
-		print >> outputfile,"#chr\tstart\tend\tname\tp\tstrand\ttype\tk\tm"
-		for reliable_mu in muEvaluate(bamfile,mutationfile,coverage,args.fdr):
-			print >>outputfile,'\t'.join(reliable_mu)
-	else: #splitfile to insertion, deletion, substitution
-		insertion = []
-		deletion = []
-		substitution = []
-		for item in mutationfile:
-			if item[-1].count("Deletion")>0:
-				deletion.append(item)
-			elif item[-1].count("Insertion")>0:
-				insertion.append(item)
-			else:
-				substitution.append(item)
-		del_name = args.output+"_deletion.bed"
-		ins_name = args.output+"_insertion.bed"
-		sub_name = args.output+"_substitution.bed"
+  coverage = int(coverageFile.readline().rstrip())
+  if isPar: #input is a par,no need to split the file
+    filename = args.output+".bed"
+    outputfile = open(filename,"wa")
+    print >> outputfile,"#chr\tstart\tend\tname\tp\tstrand\ttype\tk\tm"
+    for reliable_mu in muEvaluate(bamfile,mutationfile,coverage,args.fdr):
+      print >>outputfile,'\t'.join(reliable_mu)
+  else: #splitfile to insertion, deletion, substitution
+    insertion = []
+    deletion = []
+    substitution = []
+    for item in mutationfile:
+      if item[-1].count("Deletion")>0:
+        deletion.append(item)
+      elif item[-1].count("Insertion")>0:
+        insertion.append(item)
+      else:
+        substitution.append(item)
+    del_name = args.output+"_deletion.bed"
+    ins_name = args.output+"_insertion.bed"
+    sub_name = args.output+"_substitution.bed"
 
-		outfile_del = open(del_name,"wa")
-		outfile_ins = open(ins_name,"wa")
-		outfile_sub = open(sub_name,"wa")
-		print >> outfile_ins,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
-		print >> outfile_del,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
-		print >> outfile_sub,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
-		for reliable_mu in muEvaluate(bamfile,insertion,coverage,args.fdr):
-			print >> outfile_ins,'\t'.join(reliable_mu)
-		for reliable_mu in muEvaluate(bamfile,deletion,coverage,args.fdr):
-			print >> outfile_del,'\t'.join(reliable_mu)
-		for reliable_mu in muEvaluate(bamfile,substitution,coverage,args.fdr):
-			print >> outfile_sub,'\t'.join(reliable_mu)
+    outfile_del = open(del_name,"wa")
+    outfile_ins = open(ins_name,"wa")
+    outfile_sub = open(sub_name,"wa")
+    print >> outfile_ins,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
+    print >> outfile_del,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
+    print >> outfile_sub,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
+    for reliable_mu in muEvaluate(bamfile,insertion,coverage,args.fdr):
+      print >> outfile_ins,'\t'.join(reliable_mu)
+    for reliable_mu in muEvaluate(bamfile,deletion,coverage,args.fdr):
+      print >> outfile_del,'\t'.join(reliable_mu)
+    for reliable_mu in muEvaluate(bamfile,substitution,coverage,args.fdr):
+      print >> outfile_sub,'\t'.join(reliable_mu)
 """
 if __name__=="__main__":
-	mutationfilterMain()
+  mutationfilterMain()

@@ -24,27 +24,27 @@ from matplotlib.backends.backend_pdf import PdfPages
 #############Begin functions###########
 
 def prepare_argparser():
-	description = "Filter SAM file by tags"
-	epilog = "For command line options of each command, type %(prog)s COMMAND -h"
-	argparser = ap.ArgumentParser(description=description, epilog = epilog)
-	
-	#IO arguments
-	argparser.add_argument("-i","--input",dest = "infile", type = str, required = True, help = "input bam file")
-	argparser.add_argument("-o","--output",dest = "outfile", type = str,required = True, help = "output file, default is stdout")
-	argparser.add_argument("-t","--type",dest="clipType",type = int, required = True, help = "CLIP type, 0:HITS-CLIP, 1:PAR-CLIP(4SG),2:PAR_CLIP(6SG),3:iCLIP")
-	
-	#CIGAR tag arguments
-	argparser.add_argument("-m",dest = "matchLength", type = int, help = "Nucleotide number that are mapped to the genome")
-	
-	#Other tag arguments
-	argparser.add_argument("-n",dest = "mismatch", type = int, default = 2, help = "NM tag number, default=2")
-	
-	#remove duplication arguments
-	argparser.add_argument("-r",dest = "rm_loc", type = int, default = 1, help = "Remove redundant reads with the same mapping starting location ")
-	
-	return(argparser)
+  description = "Filter SAM file by tags"
+  epilog = "For command line options of each command, type %(prog)s COMMAND -h"
+  argparser = ap.ArgumentParser(description=description, epilog = epilog)
+  
+  #IO arguments
+  argparser.add_argument("-i","--input",dest = "infile", type = str, required = True, help = "input bam file")
+  argparser.add_argument("-o","--output",dest = "outfile", type = str,required = True, help = "output file, default is stdout")
+  argparser.add_argument("-t","--type",dest="clipType",type = int, required = True, help = "CLIP type, 0:HITS-CLIP, 1:PAR-CLIP(4SG),2:PAR_CLIP(6SG),3:iCLIP")
+  
+  #CIGAR tag arguments
+  argparser.add_argument("-m",dest = "matchLength", type = int, help = "Nucleotide number that are mapped to the genome")
+  
+  #Other tag arguments
+  argparser.add_argument("-n",dest = "mismatch", type = int, default = 2, help = "NM tag number, default=2")
+  
+  #remove duplication arguments
+  argparser.add_argument("-r",dest = "rm_loc", type = int, default = 1, help = "Remove redundant reads with the same mapping starting location ")
+  
+  return(argparser)
 class SAMFILTERRunner:
-  def __init__(self,inputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType):
+  def __init__(self,ninputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType):
     self.inputfile = inputfile
     self.outputfile = outputfile
     self.coveragefile = coveragefile
@@ -259,156 +259,46 @@ class SAMFILTERRunner:
 
 
 #generate remained reads mapped length distribution
-	name1 = "Length_Distribution.pdf"
-	pp = PdfPages(name1)
-	fig = plt.figure(frameon = True)
-	ax = fig.add_subplot(111)
-	ax.hist(lenList,50,facecolor='green',alpha=0.5)
-	ax.set_xlabel('Matched length')
-	ax.set_ylabel('Frequency')
-	ax.set_xlim(matchLength-1,max(lenList)+1)
-	plt.savefig(pp,format='pdf')
-	pp.close()
+  name1 = "Length_Distribution.pdf"
+  pp = PdfPages(name1)
+  fig = plt.figure(frameon = True)
+  ax = fig.add_subplot(111)
+  ax.hist(lenList,50,facecolor='green',alpha=0.5)
+  ax.set_xlabel('Matched length')
+  ax.set_ylabel('Frequency')
+  ax.set_xlim(matchLength-1,max(lenList)+1)
+  plt.savefig(pp,format='pdf')
+  pp.close()
 
 #generate barchar of reads number remained after each filter
-	name2 = "Filter_Statistics.pdf"
-	bp = PdfPages(name2)
-	bfig = plt.figure(frameon = True)
-	bax = bfig.add_subplot(111)
-	bax.bar([0.9,1.9,2.9],barcount,0.2,color='green')
-	bax.set_ylabel('Frequency')
-	bax.set_xlim(0.5,3.5)
-	bax.set_xticks([1,2,3])
-	bax.set_xticklabels(['Mapped','Length&mismatch','rmdup'])
-	for i in range(3):
-		bax.annotate(barcount[i],(i+1,barcount[i]+0.02*max(barcount)),va='bottom',ha='center')
-	plt.savefig(bp,format='pdf')
-	bp.close()
+  name2 = "Filter_Statistics.pdf"
+  bp = PdfPages(name2)
+  bfig = plt.figure(frameon = True)
+  bax = bfig.add_subplot(111)
+  bax.bar([0.9,1.9,2.9],barcount,0.2,color='green')
+  bax.set_ylabel('Frequency')
+  bax.set_xlim(0.5,3.5)
+  bax.set_xticks([1,2,3])
+  bax.set_xticklabels(['Mapped','Length&mismatch','rmdup'])
+  for i in range(3):
+    bax.annotate(barcount[i],(i+1,barcount[i]+0.02*max(barcount)),va='bottom',ha='center')
+  plt.savefig(bp,format='pdf')
+  bp.close()
 
-def SAMFILTERRMain():
-	
-	argparser = prepare_argparser()
-	args = argparser.parse_args()
-	try:
-		inputfile = pysam.Samfile(args.infile,"rb")
-	except IOError,message:
-		print >> sys.stderr, "cannot open SAM file",message
-		sys.exit(1)
-	outname = args.outfile+".bam"
-	outputfile = pysam.Samfile(outname,'wb',template=inputfile)
-	coverageName = args.outfile + ".coverage"
-	coveragefile = open(coverageName,"wa")
 
-  matchLength = args.matchLength
-  mismatch = args.mismatch
-  rm_loc = args.rm_loc
-  clipType = args.clipType
+
+def SAMFILTERRMain(infile,outfile,matchLength,mismatch,rm_loc,clipType):
+  try:
+    inputfile = pysam.Samfile(args.infile,"rb")
+  except IOError,message:
+    print >> sys.stderr, "cannot open SAM file",message
+    sys.exit(1)
+  outname = args.outfile+".bam"
+  outputfile = pysam.Samfile(outname,'wb',template=inputfile)
+  coverageName = args.outfile + ".coverage"
+  coveragefile = open(coverageName,"wa")
   SAMFILTERRunner = SAMFILTERRunner(inputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType)
   SAMFILTERRunner.run()
-"""
-	lenList = []
-	filterFile = []
-	barcount = []
-	barcount.append(inputfile.mapped)
-	if mismatch or matchLength: #At least some CIGAR fileter if applied
-		for item in inputfile:
-			b= item.cigar
-			flag = 0
-			if b:
-				if matchLength:
-					if countMatchLength(b)>=matchLength:
-						flag = 1
-				if mismatch:
-					if countMismatch(item)<=mismatch:
-						flag = flag and 1
-					else:
-						flag = flag and 0
-				if flag:
-					lenList.append(countMatchLength(b))
-					filterFile.append(item)
-	else:
-		filterFile = inputfile
-	barcount.append(len(lenList)) # For the bar chart
-	if clipType==3: # if iCLIP, do not remove duplicates
-		rm_loc = 0
-	if rm_loc > 0: #user require to remove duplicates
-		former = []
-		counter = 0
-		reductantList = []
-		checkNewStart = 1
-		lenList = []  # re-make lengList for histogram
-		for item in filterFile:
-			if checkNewStart:
-				former = item
-				reductantList = [item]
-				checkNewStart = 0
-				counter += 1
-				continue
-			if item.tid == former.tid and item.pos == former.pos and (item.is_reverse and former.is_reverse):
-				reductantList.append(item)
-				counter += 1
-			else: #not same with existing starts
-				if len(reductantList)==1: #no reductance
-					outputfile.write(former)
-					lenList.append(countMatchLength(former.cigar))
-				else:#choose removal method
-					remain = PCRdupRm(reductantList,rm_loc)
-					for r in remain:
-						lenList.append(countMatchLength(r.cigar))
-						outputfile.write(r)
-					
-				former = item
-				reductantList=[item]
-				counter += 1
-			if counter >= len(filterFile): #reach the last line of file
-				if len(reductantList)<=1: #no reductance
-					lenList.append(countMatchLength(item.cigar))
-					outputfile.write(item)
-				else:
-					remain = PCRdupRm(reductantList,rm_loc)
-					for r in remain:
-						lenList.append(countMatchLength(r.cigar))
-						outputfile.write(r)
-	else:
-		if len(lenList)==0:
-			for item in filterFile:
-				lenList.append(countMatchLength(item.cigar))
-				outputfile.write(item)
-		else:
-			for item in filterFile:
-				outputfile.write(item)
-	outputfile.close()
-	pysam.index(outname)
-	barcount.append(len(lenList))
-	print >> coveragefile, sum(lenList)
 
-
-#generate remained reads mapped length distribution
-	name1 = "Length_Distribution.pdf"
-	pp = PdfPages(name1)
-	fig = plt.figure(frameon = True)
-	ax = fig.add_subplot(111)
-	ax.hist(lenList,50,facecolor='green',alpha=0.5)
-	ax.set_xlabel('Matched length')
-	ax.set_ylabel('Frequency')
-	ax.set_xlim(matchLength-1,max(lenList)+1)
-	plt.savefig(pp,format='pdf')
-	pp.close()
-
-#generate barchar of reads number remained after each filter
-	name2 = "Filter_Statistics.pdf"
-	bp = PdfPages(name2)
-	bfig = plt.figure(frameon = True)
-	bax = bfig.add_subplot(111)
-	bax.bar([0.9,1.9,2.9],barcount,0.2,color='green')
-	bax.set_ylabel('Frequency')
-	bax.set_xlim(0.5,3.5)
-	bax.set_xticks([1,2,3])
-	bax.set_xticklabels(['Mapped','Length&mismatch','rmdup'])
-	for i in range(3):
-		bax.annotate(barcount[i],(i+1,barcount[i]+0.02*max(barcount)),va='bottom',ha='center')
-	plt.savefig(bp,format='pdf')
-	bp.close()
-"""
 if __name__=="__main__":
-	SAMFILTERMain()
+  SAMFILTERMain()

@@ -29,7 +29,7 @@ class inputProcessrunner:
 			self.infile = open(self.inputFilePath)
 		magic = infile.read(3)
 		if magic == "BAM":
-			return = True
+			return True
 		else:
 			return False
 
