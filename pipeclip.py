@@ -50,7 +50,7 @@ if __name__=="__main__":
   SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
 
   ######################### Enrich clusters ######################
-  mergeReadsMain(outputPrefix+".filter.rehead.bam")
+  mergeReadsMain(outputPrefix+".filter.rehead.bam",outputPrefix+".filter.rehead.merge")
 
   ######################### Enrich clusters ######################
   call(["./Rscript","ZTNB.R",outputPrefix+".filter.rehead.merge",fdrEnrichedCluster])

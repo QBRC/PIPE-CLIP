@@ -13,7 +13,7 @@ import copy
 import pysam
 from pysam import *
 import argparse as ap
-
+"""
 def prepare_argparser():
   description = "Find mutations"
   epilog = "For command line options of each command, type %(prog)s COMMAND -h"
@@ -22,7 +22,7 @@ def prepare_argparser():
   argparser.add_argument("-o","--output",dest = "outfile", type = str,required = True, help = "output file, default is stdout")
   argparser.add_argument("-p",dest = "par", type = int,default = 0, help = "CLIP type, output will only contain specific mutations. 0 for HITS-CLIP, 1 for PAR-CLIP (T->C) and 2 for PAR-CLIP (G->A)")
   return(argparser)
-
+"""
 class findMutationRunner:
   def __init__(self,inputFile,outputFile,par):
     self.inputFile = inputFile

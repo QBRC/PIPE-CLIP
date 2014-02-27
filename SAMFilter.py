@@ -22,7 +22,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 
 #############Begin functions###########
-
+"""
 def prepare_argparser():
   description = "Filter SAM file by tags"
   epilog = "For command line options of each command, type %(prog)s COMMAND -h"
@@ -43,6 +43,7 @@ def prepare_argparser():
   argparser.add_argument("-r",dest = "rm_loc", type = int, default = 1, help = "Remove redundant reads with the same mapping starting location ")
   
   return(argparser)
+"""
 class SAMFILTERRunner:
   def __init__(self,inputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType):
     self.inputfile = inputfile

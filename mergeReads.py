@@ -12,7 +12,7 @@ from pysam import *
 from pybedtools import BedTool
 
 class mergeReadsRunner:
-  def __init__(self,mapped_bam):
+  def __init__(self,mapped_bam,producedFile):
     self.mapped_bam = mapped_bam
 
   def run(self):
@@ -24,14 +24,15 @@ class mergeReadsRunner:
       count += 1
       print "%s\t%s\t%s\t%s\t%s\t%s" % (item[0],item[1],item[2],name,item[3],item[4])
 
-def mergeReadsMain(bamFilePath):
+def mergeReadsMain(bamFilePath,producedFilePath):
   try:
     mapped_bam = BedTool(bamFilePath)
   except IOError,message:
     print >> sys.stderr,"Cannot open BAM file.",message
     sys.exit(1)
   
-  mergeReadsRunner = mergeReadsRunner(mapped_bam)
+  producedFile = open(producedFilePath,"w+")
+  mergeReadsRunner = mergeReadsRunner(mapped_bam,producedFile)
   mergeReadsRunner.run()
 def mergeReadsMain():
   try:
