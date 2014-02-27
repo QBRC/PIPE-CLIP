@@ -17,16 +17,33 @@ import mergeReads
 import mutationFilter
 from subprocess import call
 
+def prepare_argparser():
+  description = "Find mutations"
+  epilog = "For command line options of each command, type %(prog)s COMMAND -h"
+  argparser = ap.ArgumentParser(description=description, epilog = epilog)
+  argparser.add_argument("-i","--input",dest = "infile", type = str, required = True, help = "input bam file")
+  argparser.add_argument("-o","--output",dest = "outfile", type = str,required = True, help = "output file, default is stdout")
+  argparser.add_argument("-l","--matchLength",dest = "matchLength", type = int ,required = True, help = "shorted matched segment length")
+  argparser.add_argument("-m","--mismatch",dest = "mismatch", type = str,required = True, help = "maximum mismatch number")
+  argparser.add_argument("-c","--clipType",dest = "clipType", type = str,required = True, help = "CLIP type (0)HITS-CLIP; (1)PAR-4SU; (2)PAR-6SG; (3)iCLIP")
+  argparser.add_argument("-M","--fdrMutation",dest = "fdr", type = str,required = True, help = "FDR for reliable mutations")
+  argparser.add_argument("-C","--fdrCluster",dest = "fdr", type = str,required = True, help = "FDR for enriched clusters")
+  argparser.add_argument("-s","--species",dest = "species", type = str,required = True, help = "Species [\"mm10\",\"hg19\"]")
+  return(argparser)
+
 if __name__=="__main__":
-  infile = sys.argv[1]              # Input SAM/BAM file
-  outputPrefix = sys.argv[2]        # Output prefix
-  matchLength = sys.argv[3]         # Shorted matched segment length
-  mismatch = sys.argv[4]            # Maximum mismatch number
-  pcr = sys.argv[5]                 # PCR removal: (0)no removal; (1)same-start removal; (2)same-seq removal  
-  fdrEnrichedCluster = sys.argv[6]  # FDR for enriched clusters
-  clipType =sys.argv[7]             # CLIP type (0)HITS-CLIP; (1)PAR-4SU; (2)PAR-6SG; (3)iCLIP
-  fdrReliableMutation = sys.argv[8] # FDR for reliable mutations
-  species = sys.argv[9]             # Species ["mm10","hg19"]
+  arg_parser = prepare_argparser()
+  args = argparser.parse_args()
+
+  infile = args.infile                  # Input SAM/BAM file
+  outputPrefix = args.outfile           # Output prefix
+  matchLength = args.matchLength        # Shorted matched segment length
+  mismatch = args.mismatch              # Maximum mismatch number
+  pcr = arg.clipType                    # PCR removal: (0)no removal; (1)same-start removal; (2)same-seq removal  
+  fdrEnrichedCluster = args.fdrCluster  # FDR for enriched clusters
+  clipType =args.clipType               # CLIP type (0)HITS-CLIP; (1)PAR-4SU; (2)PAR-6SG; (3)iCLIP
+  fdrReliableMutation = args.fdrMutation# FDR for reliable mutations
+  species = args.species                # Species ["mm10","hg19"]
 
   ########################## Process input #######################
   inputProcessMain(infile,outputPrefix)
