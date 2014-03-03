@@ -3,7 +3,7 @@
 #Refactored by: eric.roos@utsouthwestern.edu
 #Usage: python pipeclip.py input.sam output_prefix match_length mismatch_number pcr_rm fdr_cluster clip_type fdr_mutation species
 #Required packages: pysam, ghmm, pybedtools
-#Last modification: 27 Feb 2014
+#Last modification: 3 March 2014
 
 import sys
 import annotatePeaks
@@ -74,5 +74,5 @@ if __name__=="__main__":
         #annotatePeaks.pl $2.crosslinking.substitution.bed $9  > $2.crosslinking.substitution.anno.txt
     else
       getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".filter.reliable.bed",outputPrefix+".crosslinking.bed")
-      if species is not None
-        #annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
+  if species is not None
+    #annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
