@@ -56,11 +56,11 @@ if test "$7" = "0" #HITS-CLIP
 			annotatePeaks.pl $2.crosslinking.insertion.bed $9 > $2.crosslinking.insertion.anno.txt
 			annotatePeaks.pl $2.crosslinking.substitution.bed $9  > $2.crosslinking.substitution.anno.txt
 	fi
-	else
-		python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable.bed > $2.crosslinking.bed
-		if test "$9" != "Null"
-			then
-				annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
-		fi
+else
+	python getCrosslinking.py $2.filter.cluster.bed $2.filter.reliable.bed > $2.crosslinking.bed
+	if test "$9" != "Null"
+	then
+		annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
+	fi
 fi
 #
