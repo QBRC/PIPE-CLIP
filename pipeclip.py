@@ -50,18 +50,18 @@ if __name__=="__main__":
   SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
 
   ######################### Enrich clusters ######################
-  mergeReadsMain(outputPrefix+".filter.rehead.bam",outputPrefix+".filter.rehead.merge")
+  mergeReadsMain(outputPrefix+".filter.bam",outputPrefix+".filter.merge")
 
   ######################### Enrich clusters ######################
-  call(["./Rscript","ZTNB.R",outputPrefix+".filter.rehead.merge",fdrEnrichedCluster])
-  getClusterMain(outputPrefix+".filter.rehead.merge",outputPrefix+".reheadmerge.ztnb", outputPrefix+".filter.cluster.bed")
+  call(["./Rscript","ZTNB.R",outputPrefix+".filter.merge",fdrEnrichedCluster])
+  getClusterMain(outputPrefix+".filter.merge",outputPrefix+".merge.ztnb", outputPrefix+".filter.cluster.bed")
 
   ########################### Mutation #############################
   if clipType == "3":
-    findTruncationMain(outputPrefix+".filter.rehead.bam")
+    findTruncationMain(outputPrefix+".filter.bam")
   else
-    findMutationMain(outputPrefix+".filter.rehead.bam",outputPrefix+".filter.rehead.merge.ztnb",clipType);
-  mutationFilterMain(outputPrefix+".filter.rehead.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
+    findMutationMain(outputPrefix+".filter.bam",outputPrefix+".filter.merge.ztnb",clipType);
+  mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
 
   ######################### Merge and annotation ################
   if clipType == "0":
