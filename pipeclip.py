@@ -31,20 +31,7 @@ def prepare_argparser():
   argparser.add_argument("-s","--species",dest = "species", type = str,required = True, help = "Species [\"mm10\",\"hg19\"]")
   return(argparser)
 
-if __name__=="__main__":
-  arg_parser = prepare_argparser()
-  args = argparser.parse_args()
-
-  infile = args.infile                  # Input SAM/BAM file
-  outputPrefix = args.outfile           # Output prefix
-  matchLength = args.matchLength        # Shorted matched segment length
-  mismatch = args.mismatch              # Maximum mismatch number
-  pcr = arg.clipType                    # PCR removal: (0)no removal; (1)same-start removal; (2)same-seq removal  
-  fdrEnrichedCluster = args.fdrCluster  # FDR for enriched clusters
-  clipType =args.clipType               # CLIP type (0)HITS-CLIP; (1)PAR-4SU; (2)PAR-6SG; (3)iCLIP
-  fdrReliableMutation = args.fdrMutation# FDR for reliable mutations
-  species = args.species                # Species ["mm10","hg19"]
-
+def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
   ########################## Process input #######################
   inputProcessMain(infile,outputPrefix)
   SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
@@ -74,5 +61,20 @@ if __name__=="__main__":
         #annotatePeaks.pl $2.crosslinking.substitution.bed $9  > $2.crosslinking.substitution.anno.txt
     else
       getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".filter.reliable.bed",outputPrefix+".crosslinking.bed")
-      if species is not None
-        #annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
+  if species is not None
+      #annotatePeaks.pl $2.crosslinking.bed $9  > $2.crosslinking.anno.txt
+
+if __name__=="__main__":
+  arg_parser = prepare_argparser()
+  args = argparser.parse_args()
+
+  infile = args.infile                  # Input SAM/BAM file
+  outputPrefix = args.outfile           # Output prefix
+  matchLength = args.matchLength        # Shorted matched segment length
+  mismatch = args.mismatch              # Maximum mismatch number
+  pcr = arg.clipType                    # PCR removal: (0)no removal; (1)same-start removal; (2)same-seq removal  
+  fdrEnrichedCluster = args.fdrCluster  # FDR for enriched clusters
+  clipType =args.clipType               # CLIP type (0)HITS-CLIP; (1)PAR-4SU; (2)PAR-6SG; (3)iCLIP
+  fdrReliableMutation = args.fdrMutation# FDR for reliable mutations
+  species = args.species                # Species ["mm10","hg19"]
+
