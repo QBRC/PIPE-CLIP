@@ -71,8 +71,8 @@ def inputProcessMain(inputFilePath,outputRoot):
   ainputProcessRunner.run()
 	
 def inputProcessMainNoArgs():
-	inputProcessRunner = inputProcessRunner(sys.argv[1],sys.argv[2])
-	inputProcessRunner.run()
+	myinputProcessRunner = inputProcessRunner(sys.argv[1],sys.argv[2])
+	myinputProcessRunner.run()
 		
 if __name__=="__main__":
 	inputProcessMainNoArgs()
