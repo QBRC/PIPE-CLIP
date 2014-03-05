@@ -27,7 +27,7 @@ class inputProcessRunner:
 			self.infile  = gzip.open(self.inputFilePath)
 		except IOError: # not a gzip file
 			self.infile = open(self.inputFilePath)
-		magic = infile.read(3)
+		magic = self.infile.read(3)
 		if magic == "BAM":
 			return True
 		else:
@@ -47,6 +47,7 @@ class inputProcessRunner:
 		if self.good_header():
 			if self.is_BAM():
 				outname = self.outputFileRoot + ".sorted"
+				bamout = sys.argv[1]
 			else: #This is a SAM file, convert into BAM first
 				try:
 					inputfile = pysam.Samfile(sys.argv[1])
@@ -74,4 +75,4 @@ def inputProcessMainNoArgs():
 	inputProcessRunner.run()
 		
 if __name__=="__main__":
-	inputProcessMain()
+	inputProcessMainNoArgs()
