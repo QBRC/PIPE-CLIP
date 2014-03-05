@@ -7,7 +7,7 @@
 import sys
 import string
 
-class getClusterRunner():
+class getClusterRunner:
   def __init__(self,infile,nbfile,producedFile):
     self.infile = infile
     self.nbfile = nbfile
@@ -26,8 +26,7 @@ class getClusterRunner():
       if nbDic.has_key(r_key):
         bufr.append(nbDic[r_key])
         #print "\t".join(bufr)
-        producedFile.write("\t".join(bufr)
-    producedFile.close()
+        producedFile.write("\t".join(bufr))
 
 def getClusterMain(infilePath,nbFilePath,producedFilePath):
   try:
@@ -47,6 +46,9 @@ def getClusterMain(infilePath,nbFilePath,producedFilePath):
   getClusterRunner = getClusterRunner(ifnile,nbfile,producedFile)
   getClusterRunner.run()
 
+  producedFile.close()
+  infile.close()
+  nbfile.close()
 def getClusterMain():
   try:
     infile = open(sys.argv[1],"r+")

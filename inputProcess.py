@@ -16,7 +16,7 @@ import argparse as ap
 import mimetypes
 
 
-class inputProcessrunner:
+class inputProcessRunner:
 	def __init__(self,inputFilePath,outputRoot):
 		self.inputFilePath = inputFilePath
 		self.outputFileRoot = outputRoot
@@ -39,7 +39,7 @@ class inputProcessrunner:
 			pysam.view(self.inputFilePath,"-H","-o"+self.outputFileRoot+".header")
 			return True
 		except:
-			print >> sys.stder, "Cannot read binary header, please check BAM file.)"
+			print >> sys.stderr, "Cannot read binary header, please check BAM file.)"
 			return False
 	
 
@@ -65,10 +65,11 @@ class inputProcessrunner:
 			print >> sys.stderr,"File corrupted, please check your file."
 			sys.exit(1)
 def inputProcessMain(inputFilePath,outputRoot):
-	inputProcessRunner = inputProcessRunner(inputFilePath,outputRoot)
-	inputProcessRunner.run()
+  print inputFilePath
+  ainputProcessRunner = inputProcessRunner(inputFilePath,outputRoot)
+  ainputProcessRunner.run()
 	
-def inputProcessMain():
+def inputProcessMainNoArgs():
 	inputProcessRunner = inputProcessRunner(sys.argv[1],sys.argv[2])
 	inputProcessRunner.run()
 		
