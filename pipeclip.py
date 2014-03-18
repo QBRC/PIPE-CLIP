@@ -13,8 +13,9 @@ import findTruncation
 import getCluster
 import getCrosslinking
 import inputProcess
-import mergeReads
+from mergeReads import *
 import mutationFilter
+import SAMFilter
 from subprocess import call
 
 def prepare_argparser():
@@ -34,7 +35,7 @@ def prepare_argparser():
 def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
   ########################## Process input #######################
   inputProcess.inputProcessMain(infile,outputPrefix)
-  SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
+  SAMFilter.SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
 
   ######################### Enrich clusters ######################
   mergeReadsMain(outputPrefix+".filter.bam",outputPrefix+".filter.merge")

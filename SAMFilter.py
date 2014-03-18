@@ -45,7 +45,7 @@ def prepare_argparser():
   return(argparser)
 """
 class SAMFILTERRunner:
-  def __init__(self,inputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType):
+  def __init__(self,inputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType,outname):
     self.inputfile = inputfile
     self.outputfile = outputfile
     self.coveragefile = coveragefile
@@ -53,8 +53,9 @@ class SAMFILTERRunner:
     self.mismatch = mismatch
     self.rm_loc = rm_loc
     self.clipType = clipType
+    self.outname = outname
 
-  def countMatchNumber(b):
+  def countMatchNumber(self,b):
     myList = b
     m = 0
     for i in myList:
@@ -62,7 +63,7 @@ class SAMFILTERRunner:
         m += i[1]
     return (m)
 
-  def countMatchLength(b):
+  def countMatchLength(self,b):
     myList = b
     m = 0
     for i in myList:
@@ -70,19 +71,19 @@ class SAMFILTERRunner:
         m += i[1]
     return (m)
 
-  def countMismatch(b):
+  def countMismatch(self,b):
     myTag = b.tags
     for i in myTag:
       if i[0]=="NM":
         return (i[1])
 
-  def PCRdupRm(rlist,method):
+  def PCRdupRm(self,rlist,method):
     if method == 1:
       return rmdup(rlist)
     elif method ==2:
       return rmdup_seq(rlist)
 
-  def rmdup(duplist): #According to the same start
+  def rmdup(self,duplist): #According to the same start
     mn = 0 #match number
     matchlist = []
     mq = 0 #match quality
@@ -102,7 +103,7 @@ class SAMFILTERRunner:
       return [matchlist[0]]
 
 
-  def rmdup_seq(duplist):
+  def rmdup_seq(self,duplist):
     '''
     Consider the same start along with sequence. Reads with same start but different sequences are not considered to be PCR duplicates.
     This function simply splits the same-start list into sub-list and use rmdup to find the representative sequence.
@@ -117,7 +118,7 @@ class SAMFILTERRunner:
     for seq in seqbase.values():
       seq_remain.append(rmdup(seq))
     
-  def countMatchLength(b):
+  def countMatchLength(self,b):
     myList = b
     m = 0
     for i in myList:
@@ -125,19 +126,19 @@ class SAMFILTERRunner:
         m += i[1]
     return (m)
 
-  def countMismatch(b):
+  def countMismatch(self,b):
     myTag = b.tags
     for i in myTag:
       if i[0]=="NM":
         return (i[1])
 
-  def PCRdupRm(rlist,method):
+  def PCRdupRm(self,rlist,method):
     if method == 1:
       return [rmdup(rlist)]
     elif method ==2:
       return rmdup_seq(rlist)
 
-  def rmdup(duplist): #According to the same start
+  def rmdup(self,duplist): #According to the same start
     mn = 0 #match number
     matchlist = []
     mq = 0 #match quality
@@ -157,7 +158,7 @@ class SAMFILTERRunner:
       return matchlist[0]
 
 
-  def rmdup_seq(duplist):
+  def rmdup_seq(self,duplist):
     '''
     Consider the same start along with sequence. Reads with same start but different sequences are not considered to be PCR duplicates.
     This function simply splits the same-start list into sub-list and use rmdup to find the representative sequence.
@@ -173,14 +174,15 @@ class SAMFILTERRunner:
       seq_remain.append(rmdup(seq))
     return seq_remain # A list of SAM entries
 
-  def run():
+  def run(self):
     inputfile = self.inputfile
-    outputfle = self.outputfile
+    outputfile = self.outputfile
     coveragefile = self.coveragefile
     matchLength = self.matchLength
-    mismatch = selfmismatch
+    mismatch = self.mismatch
     rm_loc = self.rm_loc
     clipType = self.clipType
+    outname = self.outname
 
     lenList = []
     filterFile = []
@@ -192,21 +194,22 @@ class SAMFILTERRunner:
         flag = 0
         if b:
           if matchLength:
-            if countMatchLength(b)>=matchLength:
+            if self.countMatchLength(b) >= matchLength:
               flag = 1
           if mismatch:
-            if countMismatch(item)<=mismatch:
+            if self.countMismatch(item)<=mismatch:
               flag = flag and 1
             else:
               flag = flag and 0
           if flag:
-            lenList.append(countMatchLength(b))
+            lenList.append(self.countMatchLength(b))
             filterFile.append(item)
     else:
       filterFile = inputfile
     barcount.append(len(lenList)) # For the bar chart
     if clipType==3: # if iCLIP, do not remove duplicates
       rm_loc = 0
+
     if rm_loc > 0: #user require to remove duplicates
       former = []
       counter = 0
@@ -232,7 +235,6 @@ class SAMFILTERRunner:
             for r in remain:
               lenList.append(countMatchLength(r.cigar))
               outputfile.write(r)
-            
           former = item
           reductantList=[item]
           counter += 1
@@ -258,48 +260,45 @@ class SAMFILTERRunner:
     barcount.append(len(lenList))
     print >> coveragefile, sum(lenList)
 
+    #generate remained reads mapped length distribution
+    name1 = "Length_Distribution.pdf"
+    pp = PdfPages(name1)
+    fig = plt.figure(frameon = True)
+    ax = fig.add_subplot(111)
+    ax.hist(lenList,50,facecolor='green',alpha=0.5)
+    ax.set_xlabel('Matched length')
+    ax.set_ylabel('Frequency')
+    ax.set_xlim(matchLength-1,max(lenList)+1)
+    plt.savefig(pp,format='pdf')
+    pp.close()
 
-#generate remained reads mapped length distribution
-  name1 = "Length_Distribution.pdf"
-  pp = PdfPages(name1)
-  fig = plt.figure(frameon = True)
-  ax = fig.add_subplot(111)
-  ax.hist(lenList,50,facecolor='green',alpha=0.5)
-  ax.set_xlabel('Matched length')
-  ax.set_ylabel('Frequency')
-  ax.set_xlim(matchLength-1,max(lenList)+1)
-  plt.savefig(pp,format='pdf')
-  pp.close()
+    #generate barchar of reads number remained after each filter
+    name2 = "Filter_Statistics.pdf"
+    bp = PdfPages(name2)
+    bfig = plt.figure(frameon = True)
+    bax = bfig.add_subplot(111)
+    bax.bar([0.9,1.9,2.9],barcount,0.2,color='green')
+    bax.set_ylabel('Frequency')
+    bax.set_xlim(0.5,3.5)
+    bax.set_xticks([1,2,3])
+    bax.set_xticklabels(['Mapped','Length&mismatch','rmdup'])
+    for i in range(3):
+      bax.annotate(barcount[i],(i+1,barcount[i]+0.02*max(barcount)),va='bottom',ha='center')
+    plt.savefig(bp,format='pdf')
+    bp.close()
 
-#generate barchar of reads number remained after each filter
-  name2 = "Filter_Statistics.pdf"
-  bp = PdfPages(name2)
-  bfig = plt.figure(frameon = True)
-  bax = bfig.add_subplot(111)
-  bax.bar([0.9,1.9,2.9],barcount,0.2,color='green')
-  bax.set_ylabel('Frequency')
-  bax.set_xlim(0.5,3.5)
-  bax.set_xticks([1,2,3])
-  bax.set_xticklabels(['Mapped','Length&mismatch','rmdup'])
-  for i in range(3):
-    bax.annotate(barcount[i],(i+1,barcount[i]+0.02*max(barcount)),va='bottom',ha='center')
-  plt.savefig(bp,format='pdf')
-  bp.close()
-
-
-
-def SAMFILTERRMain(infile,outfile,matchLength,mismatch,rm_loc,clipType):
+def SAMFILTERMain(infile,outfile,matchLength,mismatch,rm_loc,clipType):
   try:
-    inputfile = pysam.Samfile(args.infile,"rb")
+    inputfile = pysam.Samfile(infile,"rb")
   except IOError,message:
     print >> sys.stderr, "cannot open SAM file",message
     sys.exit(1)
-  outname = args.outfile+".bam"
+  outname = outfile+".bam"
   outputfile = pysam.Samfile(outname,'wb',template=inputfile)
-  coverageName = args.outfile + ".coverage"
+  coverageName = outfile + ".coverage"
   coveragefile = open(coverageName,"wa")
-  SAMFILTERRunner = SAMFILTERRunner(inputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType)
-  SAMFILTERRunner.run()
+  aSAMFILTERRunner = SAMFILTERRunner(inputfile,outputfile,coveragefile,matchLength,mismatch,rm_loc,clipType,outname)
+  aSAMFILTERRunner.run()
 
 if __name__=="__main__":
   SAMFILTERMain()
