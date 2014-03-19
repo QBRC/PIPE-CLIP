@@ -216,8 +216,31 @@ class mutationFilterRunner:
       for reliable_mu in muEvaluate(self.bamFile,substitution,coverage,self.fdr):
         print >> outfile_sub,'\t'.join(reliable_mu)
 
-def mutationFilterMain():
+
+# mutationFilter.mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
+def mutationFilterMain(saminputPath,bedinputPath,outputRoot,par,fdr,coveragefilePath):
+  try:
+    bamfile = pysam.Samfile(saminputPath,"rb")
+  except IOError,message:
+    print >> sys.stderr, "cannot open mapping BAM file",message
+    sys.exit(1)
+
+  try:
+    mutationfile = BedTool(bedinputPath)
+  except IOError,message:
+    print >> sys.stderr, "cannot open mutation BED file",message
+    sys.exit(1)
   
+  try:
+    coverageFile = open(coveragefilePath,"r")
+  except IOError,message:
+    print >> sys.stderr, "cannot open coverage file",message
+    sys.exit(1)
+
+  amutationFilterRunner = mutationFilterRunner(bamFile,mutationFile,coverageFile,par,outputRoot,fdr)
+  amutationFilterRunner.run()
+
+def mutationFilterMainNoArgs():
   argparser = prepare_argparser()
   args = argparser.parse_args()
 
@@ -286,4 +309,4 @@ def mutationFilterMain():
       print >> outfile_sub,'\t'.join(reliable_mu)
 """
 if __name__=="__main__":
-  mutationfilterMain()
+  mutationfilterMainNoArgs()

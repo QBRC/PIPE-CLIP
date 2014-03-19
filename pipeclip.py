@@ -38,31 +38,31 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,
   SAMFilter.SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
 
   ######################### Enrich clusters ######################
-  mergeReadsMain(outputPrefix+".filter.bam",outputPrefix+".filter.merge")
+  mergeReadsMain(outputPrefix+".filter.bam",outputPrefix+".filter.rehead.merge")
 
   ######################### Enrich clusters ######################
-  call(["./Rscript","ZTNB.R",outputPrefix+".filter.merge",fdrEnrichedCluster])
-  getClusterMain(outputPrefix+".filter.merge",outputPrefix+".merge.ztnb", outputPrefix+".filter.cluster.bed")
+  call(["Rscript","ZTNB.R",outputPrefix+".filter.rehead.merge",str(fdrEnrichedCluster)])
+  getCluster.getClusterMain(outputPrefix+".filter.rehead.merge",outputPrefix+".filter.rehead.merge.ztnb", outputPrefix+".filter.cluster.bed")
 
   ########################### Mutation #############################
   if clipType == "3":
-    findTruncationMain(outputPrefix+".filter.bam")
+    findTruncation.findTruncationMain(outputPrefix+".filter.bam")
   else:
-    findMutationMain(outputPrefix+".filter.bam",outputPrefix+".filter.merge.ztnb",clipType);
-  mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
+    findMutation.findMutationMain(outputPrefix+".filter.bam",outputPrefix+".filter.merge.ztnb",clipType);
+  mutationFilter.mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
 
   ######################### Merge and annotation ################
   if clipType == "0":
-    getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_deletion.bed", outputPrefix+"crosslinking.deletion.bed")
-    getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_insertion.bed", outputPrefix+"crosslinking.insertion.bed")
-    getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_substition.bed", outputPrefix+"crosslinking.substition.bed")
+    getCrosslinking.getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_deletion.bed", outputPrefix+"crosslinking.deletion.bed")
+    getCrosslinking.getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_insertion.bed", outputPrefix+"crosslinking.insertion.bed")
+    getCrosslinking.getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_substition.bed", outputPrefix+"crosslinking.substition.bed")
     if species is not None:
       print "not yet implemented"
       #annotatePeaks.pl $2.crosslinking.deletion.bed $9 > $2.crosslinking.deletion.anno.txt
       #annotatePeaks.pl $2.crosslinking.insertion.bed $9 > $2.crosslinking.insertion.anno.txt
       #annotatePeaks.pl $2.crosslinking.substitution.bed $9  > $2.crosslinking.substitution.anno.txt
     else:
-      getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".filter.reliable.bed",outputPrefix+".crosslinking.bed")
+      getCrosslinking.getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".filter.reliable.bed",outputPrefix+".crosslinking.bed")
 
   if species is not None:
     print "Not yet implemented"

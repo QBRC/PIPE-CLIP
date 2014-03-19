@@ -15,18 +15,18 @@ class getClusterRunner:
 
   def run(self):
     nbDic ={}
-    for item in nbfile:
+    for item in self.nbfile:
       buf = item.rstrip().split("\t")
       nb_key = "_".join(buf[0:2])  # Use reads_length pair as key
       if not nbDic.has_key(nb_key):
         nbDic[nb_key]=buf[-1]
-    for record in infile:
+    for record in self.infile:
       bufr = record.rstrip().split("\t")
       r_key = bufr[4]+"_"+str(int(bufr[2])-int(bufr[1]))
       if nbDic.has_key(r_key):
         bufr.append(nbDic[r_key])
         #print "\t".join(bufr)
-        producedFile.write("\t".join(bufr))
+        self.producedFile.write("\t".join(bufr))
 
 def getClusterMain(infilePath,nbFilePath,producedFilePath):
   try:
@@ -43,13 +43,13 @@ def getClusterMain(infilePath,nbFilePath,producedFilePath):
 
   producedFile = open(producedFilePath,"w+");
 
-  getClusterRunner = getClusterRunner(ifnile,nbfile,producedFile)
-  getClusterRunner.run()
+  agetClusterRunner = getClusterRunner(infile,nbfile,producedFile)
+  agetClusterRunner.run()
 
   producedFile.close()
   infile.close()
   nbfile.close()
-def getClusterMain():
+def getClusterMainNoArgs():
   try:
     infile = open(sys.argv[1],"r+")
   except IOError,message:
@@ -66,4 +66,4 @@ def getClusterMain():
   getClusterRunner.run()
 
 if __name__=="__main__":
-  getClusterMain()
+  getClusterMainNoArgs()

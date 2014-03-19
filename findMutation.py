@@ -29,7 +29,7 @@ class findMutationRunner:
     self.outputFile = outputFile
     self.par = par
 
-  def countMatchNumber(b):
+  def countMatchNumber(self,b):
     myList = b
     m = 0
     for i in myList:
@@ -37,7 +37,7 @@ class findMutationRunner:
         m += i[1]
     return (m)
 
-  def countInsertionNumber(b):
+  def countInsertionNumber(self,b):
     myList = b
     m = 0
     for i in myList:
@@ -45,7 +45,7 @@ class findMutationRunner:
         m += i[1]
     return (m)
 
-  def countDeletionNumber(b):
+  def countDeletionNumber(self,b):
     myList = b
     m = 0
     for i in myList:
@@ -53,22 +53,22 @@ class findMutationRunner:
         m += i[1]
     return (m)
 
-  def countMismatch(b):
+  def countMismatch(self,b):
     myList = b
     for i in myList:
       if i[0]=="NM":
         return (i[1])
 
-  def survey(entry):
-    mismatchNumber = countMismatch(entry.tags)
-    insertionNumber = countInsertionNumber(entry.cigar)
-    deletionNumber = countDeletionNumber(entry.cigar)
+  def survey(self,entry):
+    mismatchNumber = self.countMismatch(entry.tags)
+    insertionNumber = self.countInsertionNumber(entry.cigar)
+    deletionNumber = self.countDeletionNumber(entry.cigar)
     substitutionNumber = mismatchNumber-insertionNumber-deletionNumber
     #print insertionNumber,deletionNumber
     return ([insertionNumber,deletionNumber,substitutionNumber])
 
 
-  def SBeforeFirstM(ci):
+  def SBeforeFirstM(self,ci):
     for index in range(len(ci)):
       if ci[index][0] == 0:
         if index == 0:
@@ -79,7 +79,7 @@ class findMutationRunner:
             if ci[i][0] == 4:
               s += ci[i][1]
           return s
-  def parseCIGAR(ci): #calculate match segment length list
+  def parseCIGAR(self,ci): #calculate match segment length list
     matchSeg = []
     preIndex = 0
     for index in range(len(ci)):
@@ -102,7 +102,7 @@ class findMutationRunner:
         matchSeg[-1]+=inse
     return matchSeg  
 
-  def parseMD(b):
+  def parseMD(self,b):
     myList = b
     for j in myList:
       if j[0]=="MD":
@@ -127,7 +127,7 @@ class findMutationRunner:
     return buf
 
 
-  def insertionLocation(entry,num):#sam entry and insertion total number
+  def insertionLocation(self,entry,num):#sam entry and insertion total number
     insertionLoc = {} #key:ref_offset; value:list of seq_offset
     ref_offset = 0
     seq_offset = [0]
@@ -152,7 +152,7 @@ class findMutationRunner:
         else:#insertion only count on read seq
           seq_index = seq_offset[0]+i[1]
 
-  def countInsertionBefore(seqLoc,insertLocList):
+  def countInsertionBefore(self,seqLoc,insertLocList):
     if len(insertLocList)==0:
       return 0
     else:
@@ -164,13 +164,13 @@ class findMutationRunner:
           ins += 1
       return ins
 
-  def mutationLocation(entry,insertLoc):#return mutation location in 
+  def mutationLocation(self,entry,insertLoc):#return mutation location in 
     mutations = []
     match = entry
     myList = match.tags
-    S_count = SBeforeFirstM(match.cigar)#hard clip will cut the seq, doesn't count
-    mis = countMismatch(myList)
-    mdlist = parseMD(myList)
+    S_count = self.SBeforeFirstM(match.cigar)#hard clip will cut the seq, doesn't count
+    mis = self.countMismatch(myList)
+    mdlist = self.parseMD(myList)
     mdtag = ''.join(mdlist)
     counter = 0
     if not mdtag.isdigit(): #insertions may exist
@@ -190,7 +190,7 @@ class findMutationRunner:
           if not pre == '^':
             origin = ch
             index = st_seq+S_count+offset
-            insertionBefore = countInsertionBefore(index,insertLoc)
+            insertionBefore = self.countInsertionBefore(index,insertLoc)
             loc = st_genome+match.pos+offset#-insertionBefore #0-based 
             index += insertionBefore # add on 9 Oct
             #print index,len(match.seq)
@@ -200,7 +200,7 @@ class findMutationRunner:
             st_genome = 0
             if match.is_reverse:
               chr = '-'
-              t = RC([origin,mu])
+              t = self.RC([origin,mu])
               origin = t[0]
               mu = t[1]
             else:
@@ -211,11 +211,11 @@ class findMutationRunner:
             loc = st_genome+match.pos+offset-1 #0-based 
             if match.is_reverse:
               strand = '-'
-              ch = RC([ch])[0]
+              ch = self.RC([ch])[0]
             else:
               strand = '+'
             index1 = loc - match.pos 
-            insertionBefore = countInsertionBefore(index1,insertLoc)
+            insertionBefore = self.countInsertionBefore(index1,insertLoc)
             index1 += insertionBefore #added 9 Oct
             mutation = [str(loc),str(loc+1),match.qname,str(index1),strand,"Deletion->"+ch]
             yield mutation
@@ -223,7 +223,7 @@ class findMutationRunner:
 
     return
 
-  def RC(strList):
+  def RC(self,strList):
     rc = []  
     for item in strList:
       st = ""
@@ -251,15 +251,15 @@ class findMutationRunner:
     print >>outputfile, header 
     for item in infile:
       b= item.tags
-      if countMismatch(b)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
+      if self.countMismatch(b)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
         #tmp.write(item)
-        sur = survey(item)
+        sur = self.survey(item)
         insertion = sur[0]
         deletion = sur[1]
         substi = sur[2]
         insertionSeqLoc = []
         if insertion > 0:
-          insertionDic = insertionLocation(item,insertion)
+          insertionDic = self.insertionLocation(item,insertion)
           for k in insertionDic.keys():
             for loc_index in range(len(insertionDic[k])):
               insertionSeqLoc.append(insertionDic[k][loc_index])
@@ -269,14 +269,14 @@ class findMutationRunner:
                 chr = infile.getrname(item.tid)
               if item.is_reverse:
                 strand = '-'
-                mu = RC([mu])[0]
+                mu = self.RC([mu])[0]
               else:
                 strand = "+"
               if par==0:
                 print >>outputfile, "%s\t%s\t%s\t%s\t%s\t%s\t%s" % (chr,str(loc),str(loc+1),item.qname,str(insertionDic[k][loc_index]),strand,"Insertion->"+mu )
           insertionSeqLoc.sort()
         if deletion + substi > 0:
-          for mu in mutationLocation(item,insertionSeqLoc):
+          for mu in self.mutationLocation(item,insertionSeqLoc):
             if item.tid>=0:
               chr  = infile.getrname(item.tid)
               if par==0:
@@ -296,10 +296,10 @@ def findMutationMain(infilePath,outfilePath,par):
     sys.exit(1)
   outputfile = open(outfilePath,"wa") #ouput mutation bed
 
-  findMutationRunner = findMutationRunner(infile,outputfile,par)
-  findMutationRunner.run()
+  afindMutationRunner = findMutationRunner(infile,outputfile,par)
+  afindMutationRunner.run()
 
-def findMutationMain():
+def findMutationMainNoArgs():
   argparser = prepare_argparser()
   args = argparser.parse_args()
 
@@ -315,4 +315,4 @@ def findMutationMain():
   findMutationRunner.run()
 
 if __name__=="__main__":
-  findMutationMain()
+  findMutationMainNoArgs()
