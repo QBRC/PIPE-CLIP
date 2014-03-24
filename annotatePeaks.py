@@ -57,7 +57,7 @@ def downstream(feature):
        feature.end = feature.end + 10000
     return feature
 
-def annotatePeaks(peakFile,genome):
+def annotatePeaks(peakFile,genome,outputFile):
     pybedtools.BedTool(peakFile).each(cleanBed).moveto('peaks.bed')
 
     if (genome=='hg19'):
@@ -103,8 +103,6 @@ def annotatePeaks(peakFile,genome):
           with open(fname) as infile:
              for line in infile:
                 outfile.write(line)
-    
-    
     filenames = ['genebodyPeaks.bed','promoterPeaks.bed','upstreamPeaks.bed','downstreamPeaks.bed','intergenicPeaks.bed','unannotatedPeaks.bed','leftoverpeaks.bed','peaks.bed']
     for fname in filenames:
         os.remove(fname)
