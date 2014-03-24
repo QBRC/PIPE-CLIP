@@ -58,7 +58,7 @@ def downstream(feature):
     return feature
 
 def annotatePeaks(peakFile,genome,outputFile):
-    pybedtools.BedTool(peakFile).each(cleanBed).moveto('peaks.bed')
+    pybedtools.BedTool(peakFile).each(cleanBed).moveto('peaks.bed') #use chr,start,stop to make new BED
 
     if (genome=='hg19'):
         genome = pybedtools.BedTool('hg19.RefSeq.bed')
