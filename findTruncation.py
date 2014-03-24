@@ -11,11 +11,12 @@ import string
 import pysam
 
 class findTruncation:
-  def __init__(self,bamFile):
+  def __init__(self,bamFile,outputFile):
     self.mapped_bam = bamFile
+    self.outputFile = outputFile
 
   def run(self):
-    print "#chr\tstart\tend\tcluster_name\toffset\tstrand\ttype"
+    outputFile.write("#chr\tstart\tend\tcluster_name\toffset\tstrand\ttype");
     for item in self.mapped_bam:
       end = item.pos+1
       if item.is_reverse:
@@ -27,16 +28,16 @@ class findTruncation:
       else:
         continue
       st = chr +"\t"+str(item.pos) + "\t"+ str(end) +"\t" + item.qname +"\t0\t" + strand+"\ttruncation"
-      print st
+      outputFile.write(st)
 
-def findTruncationMain(mapped_bam_path):
+def findTruncationMain(mapped_bam_path,outputPath):
   try:
     mapped_bam = pysam.Samfile(mapped_bam_path,"rb")
   except IOError,message:
     print >> sys.stderr,"Cannot open BAM file.",message
     sys.exit(1)
-
-  findTruncationRunner = findTruncation(mapped_bam)
+  outputFile = open(outputPath,"w+")
+  findTruncationRunner = findTruncation(mapped_bam,outputFile)
   fundTruncationRunner.run()
 
 def findTruncationMain():

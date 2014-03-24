@@ -35,16 +35,16 @@ def prepare_argparser():
   return(argparser)
 
 class mutationFilterRunner:
-  def __init__(self,bamFile,mutationFile,coverageFile,bar,outputRoot,fdr):
+  def __init__(self,bamFile,mutationFile,coverageFile,par,outputRoot,fdr):
     self.bamFile = bamFile
     self.coverageFile = coverageFile
     self.mutationFile = mutationFile
-    self.par = par
     self.outputRoot = outputRoot
+    self.par = par
     self.isPar = fdr > 0
     self.fdr = fdr
 
-  def RC(strList):
+  def RC(self,strList):
     rc = []  
     for item in strList:
       st = ""
@@ -63,7 +63,7 @@ class mutationFilterRunner:
       rc.append(st)
     return(rc)
 
-  def freqRank(readCount,rev=False):
+  def freqRank(self,readCount,rev=False):
     key = sorted(readCount.keys(),reverse=rev)
     r_rank = {}
     rank = 0
@@ -72,13 +72,13 @@ class mutationFilterRunner:
       r_rank[i] =rank
     return r_rank
 
-  def BH(pvalue,pRank,N):
+  def BH(self,pvalue,pRank,N):
     a = N/float(pRank)
     q = a * pvalue
     qva = max(pvalue, q)
     return qva
 
-  def mutationUniq(mufile):
+  def mutationUniq(self,mufile):
     '''
     Get the mutation locations. Strand sensitive.
     '''
@@ -96,14 +96,14 @@ class mutationFilterRunner:
       muList.append(buf)#chr,start,stop,copyNumber,strand,mutationType
     return muList
 
-  def KMvalue(mapfile,mufile):
+  def KMvalue(self,mapfile,mufile):
     '''
     Calculate K(coverage),M(mutation count) value for each mutation location
     Output in BED-like format. Score column(4th column) is the copy number of that mutation, which is the value of M.(strand specific)
     '''
     km = []
     km_pair = {}#Dic of count tuples of (k,m),key:"KkMm"
-    mu_merge = mutationUniq(mufile)
+    mu_merge = self.mutationUniq(mufile)
     count  = 1
     for item in mu_merge:
       st = []
@@ -138,7 +138,7 @@ class mutationFilterRunner:
     return (km,km_pair)
 
 
-  def uniq(b): #b is a list
+  def uniq(self,b): #b is a list
     uniqElements = []
     for i in b:
       if uniqElements.count(i)==0:
@@ -147,8 +147,8 @@ class mutationFilterRunner:
     return uniqElements
 
 
-  def muEvaluate(mapfile,mufile,cover,threshold):
-    (original_KM,KM_test) = KMvalue(mapfile,mufile)
+  def muEvaluate(self,mapfile,mufile,cover,threshold):
+    (original_KM,KM_test) = self.KMvalue(mapfile,mufile)
     R = robject.r
     reliableList = []
     P = len(mufile)/(cover*1.0)
@@ -160,13 +160,13 @@ class mutationFilterRunner:
       pvalues.append(p)
       km_p[k]=p
     pCount = dict(Counter(pvalues))
-    pRank = freqRank(pCount,True)
+    pRank = self.freqRank(pCount,True)
     total_test = len(mufile)
     pqDic={}
     for i in pRank.keys():
       try:
         p_rank = pRank[i]
-        q_value = BH(i,p_rank,total_test)
+        q_value = self.BH(i,p_rank,total_test)
         pqDic[i]=q_value
       except:
         print >> sys.stderr,"Cannot find p value in dictionary"
@@ -186,7 +186,7 @@ class mutationFilterRunner:
       filename = self.outputRoot+".bed"
       outputfile = open(filename,"wa")
       print >> outputfile,"#chr\tstart\tend\tname\tp\tstrand\ttype\tk\tm"
-      for reliable_mu in muEvaluate(self.bamFile,self.mutationFile,coverage,self.fdr):
+      for reliable_mu in self.muEvaluate(self.bamFile,self.mutationFile,coverage,self.fdr):
         print >>outputfile,'\t'.join(reliable_mu)
     else: #splitfile to insertion, deletion, substitution
       insertion = []
@@ -209,24 +209,24 @@ class mutationFilterRunner:
       print >> outfile_ins,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
       print >> outfile_del,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
       print >> outfile_sub,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
-      for reliable_mu in muEvaluate(self.bamFile,insertion,coverage,self.fdr):
+      for reliable_mu in self.muEvaluate(self.bamFile,insertion,coverage,self.fdr):
         print >> outfile_ins,'\t'.join(reliable_mu)
-      for reliable_mu in muEvaluate(self.bamFile,deletion,coverage,self.fdr):
+      for reliable_mu in self.muEvaluate(self.bamFile,deletion,coverage,self.fdr):
         print >> outfile_del,'\t'.join(reliable_mu)
-      for reliable_mu in muEvaluate(self.bamFile,substitution,coverage,self.fdr):
+      for reliable_mu in self.muEvaluate(self.bamFile,substitution,coverage,self.fdr):
         print >> outfile_sub,'\t'.join(reliable_mu)
 
 
 # mutationFilter.mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
 def mutationFilterMain(saminputPath,bedinputPath,outputRoot,par,fdr,coveragefilePath):
   try:
-    bamfile = pysam.Samfile(saminputPath,"rb")
+    bamFile = pysam.Samfile(saminputPath,"rb")
   except IOError,message:
     print >> sys.stderr, "cannot open mapping BAM file",message
     sys.exit(1)
 
   try:
-    mutationfile = BedTool(bedinputPath)
+    mutationFile = BedTool(bedinputPath)
   except IOError,message:
     print >> sys.stderr, "cannot open mutation BED file",message
     sys.exit(1)

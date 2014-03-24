@@ -71,6 +71,7 @@ class inputProcessRunner:
     else: #There is something wrong with the file itself
       print >> sys.stderr,"File corrupted, please check your file."
       sys.exit(1)
+
 def inputProcessMain(inputFilePath,outputRoot):
   print inputFilePath
   ainputProcessRunner = inputProcessRunner(inputFilePath,outputRoot)

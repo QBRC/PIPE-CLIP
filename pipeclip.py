@@ -34,24 +34,32 @@ def prepare_argparser():
 
 def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
   ########################## Process input #######################
+  print "input process main"
   inputProcess.inputProcessMain(infile,outputPrefix)
+  print "samfilter main"
   SAMFilter.SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
 
   ######################### Enrich clusters ######################
+  print "mergeReadsMain"
   mergeReadsMain(outputPrefix+".filter.bam",outputPrefix+".filter.rehead.merge")
 
   ######################### Enrich clusters ######################
+  print "R Analysis"
   call(["Rscript","ZTNB.R",outputPrefix+".filter.rehead.merge",str(fdrEnrichedCluster)])
+  print "getCluster main"
   getCluster.getClusterMain(outputPrefix+".filter.rehead.merge",outputPrefix+".filter.rehead.merge.ztnb", outputPrefix+".filter.cluster.bed")
 
   ########################### Mutation #############################
+  print "Mutation section"
   if clipType == "3":
-    findTruncation.findTruncationMain(outputPrefix+".filter.bam")
+    findTruncation.findTruncationMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed")
   else:
-    findMutation.findMutationMain(outputPrefix+".filter.bam",outputPrefix+".filter.merge.ztnb",clipType);
+    findMutation.findMutationMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",clipType)
+  print "mutaiton filter"
   mutationFilter.mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
 
   ######################### Merge and annotation ################
+  print "Merge and annotaiton"
   if clipType == "0":
     getCrosslinking.getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_deletion.bed", outputPrefix+"crosslinking.deletion.bed")
     getCrosslinking.getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".reliable_insertion.bed", outputPrefix+"crosslinking.insertion.bed")
