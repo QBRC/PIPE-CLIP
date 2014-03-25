@@ -2,6 +2,10 @@
 # Usage: Annotate peaks for hg19 and mm10.
 # Input: BED file
 # Output: BED file with additional columns for annotation
+# Annotation Details: Upstream -10kb to -1kb of TSS
+#                     Promoter -1kb to TSS
+#                     GeneBody TSS to TTS
+#                     Downstream TTS to +5kb
 
 import sys
 import os
