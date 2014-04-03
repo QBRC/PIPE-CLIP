@@ -7,11 +7,11 @@ Pipeline for CLIP-seq Analysis.
 
 
 Requirement:
-- (1) Python 3.0 and above; 
-- (2) R 3.0 and above;
-- (3) Python packages: pysam, pybedtools, matplotlib, numpy, ghmm and rpy2;
-- (4) R packages: MASS,VGAM and their dependencies.
-- (5) Other packages: bedtools
+-  Python 3.0 and above; 
+-  R 3.0 and above;
+-  Python packages: pysam, pybedtools, matplotlib, numpy, ghmm and rpy2;
+-  R packages: MASS,VGAM and their dependencies.
+-  Other packages: bedtools
 
 
 Installation tips:
