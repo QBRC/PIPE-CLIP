@@ -40,7 +40,7 @@ class crossLinkingRunner:
     return fps
 
   def run(self):
-    bed_merge = cluster_bed.intersect(mutation_bed,wao=True)
+    bed_merge = self.cluster_bed.intersect(self.mutation_bed,wao=True)
     overlap = {}
     mutationLoc = {}
     kms = {}
@@ -78,8 +78,8 @@ def getCrossLinkingMain(cluster_bed_path,mutation_bed_path,producedFilePath):
     sys.exit(1)
 
   producedFile = open(producedFilePath,"w+")
-  crossLinkingRunner = crossLinkingRunner(cluster_bed,mutation_bed,producedFile)
-  crossLinkingRunner.run()
+  acrossLinkingRunner = crossLinkingRunner(cluster_bed,mutation_bed,producedFile)
+  acrossLinkingRunner.run()
 
 def crossLinkingRunnerMain():
   try:

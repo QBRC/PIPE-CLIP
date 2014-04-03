@@ -23,9 +23,10 @@ def BAMFileSelectionCallback():
 def PreBAMFileSelectionCallback():
   thread = threading.Thread(target=BAMFileSelectionCallback)
   thread.start()
-
+def popup(title,msg):
+  tkMessageBox.showinfo(title,msg)
 def popupError(msg):
-  tkMessageBox.showinfo("Parameter Error",msg)
+  popup("Parameter Error",msg)
 
 row = 0
 col = 0
@@ -68,13 +69,13 @@ fdrReliableMutationLabel= Label(root,text="FDR for reliable mutations").grid(row
 fdrReliableMutationEntry = Entry(root,bd=3,textvariable=fdrReliableMutationString).grid(row=row,column=1)
 row += 1
 
-speciesLabel = Label(root,bd=3,text="Species").grid(row=row,column=0)
-speciesListbox = Listbox(root,selectmode="single",height=3,exportselection=0)
-speciesListbox.insert(0,"mm10")
-speciesListbox.insert(1,"hg19")
-speciesListbox.insert(1,"mm9")
-speciesListbox.grid(row=row,column=1)
-row += 1
+#speciesLabel = Label(root,bd=3,text="Species").grid(row=row,column=0)
+#speciesListbox = Listbox(root,selectmode="single",height=3,exportselection=0)
+#speciesListbox.insert(0,"mm10")
+#speciesListbox.insert(1,"hg19")
+#speciesListbox.insert(1,"mm9")
+#speciesListbox.grid(row=row,column=1)
+#row += 1
 
 bamFileButton = Button(root,text="Select BAM File",command = PreBAMFileSelectionCallback).grid(row=row,column=0)
 bamFileEntry = Entry(root, bd=3,textvariable=bamFileEntryString,state=DISABLED).grid(row=(row),column=1)
@@ -102,12 +103,12 @@ def processCommandArgs():
   else:
     clipType = clipTypeListbox.curselection()[0]
 
-  if not len(speciesListbox.curselection()) > 0:
-    if not error:
-      popupError("PLease selection a species")
-    error = True
-  else:
-    species =  speciesListbox.curselection()[0]
+  #if not len(speciesListbox.curselection()) > 0:
+  #  if not error:
+  #    popupError("PLease selection a species")
+  #  error = True
+  #else:
+  #  species =  speciesListbox.curselection()[0]
 
   if not re.match('[1-4]',mismatch,flags=0):
     if not error:
@@ -144,10 +145,9 @@ def processCommandArgs():
     error = True
 
   if not error:
-    print "Running analysis"
     import pipeclip
-    pipeclip.runPipeClip(infile,outputPrefix,int(matchLength),int(mismatch),int(pcr),float(fdrCluster),int(clipType),float(fdrMutation),species)
-    print "Done with analysis"
+    pipeclip.runPipeClip(infile,outputPrefix,int(matchLength),int(mismatch),int(pcr),float(fdrCluster),int(clipType),float(fdrMutation),None)
+    popup("Success","Done with analysis. Output can be found in"+outputPrefix)
 
 def runGui(runButton):
   runButton.configure(state=NORMAL,text="Run")
