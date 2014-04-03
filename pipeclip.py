@@ -18,6 +18,7 @@ from mergeReads import *
 import mutationFilter
 import SAMFilter
 from subprocess import call
+import os
 
 def prepare_argparser():
   description = "Find mutations"
@@ -35,28 +36,28 @@ def prepare_argparser():
 
 def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
   ########################## Process input #######################
-  print "input process main"
+  #print "input process main"
   inputProcess.inputProcessMain(infile,outputPrefix)
-  print "samfilter main"
+  #print "samfilter main"
   SAMFilter.SAMFILTERMain(outputPrefix+".sorted.bam",outputPrefix+".filter",matchLength,mismatch,pcr,clipType)
 
   ######################### Enrich clusters ######################
-  print "mergeReadsMain"
+  #print "mergeReadsMain"
   mergeReadsMain(outputPrefix+".filter.bam",outputPrefix+".filter.rehead.merge")
 
   ######################### Enrich clusters ######################
-  print "R Analysis"
+  #print "R Analysis"
   call(["Rscript","ZTNB.R",outputPrefix+".filter.rehead.merge",str(fdrEnrichedCluster)])
-  print "getCluster main"
+  #print "getCluster main"
   getCluster.getClusterMain(outputPrefix+".filter.rehead.merge",outputPrefix+".filter.rehead.merge.ztnb", outputPrefix+".filter.cluster.bed")
 
   ########################### Mutation #############################
-  print "Mutation section"
+  #print "Mutation section"
   if clipType == "3":
     findTruncation.findTruncationMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed")
   else:
     findMutation.findMutationMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",clipType)
-  print "mutaiton filter"
+  #print "mutaiton filter"
   mutationFilter.mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".mutation.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
 
   ######################### Merge and annotation ################
@@ -74,6 +75,20 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,
 
   #if species is not None:
   #  annotatePeaks.annotatePeak( outputPrefix+".crosslinking.bed", species,outputPrefix+".crosslinking.anno.txt")
+
+  cleanupFiles = [outputPrefix+".filter.bam",
+      outputPrefix+".filter.bam.bai",
+      outputPrefix+".filter.cluster.bed",
+      outputPrefix+".filter.coverage",
+      outputPrefix+".filter.mutation.bed",
+      outputPrefix+".filter.rehead.merge",
+      outputPrefix+".filter.rehead.merge.ztnb",
+      outputPrefix+".header",
+      outputPrefix+".mutation.reliable.bed",
+      outputPrefix+".sorted.bam",
+      outputPrefix+".sorted.bam.bai"]
+  for file in cleanupFiles:
+    os.remove(file)
 
 if __name__=="__main__":
   arg_parser = prepare_argparser()
