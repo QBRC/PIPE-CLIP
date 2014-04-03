@@ -229,28 +229,28 @@ class SAMFILTERRunner:
         else: #not same with existing starts
           if len(reductantList)==1: #no reductance
             outputfile.write(former)
-            lenList.append(countMatchLength(former.cigar))
+            lenList.append(self.countMatchLength(former.cigar))
           else:#choose removal method
             remain = PCRdupRm(reductantList,rm_loc)
             for r in remain:
-              lenList.append(countMatchLength(r.cigar))
+              lenList.append(self.countMatchLength(r.cigar))
               outputfile.write(r)
           former = item
           reductantList=[item]
           counter += 1
         if counter >= len(filterFile): #reach the last line of file
           if len(reductantList)<=1: #no reductance
-            lenList.append(countMatchLength(item.cigar))
+            lenList.append(self.countMatchLength(item.cigar))
             outputfile.write(item)
           else:
             remain = PCRdupRm(reductantList,rm_loc)
             for r in remain:
-              lenList.append(countMatchLength(r.cigar))
+              lenList.append(self.countMatchLength(r.cigar))
               outputfile.write(r)
     else:
       if len(lenList)==0:
         for item in filterFile:
-          lenList.append(countMatchLength(item.cigar))
+          lenList.append(self.countMatchLength(item.cigar))
           outputfile.write(item)
       else:
         for item in filterFile:

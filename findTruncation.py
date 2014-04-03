@@ -16,7 +16,7 @@ class findTruncation:
     self.outputFile = outputFile
 
   def run(self):
-    outputFile.write("#chr\tstart\tend\tcluster_name\toffset\tstrand\ttype");
+    self.outputFile.write("#chr\tstart\tend\tcluster_name\toffset\tstrand\ttype");
     for item in self.mapped_bam:
       end = item.pos+1
       if item.is_reverse:
@@ -28,7 +28,7 @@ class findTruncation:
       else:
         continue
       st = chr +"\t"+str(item.pos) + "\t"+ str(end) +"\t" + item.qname +"\t0\t" + strand+"\ttruncation"
-      outputFile.write(st)
+      self.outputFile.write(st)
 
 def findTruncationMain(mapped_bam_path,outputPath):
   try:
@@ -38,9 +38,9 @@ def findTruncationMain(mapped_bam_path,outputPath):
     sys.exit(1)
   outputFile = open(outputPath,"w+")
   findTruncationRunner = findTruncation(mapped_bam,outputFile)
-  fundTruncationRunner.run()
+  findTruncationRunner.run()
 
-def findTruncationMain():
+def findTruncationMainNoArgs():
   try:
     mapped_bam = pysam.Samfile(sys.argv[1],"rb")
   except IOError,message:
@@ -65,4 +65,4 @@ def findTruncationMain():
     print st
   """
 if __name__=="__main__":
-  findTruncationMain()
+  findTruncationMainNoArgs()
