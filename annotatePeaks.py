@@ -2,6 +2,10 @@
 # Usage: Annotate peaks for hg19 and mm10.
 # Input: BED file
 # Output: BED file with additional columns for annotation
+# Annotation Details: Upstream -10kb to -1kb of TSS
+#                     Promoter -1kb to TSS
+#                     GeneBody TSS to TTS
+#                     Downstream TTS to +5kb
 
 import sys
 import os
@@ -58,7 +62,7 @@ def downstream(feature):
     return feature
 
 def annotatePeaks(peakFile,genome,outputFile):
-    pybedtools.BedTool(peakFile).each(cleanBed).moveto('peaks.bed')
+    pybedtools.BedTool(peakFile).each(cleanBed).moveto('peaks.bed') #use chr,start,stop to make new BED
 
     if (genome=='hg19'):
         genome = pybedtools.BedTool('hg19.RefSeq.bed')
