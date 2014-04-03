@@ -3,23 +3,72 @@
 # Usage: generate clusters with reads count for cluster enrichment analysis
 # Input: BAM
 # Output: BED
-# Last modified: 19 Dec. 2013
+# Last modified: 17 Mar. 2014
 
 
 import sys
 import string
-from pysam import *
+import pysam
 from pybedtools import BedTool
+import BED
 
+class mergeReadsRunner:
+	def __init__(self,mapped_bam,producedFile):
+		self.mapped_bam =	mapped_bam
+		self.output = producedFile
 
+	def run(self):
+		cluster_counter = 1
+		for index,read in enumerate(self.mapped_bam):
+			#change bam to bed
+			if read.tid>=0:
+					chr = self.mapped_bam.getrname(read.tid)
+					if read.is_reverse:
+							strand = "-"
+					else:
+							strand = "+"
+					read_bed = BED.BED(chr,read.pos,read.pos+read.alen,"cluster",1,strand)
+					if index == 0:
+							self.this_group = read_bed 
+							self.this_group.name = "cluster"+str(cluster_counter)
+							continue
+					else:#compare recent read to recent group
+							if self.this_group.overlap(read_bed):
+									self.this_group.merge(read_bed)
+							else:#print the recent group and make a new one
+									print >> self.output, self.this_group
+									cluster_counter += 1
+									self.this_group = read_bed
+									self.this_group.name = "cluster"+str(cluster_counter)
+			else: #the read is unmapped, which should not be the case here
+					continue
+		#print the last group
+		print >> self.output, self.this_group
 
-def main():
+def mergeReadsMain(bamFilePath,producedFilePath): #Eric, please use this main funtion when you modify
 	try:
-		mapped_bam = BedTool(sys.argv[1])
+		mapped_bam = pysam.Samfile(bamFilePath) #change sys.argv[1] to bamFilePath
 	except IOError,message:
 		print >> sys.stderr,"Cannot open BAM file.",message
 		sys.exit(1)
 	
+	producedFile = open(producedFilePath,"w+") #change sys.argv[2] to produceFilePath
+	myRunner = mergeReadsRunner(mapped_bam,producedFile)
+	myRunner.run()
+
+def mergeReadsMainNoArgs():
+	try:
+		mapped_bam = pysam.Samfile(sys.argv[1]) #change sys.argv[1] to bamFilePath
+	except IOError,message:
+		print >> sys.stderr,"Cannot open BAM file.",message
+		sys.exit(1)
+	
+	producedFile = open(sys.argv[2],"w+") #change sys.argv[2] to produceFilePath
+	myRunner = mergeReadsRunner(mapped_bam,producedFile)
+	myRunner.run()
+	
+
+	"""
 	mapped_bed = mapped_bam.bam_to_bed()
 	bed_merge = mapped_bed.merge(s=True, n=True)
 	
@@ -28,6 +77,6 @@ def main():
 		name = "cluster_"+str(count)
 		count += 1
 		print "%s\t%s\t%s\t%s\t%s\t%s" % (item[0],item[1],item[2],name,item[3],item[4])
-
+	"""
 if __name__=="__main__":
-	main()
+	mergeReadsMainNoArgs()
