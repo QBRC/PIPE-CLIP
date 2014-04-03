@@ -57,7 +57,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,
   else:
     findMutation.findMutationMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",clipType)
   print "mutaiton filter"
-  mutationFilter.mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".filter.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
+  mutationFilter.mutationFilterMain(outputPrefix+".filter.bam",outputPrefix+".filter.mutation.bed",outputPrefix+".mutation.reliable",clipType,fdrReliableMutation,outputPrefix+".filter.coverage")
 
   ######################### Merge and annotation ################
   #print "Merge and annotaiton"
@@ -70,7 +70,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,
   #    annotatePeaks.annotatePeak( outputPrefix+".crosslinking.insertion.bed", species,outputPrefix+".crosslinking.insertion.anno.txt")
   #    annotatePeaks.annotatePeak( outputPrefix+".crosslinking.substitution.bed", species, outputPrefix+".crosslinking.substitution.anno.txt")
   else:
-    getCrosslinking.getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".filter.reliable.bed",outputPrefix+".crosslinking.bed")
+    getCrosslinking.getCrossLinkingMain(outputPrefix+".filter.cluster.bed",outputPrefix+".filter.mutation.bed",outputPrefix+".crosslinking.bed")
 
   #if species is not None:
   #  annotatePeaks.annotatePeak( outputPrefix+".crosslinking.bed", species,outputPrefix+".crosslinking.anno.txt")

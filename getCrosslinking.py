@@ -61,8 +61,8 @@ class crossLinkingRunner:
     for k in overlap.keys():
       fisher_p = fisherTest(pvalues[k])
       #print "%s\t%f\t%s\t%s" % (k,fisher_p, ','.join(overlap[k]), ','.join(mutationLoc[k]))
-      producedFile.write("%s\t%f\t%s\t%s" % (k,fisher_p, ','.join(overlap[k]), ','.join(mutationLoc[k])))
-    producedFile.close()
+      self.producedFile.write("%s\t%f\t%s\t%s" % (k,fisher_p, ','.join(overlap[k]), ','.join(mutationLoc[k])))
+    self.producedFile.close()
 
 def getCrossLinkingMain(cluster_bed_path,mutation_bed_path,producedFilePath):
   try:

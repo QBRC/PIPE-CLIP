@@ -147,7 +147,7 @@ def processCommandArgs():
   if not error:
     import pipeclip
     pipeclip.runPipeClip(infile,outputPrefix,int(matchLength),int(mismatch),int(pcr),float(fdrCluster),int(clipType),float(fdrMutation),None)
-    popup("Success","Done with analysis. Output can be found in"+outputPrefix)
+    popup("Success","Done with analysis.")
 
 def runGui(runButton):
   runButton.configure(state=NORMAL,text="Run")
