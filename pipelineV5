@@ -1,0 +1,87 @@
+#! /bin/sh
+#Required packages: pysam, ghmm, pybedtools, samtools
+#Required parameters
+#$1: Input SAM/BAM file
+#$2: Output prefix
+#$3: Shorted matched segment length
+#$4: Maximum mismatch number
+#$5: PCR removal: (0)no removal; (1)same-start removal; (2)same-seq removal  
+#$6: FDR for enriched clusters
+#$7: CLIP type (0)HITS-CLIP; (1)PAR-4SU; (2)PAR-6SG; (3)iCLIP
+#$8: FDR for reliable mutations
+#$9: Species ["mm10","hg19"]
+#
+#
+#
+##########################Process input#######################
+inputProcess.py $1 temp
+samtools index ${__tool_data_path__}temp.sorted.bam
+samtools view -H ${__tool_data_path__}temp.sorted.bam > temp.header
+
+SAMFilter.py -i ${__tool_data_path__}temp.sorted.bam -o temp.filter -m $3 -n $4 -r $5 -t $7
+samtools reheader ${__tool_data_path__}temp.header ${__tool_data_path__}temp.filter.bam > temp.filter.rehead.bam
+samtools index ${__tool_data_path__}temp.filter.rehead.bam
+
+
+#########################Clustering filtered mapped reads######
+mergeReads.py ${__tool_data_path__}temp.filter.rehead.bam > temp.filter.rehead.merge
+
+
+#########################Enrich clusters######################
+
+Rscript /home/galaxy/galaxy-dist/tools/Pipeclip/pipeclipV3/ZTNB.R ${__tool_data_path__}temp.filter.rehead.merge $6 > dump
+
+if [ -f ${__tool_data_path__}temp.filter.rehead.merge.ztnb ];
+then
+  getCluster.py ${__tool_data_path__}temp.filter.rehead.merge  ${__tool_data_path__}temp.filter.rehead.merge.ztnb > temp.filter.cluster.bed
+
+
+  ###########################Mutation#############################
+  if test "$7" = "3"  #iCLIP
+  	then
+  		findTruncation.py ${__tool_data_path__}temp.filter.rehead.bam > temp.filter.mutation.bed
+  	else
+  		findMutation.py -i ${__tool_data_path__}temp.filter.rehead.bam -o temp.filter.mutation.bed -p $7
+  fi
+
+  mutationFilter.py -a ${__tool_data_path__}temp.filter.rehead.bam -b ${__tool_data_path__}temp.filter.mutation.bed -o temp.filter.reliable -p $7 -f $8 -c  ${__tool_data_path__}temp.filter.coverage
+
+
+  #########################Merge and annotation################
+  if test "$7" = "0" #HITS-CLIP
+  	then
+  	getCrosslinking.py ${__tool_data_path__}temp.filter.cluster.bed ${__tool_data_path__}temp.filter.reliable_deletion.bed > CrossLinkingSites.deletion.bed
+  	getCrosslinking.py ${__tool_data_path__}temp.filter.cluster.bed ${__tool_data_path__}temp.filter.reliable_insertion.bed > CrossLinkingSites.insertion.bed
+  	getCrosslinking.py ${__tool_data_path__}temp.filter.cluster.bed ${__tool_data_path__}temp.filter.reliable_substitution.bed > CrossLinkingSites.substitution.bed
+  
+  	if test "${9}" != "None"
+  		then
+			annotatePeaks.pl ${__tool_data_path__}CrossLinkingSites.deletion.bed ${9} > CrossLinkingSites.deletion.annotation.txt 2>dump
+  			annotatePeaks.pl ${__tool_data_path__}CrossLinkingSites.insertion.bed ${9} > CrossLinkingSites.insertion.annotation.txt 2>dump
+  			annotatePeaks.pl ${__tool_data_path__}CrossLinkingSites.substitution.bed ${9} > CrossLinkingSites.substitution.annotation.txt 2>dump
+  
+  	fi
+
+          mv ${__tool_data_path__}temp.filter.reliable_deletion.bed Reliable_deletions.bed
+          mv ${__tool_data_path__}temp.filter.reliable_insertion.bed Reliable_insertions.bed
+          mv ${__tool_data_path__}temp.filter.reliable_substitution.bed Reliable_substitutions.bed
+  fi
+
+  if test "$7" != "0" #OTHER
+  	then
+  	getCrosslinking.py ${__tool_data_path__}temp.filter.cluster.bed ${__tool_data_path__}temp.filter.reliable.bed > CrossLinkingSites.bed
+  	
+  	if test "${9}" != "None"
+  		then
+  			annotatePeaks.pl ${__tool_data_path__}CrossLinkingSites.bed $9 > CrossLinkingSites.annotation.txt 2>dump
+  		fi
+          mv ${__tool_data_path__}temp.filter.reliable.bed Reliable_mutations.bed
+
+  fi
+
+  zip temp ${__tool_data_path__}*.pdf ${__tool_data_path__}CrossLinkingSites* ${__tool_data_path__}Reliable* ${__tool_data_path__}*.txt
+  mv ${__tool_data_path__}temp.zip ${2}
+
+else
+  echo "Model failed to converge. Options: 1. Rerun analysis. Random seed may allow for convergence. 2. Use data with higher coverage."
+fi

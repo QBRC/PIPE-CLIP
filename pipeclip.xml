@@ -1,0 +1,121 @@
+<tool id="clip_seq" name="PIPE-CLIP">
+	<description></description>
+	<command interpreter="bash">pipelineV5 $input $output $shortest_match_seg_length $max_mismatch $pcr_dub $fdr_cluster $clip_type $fdr_mutation $annotate </command>
+	<inputs>
+		<param name="input" type="data" format="bam" label="Input Bam File"/>
+     		<param name="clip_type" type="select" label="Clip Type" help="">
+        		<option value="0" selected="true">HITS CLIP</option>
+        		<option value="1">PAR CLIP (4SU)</option>
+			<option value="2">PAR CLIP (6SG)</option>
+			<option value="3">iCLIP</option>
+      		</param>	
+		<param name="pcr_dub" label="Remove PCR Duplicate?" type="select" help="Default - No Duplicates Removed.">
+			<option value="0" selected="true">No</option>
+			<option value="1">Remove by start location.</option>
+			<option value="2">Remove by sequence.</option>
+		</param>
+		<param name="shortest_match_seg_length" type="integer" value="20" label="Shortest matched segment length"/>
+		<param name="max_mismatch" type="integer" value="2" label="Maximum mismatch number " help="Since mutation is important to this pipeline, when this number is set to 0, the mismatch filter won’t work."/>
+		<param name="fdr_cluster" label="FDR for determining Enriched Cluster" type="float" value="0.01" />
+		<param name="fdr_mutation" type="float" value="0.01" label="FDR for determining Reliable Mutations"/>
+		<param name="annotate" type="select" label="Reference Annotation" help="Select the organism to use as reference annotation.">
+			<option value="mm10">mm10: Mus musculus</option>
+			<option value="mm9">mm9: Mus musculus</option>
+			<option value="hg19">hg19: Homo sapiens</option>
+			<option value="None" selected="true">None</option>
+                </param>
+  	</inputs>
+
+	<outputs>
+		<data format="zip" name="output" />
+
+	</outputs>
+
+
+  	<help>
+
+**About**
+
+Mammalian RNA is regulated through interactions of RNA-binding proteins (RBPs) with their target transcripts. UV-crosslinking and immunoprecipitation combining high-throughput sequencing (CLIP-seq) is able to profile genome-wide RBP-binding regions accurately and efficiently. Here we present PIPECLIP, a web tool which provides a pipeline for both bioinformaticians and biologist to identify the most likely cross-linking sites from PAR-CLIP, HITS-CLIP and iCLIP sequencing data.
+
+
+------
+
+
+**Note**
+Demo data for PIPECLIP analysis available under Shared Data(Libraries). Please import into history for sample test run. More details available in the PipeClip Galaxy Manual.
+
+
+**Manual**
+
+PipeClipGalaxyManual_
+
+.. _PipeClipGalaxyManual: http://pipeclip.qbrc.org/static/OnlineManual.pdf
+
+
+
+------
+
+
+
+**Authors**
+
+
+PIPE-CLIP is written by Beibei Chen and Min Soo Kim from http://qbrc.swmed.edu/
+
+
+
+------
+
+**Parameters**
+
+*Input*
+
+SAM file from any mapping tool. Make sure the SAM file contains its header, otherwise an error will occur.
+
+*CLIP type*
+
+ - HITS-CLIP: Deletions, insertions and substitutions will be analyzed separately.
+ - PAR-CLIP (4SU): Only T->C substitution will be analyzed.
+ - PAR-CLIP (6SG): Only G->A substitution will be analyzed.
+ - iCLIP: The 1st nucleotide of each read will be analyzed.
+
+*Remove PCR duplicate*
+
+ Look for a representative reads for all the reads which have the same genomic starting location. Two methods are provided:
+  - Remove by starting location: A represent read will be selected from a bunch of reads with the same start location.
+  - Remove by sequence: A represent read will be selected from a bunch of reads with exactly the same sequence.
+
+*Shortest matched segment length*
+
+This length is the sum of perfectly matched nucleotides number and insertion number. Reads whose matched segment length less than threshold will not be included in further analysis.
+
+
+*Maximum mismatch number*
+
+Although this can be set in mapping, here we still provide this filter in case users want to try more stringent criteria than what they set in mapping.
+
+
+
+*FDR*
+
+There are two FDR thresholds for clusters and mutations selection respectively. Default for enriched clusters and reliable mutations is 0.05.
+
+
+*Reference Annotations*
+
+Organism for which to use as reference for annotation of mutations sites.
+
+
+*Notes*
+
+ Even if you select to remove PCR duplicates for iCLIP, the program will not do it. 
+
+
+------
+
+**Contact**
+
+If you have any comments, suggestions, questions, bug reports, etc., feel free to contact Beibei.Chen@UTSouthwestern.edu or Mins.kim@UTSouthwestern.edu.
+  	</help>
+</tool>
