@@ -5,18 +5,10 @@
 #Required packages: pysam, ghmm, pybedtools
 #Last modification: 3 March 2014
 
+from lib import *
+
 import sys
 import argparse
-import annotatePeaks
-import barcodeRemoval
-import findMutation
-import findTruncation
-import getCluster
-import getCrosslinking
-import inputProcess
-from mergeReads import *
-import mutationFilter
-import SAMFilter
 from subprocess import call
 import os
 
@@ -47,7 +39,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,
 
   ######################### Enrich clusters ######################
   #print "R Analysis"
-  call(["Rscript","ZTNB.R",outputPrefix+".filter.rehead.merge",str(fdrEnrichedCluster)])
+  call(["Rscript","lib/ZTNB.R",outputPrefix+".filter.rehead.merge",str(fdrEnrichedCluster)])
   #print "getCluster main"
   getCluster.getClusterMain(outputPrefix+".filter.rehead.merge",outputPrefix+".filter.rehead.merge.ztnb", outputPrefix+".filter.cluster.bed")
 
