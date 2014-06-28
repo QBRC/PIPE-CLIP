@@ -3,7 +3,7 @@
 # Usage: remove PCR duplicates by comparing the sequences and return fastq file with barcode removed.
 # Input: fastq file
 # Output: fastq file
-# Last modified: Feb 19 Dec. 2014 - Eric Roos <eric.roos@utsouthwestern.edu>
+# Last modified: 28 June 2014 - Beibei Chen <beibei.chen@utsouthwestern.edu>
 
 import sys
 import re
@@ -16,12 +16,6 @@ class fastq:
     self.name = x[2]
     self.quality = x[3]
   
-  def __init__(self,id,seq,name,quality):
-    self.id = id
-    self.seq = seq
-    self.name = name
-    self.quality = quality
-
   def __str__(self):
     st = self.id+self.seq+self.name+self.quality
     return st
@@ -90,8 +84,8 @@ def barCodeRemovalMain():
     barLen = int(sys.argv[2])
   except:
     barLen = 5
-  barcodeRemover = barcodeRemover(infile,barLen)
-  barcodeRemover.run()  
+  myBarcodeRemover = barcodeRemover(infile,barLen)
+  myBarcodeRemover.run()  
 
 if __name__=="__main__":
   barCodeRemovalMain()
