@@ -1,41 +1,24 @@
 #!/usr/bin/python
 # programmer: beibei.chen@utsouthwestern.edu
-# Usage: definition of alignment files including BED and BAM
+# Usage: definition of utilities to handel pysam classes
 
-import gzip
+import sys
 
-class BED:
-	def __init__(self,chr,start,stop,name,score,strand):
-		self.chr = chr
-		self.start = start
-		self.stop = stop
-		self.name = name
-		self.score = score
-		self.strand = strand
-	
-	def __str__(self):
-		st = "\t".join([self.chr,str(self.start),str(self.stop),self.name,str(self.score),self.strand])
-		return st
-
-	def merge(self,read):
-		self.stop = read.stop
-		self.score += 1
-
-	def overlap(self,read):
-		if self.chr == read.chr or self.strand == read.strand:
-			if self.start <= read.stop and self.stop >=read.start:
-				return True
-			else:
+def is_sorted(header):
+	'''Get a BAM header, and check if this file is sorted or not
+	   Return: True: sorted, False: unsorted
+	   Header variable is a list
+	'''
+	for row in header:
+		buf = row.rstrip().split("\t")
+		if buf[0]=="@HD":
+			print >> sys.stderr, buf
+			if buf[2] in ["SO:unsorted","SO:unknown"] :
 				return False
-
-class BAM:
-	def __init__(self,filepath):
-		self.filePath = filePath
-		self.header = None
-		self.sorted = None
-
-	def checkHeader(self):
-		'''Use gzip package to check if this is a bam or sam'''
+			elif buf[2] in ["SO:coordinate","SO:queryname"]:
+				return True
+	#If no HD header contains SO info, return False
+	return False 
 
 
 

@@ -10,7 +10,7 @@ def is_sorted(header):
 	   Header variable is a list
 	'''
 	for row in header:
-		buf = row.split("\t")
+		buf = row.rstrip().split("\t")
 		if buf[0]=="@HD":
 			if buf[2] in ["SO:unsorted","SO:unknown"] :
 				return False
