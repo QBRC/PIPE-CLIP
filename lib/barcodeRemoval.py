@@ -29,7 +29,7 @@ class fqList:
     st = []
     buf =  fh.readlines()
     for i in range(len(buf)):
-      if buf[i][0]=="@" and buf[i][0]=="+":
+      if buf[i][0]=="@" and buf[i+2][0]=="+":
         st.append(buf[i])
         st.append(buf[i+1])
         st.append(buf[i+2])
