@@ -30,13 +30,19 @@ def prepare_argparser():
   return(argparser)
 
 def runPipeClip(infile):#,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
-  ########################## Process input #######################
+  ########################## Check input #######################
   myClip = CLIP.CLIP(infile)
   if myClip.testInput():
 	  pass
   else:
 	  print >> sys.stderr, "File corruputed, program exit."
 	  sys.exit(0)
+	
+	#########################Process the input file #############
+	#1: check the match-length and mismatch count
+	#2: check the PCR duplication removal options
+	#3: After get the results from rmdup, merge them to clusters 
+	#   and recored the mutations at the same type, also count coverage
 
 if __name__=="__main__":
   arg_parser = prepare_argparser()

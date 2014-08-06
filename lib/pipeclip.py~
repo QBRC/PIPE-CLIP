@@ -30,13 +30,14 @@ def prepare_argparser():
   return(argparser)
 
 def runPipeClip(infile):#,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
-  ########################## Process input #######################
-  myClip = CLIP(infile)
+  ########################## Check input #######################
+  myClip = CLIP.CLIP(infile)
   if myClip.testInput():
 	  pass
   else:
 	  print >> sys.stderr, "File corruputed, program exit."
 	  sys.exit(0)
+
 
 if __name__=="__main__":
   arg_parser = prepare_argparser()
