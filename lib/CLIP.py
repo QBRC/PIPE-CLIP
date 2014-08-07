@@ -49,6 +49,7 @@ class CLIP:
 			#print >> sys.stderr,pysam.view("-SH",infile)
 			outfile = pysam.Samfile(bamout,"wb",template=infile)
 			for i in infile.fetch():
+				print >> sys.stderr,i
 				outfile.write(i)
 			self.filepath = bamout
 		#Now the infile is BAM,check if it is sorted
@@ -70,14 +71,18 @@ class CLIP:
 	def readfile(self):
 		try:
 			self.originalBAM = pysam.Samfile(self.filepath,"rb")
+			return True
 		except IOError,message:
 			print >> sys.stderr, "Cannot open input file",message
 			return False
-	
+
+	def printFilteredReads(self):
+		for i in self.filteredAlignment:
+			print i
 	def updatePreviousQul(self,n,q,m):
-		self.previoutQul[0] = n
-		self.previoutQul[1] = q
-		self.previoutQul[2] = m
+		self.previousQul[0] = n
+		self.previousQul[1] = q
+		self.previousQul[2] = m
 	
 
 	def updateCurrentGroup(self,read,mlen,mis):
@@ -103,15 +108,22 @@ class CLIP:
 			index = random.randint(0,len(self.currentGroup)-1)
 			return self.currentGroup[index]
 
-	def updateCLIPinfo(self):
+	def updateCLIPinfo(self,read):
 		pass
 
 
 
 	def filter(self,matchLen,mismatch,cliptype,duprm):
+		print >>sys.stderr,"Start to filter alignment using parameters:"
+		print >>sys.stderr,"match length:",matchLen
+		print >>sys.stderr,"CLIP type:",cliptype
+		print >>sys.stderr,"Rmdup code:",duprm
+		if cliptype == 3:#make sure there is no rmdup for iCLIP data
+			duprm = 0
 		for alignment in self.originalBAM:
 			flag,mlen,mis = Utils.readQuaFilter(alignment,matchLen,mismatch)
 			if flag:
+				#print >> sys.stderr, "Qualified read"
 				if duprm > 0:
 					if duprm == 1:
 						groupkey = Utils.rmdupKey_Start(alignment)
@@ -123,9 +135,9 @@ class CLIP:
 						if self.currentGroupKey!="None":
 							keep = self.rmdup()
 							self.filteredAlignment.append(keep)
-							self.updateCLIPinfo(keep,mlen)
+							self.updateCLIPinfo(keep)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
 				else:
-					self.updateCLIPinfo(alignment,mlen)
+					self.updateCLIPinfo(alignment)
 		#clean up the final dupGroup
 

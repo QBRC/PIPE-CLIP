@@ -19,26 +19,29 @@ def is_sorted(header):
 	#If no HD header contains SO info, return False
 	return False 
 
-def readQuafilter(read,mlen,mis):
+def readQuaFilter(read,mlen,mis):
 	matchlen = 0
 	mismatch = 0
 	for i in read.cigar:
 		if i[0]<=1:
-			matchlen += 1
+			matchlen += i[1]
 	for j in read.tags:
 		if j[0]=="NM":
 			mismatch = j[1]
 			break
+	#print >> sys.stderr,"mLen and mis for read",read.qname,"are",matchlen,mismatch
 	if matchlen>=mlen and mismatch<=mis:
-		return (True,mathlen,mismatch)
+		return (True,matchlen,mismatch)
 	else:
 		return (False,0,0)
 
 def rmdupKey_Start(read):
-	k = str(read.tid)+":"+str(read.pos)+":"+read.is_reverse
+	#print >>sys.stderr,"Remove duplicate by alignment start"
+	k = str(read.tid)+":"+str(read.pos)+":"+str(read.is_reverse)
+	#print >>sys.stderr,k
 	return k
 
 
 def rmdupKey_Seq(read):
-	k = str(read.tid)+":"+str(read.pos)+":"+read.is_reverse+":"+read.seq
+	k = str(read.tid)+":"+str(read.pos)+":"+str(read.is_reverse)+":"+read.seq
 	return k
