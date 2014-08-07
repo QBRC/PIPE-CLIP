@@ -64,7 +64,17 @@ class CLIP:
 			#	print >> sys.stderr, "The file is sorted"
 			return True
 			
-
+	def readfile(self):
+		try:
+			self.originalBAM = pysam.Samfile(self.filepath,"rb")
+		except IOError,message:
+			print >> sys.stderr, "Cannot open input file",message
+			return False
+	
+	def filter(self,matchLen,mismatch,cliptype,duprm):
+		for alignment in self.originalBAM:
+			if Utils.readQuaFilter(alignment,matchLen,mismatch):#
+				#do remove
 
 
 

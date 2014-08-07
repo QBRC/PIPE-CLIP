@@ -12,7 +12,6 @@ def is_sorted(header):
 	for row in header:
 		buf = row.rstrip().split("\t")
 		if buf[0]=="@HD":
-			print >> sys.stderr, buf
 			if buf[2] in ["SO:unsorted","SO:unknown"] :
 				return False
 			elif buf[2] in ["SO:coordinate","SO:queryname"]:

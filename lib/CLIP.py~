@@ -59,11 +59,20 @@ class CLIP:
 			pysam.index(bamsort+".bam")
 			self.filepath = bamsort+".bam" # change input file path
 			self.header = pysam.view("-H",bamsort+".bam")
-			if Utils.is_sorted(self.header):
-				print >> sys.stderr, "The file is sorted"
+			print >> sys.stderr,self.header
+			#if Utils.is_sorted(self.header):
+			#	print >> sys.stderr, "The file is sorted"
 			return True
 			
-
+	def readfile(self):
+		try:
+			self.originalBAM = pysam.Samfile(self.filepath,"rb")
+		except IOError,message:
+			print >> sys.stderr, "Cannot open input file",message
+			return False
+	
+	def filter(self,matchLen,mismatch,cliptype,duprm):
+		
 
 
 
