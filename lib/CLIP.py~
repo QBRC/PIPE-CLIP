@@ -12,6 +12,9 @@ class CLIP:
 		self.filepath = fileaddr
 		self.originalBAM = None
 		self.filteredAlignment = []
+		self.currentGroupKey = "None"
+		self.currentGroup = [] #Used in rmdup
+		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
 		self.clusters = {} #Dictionary of bed instance
 		self.mutations = {} #Dictionary of bed instance
 		self.wig = None
@@ -71,9 +74,57 @@ class CLIP:
 			print >> sys.stderr, "Cannot open input file",message
 			return False
 	
+	def updatePreviousQul(self,n,q,m):
+		self.previoutQul[0] = n
+		self.previoutQul[1] = q
+		self.previoutQul[2] = m
+	
+
+	def updateCurrentGroup(self,read,mlen,mis):
+		'''Compare read to current duplication group parameters, determine to add to, to drop or to replace, make sure duplication group only has reads with best quality'''
+		if mlen >= self.previousQul[0] and read.mapq >= self.previousQul[1] and mis <= self.previousQul[2]:# consider to append or replace only when read has no worse quality
+			if mlen > self.previousQul[0] or read.mapq > self.previousQul[1] or mis < self.previousQul[2]:# read has better quality,replace
+				self.currentGroup = [read]
+				self.updatePreviousQul(mlen,read.mapq,mis)
+			else:
+				self.currentGroup.append(read)
+	
+	def iniDupGroupInfo(self,read,group_key,mlength,mismatch):
+		self.currentGroupKey = group_key
+		self.currentGroup.append(read)
+		self.updatePreviousQul(mlength,read.mapq,mismatch)
+
+	def rmdup(self):
+		'''Return random one read of highest quality from list'''
+		if len(self.currentGroup)==1:
+			return self.currentGroup[0]
+		else:
+			random.seed(1)
+			index = random.randint(0,len(self.currentGroup)-1)
+			return self.currentGroup[index]
+
+	def updateCLIPinfo(self):
+		pass
+
+
+
 	def filter(self,matchLen,mismatch,cliptype,duprm):
-		
-
-
+		for alignment in self.originalBAM:
+			flag,mlen,mis = Utils.readQuaFilter(alignment,matchLen,mismatch):
+				if duprm > 0:
+					if duprm == 1:
+						groupkey = Utils.rmdupKey_Start(alignment)
+					elif duprm == 2:
+						groupkey = Utils.rmdupKey_Seq(alignment)
+					if groupkey == self.currentGroupKey:
+						self.updateCurrentGroup(alignment,mlen,mis)
+					else:
+						if self.currentGroupKey!="None":
+							keep = self.rmdup()
+							self.filteredAlignment.append(keep)
+							self.updateCLIPinfo(keep,mlen)
+						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
+				else:
+					self.updateCLIPinfo(alignment,mlen)
 
 

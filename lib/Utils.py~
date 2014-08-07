@@ -19,5 +19,18 @@ def is_sorted(header):
 	#If no HD header contains SO info, return False
 	return False 
 
-
+def readQuafilter(read,mlen,mis):
+	matchlen = 0
+	mismatch = 0
+	for i in read.cigar:
+		if i[0]<=1:
+			matchlen += 1
+	for j in read.tags:
+		if j[0]=="NM":
+			mismatch = j[1]
+			break
+	if matchlen>=mlen and mismatch<=mis:
+		return True
+	else:
+		return False
 

@@ -30,7 +30,15 @@ def readQuafilter(read,mlen,mis):
 			mismatch = j[1]
 			break
 	if matchlen>=mlen and mismatch<=mis:
-		return True
+		return (True,mathlen,mismatch)
 	else:
-		return False
+		return (False,0,0)
 
+def rmdupKey_Start(read):
+	k = str(read.tid)+":"+str(read.pos)+":"+read.is_reverse
+	return k
+
+
+def rmdupKey_Seq(read):
+	k = str(read.tid)+":"+str(read.pos)+":"+read.is_reverse+":"+read.seq
+	return k
