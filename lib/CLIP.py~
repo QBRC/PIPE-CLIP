@@ -1,6 +1,7 @@
 '''Define CLIP class'''
 import sys
 import gzip
+import copy
 import logging
 import pysam
 import random
@@ -139,24 +140,31 @@ class CLIP:
 	def findTruncation(self):
 		pass
 
-	def findMutation(self):
-		pass
+	def findMutation(self,read):
+		'''No matter what kind of CLIP it is, return all mutations. All reads passed here for mutations must have mutations'''
+		for j in read.tags:
+			if j[0]=="MD":
+				try:
+					md_int = int(j[1])
+				except:#there are substitutions
 
 
-	def updateMutation(self,read):
+
+	def updateMutation(self,read,mis):
 		if self.type = 3:#iclip,find truncation
-			mutation = findTruncation(self)
+			mutation = findTruncation(self,read)
 		else:
-			mutation = findMutation(self)
+			if mis > 0:
+				mutation = findMutation(self,read)
 
-	def updateCLIPinfo(self,read,matchlen):
+	def updateCLIPinfo(self,read,matchlen,miscount):
 		'''Update sample coverage info, clustering, mutation info'''
 		#update sample coverage info
 		self.coverage += matchlen
 		#update cluster info
 		self.updateCluster(read)
 		#update mutation info
-		self.updateMutation(read)
+		self.updateMutation(read,miscount)
 
 
 
@@ -187,7 +195,7 @@ class CLIP:
 							keep = self.rmdup()
 							self.currentGroup = []
 							self.filteredAlignment.append(keep)
-							self.updateCLIPinfo(keep,mlen)
+							self.updateCLIPinfo(keep,mlen,mis)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
 				else:
 					self.updateCLIPinfo(alignment)
@@ -196,6 +204,6 @@ class CLIP:
 			keep = self.rmdup()
 			self.currentGroup = []
 			self.filteredAlignment.append(keep)
-			self.updateCLIPinfo(keep,mlen)
+			self.updateCLIPinfo(keep,mlen,mis)
 		
 

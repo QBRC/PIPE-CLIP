@@ -46,25 +46,3 @@ def rmdupKey_Seq(read):
 	k = str(read.tid)+":"+str(read.pos)+":"+str(read.is_reverse)+":"+read.seq
 	return k
 
-def parseMD(self,b):
-	myList = b
-	for j in myList:
-		if j[0]=="MD":
-			md = copy.deepcopy(j[1])
-			num = md.replace('A','^').replace('G','^').replace('T','^').replace('C','^').replace('^^','^').split('^')
-			for c in range(num.count("")):
-				num.remove("")
-		buf = [num[0]]
-		counter = 1
-		afterAlpha = 0
-		for i in j[1]:#walk thought MD string to record mutation and deletion
-			if i.isalpha() or i == '^':
-				buf.append(i)
-				afterAlpha = 1
-			else:
-				if afterAlpha and counter <= len(num)-1:
-					buf.append(num[counter])
-					afterAlpha = 0
-					counter += 1
-		break
-	return buf

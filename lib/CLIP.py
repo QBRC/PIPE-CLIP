@@ -144,10 +144,7 @@ class CLIP:
 		'''No matter what kind of CLIP it is, return all mutations. All reads passed here for mutations must have mutations'''
 		for j in read.tags:
 			if j[0]=="MD":
-				try:
-					md_int = int(j[1])
-				except:#there are substitutions
-
+				mdtag = Utils.parseMD(j[1])
 
 
 	def updateMutation(self,read,mis):
