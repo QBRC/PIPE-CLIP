@@ -14,7 +14,7 @@ class BED:
 		self.strand = strand
 	
 	def __str__(self):
-		st = "\t".join([self.chr,str(self.start),str(self.stop),self.name,str(self.score),self.strand])
+		st = "\t".join([str(self.chr),str(self.start),str(self.stop),self.name,str(self.score),self.strand])
 		return st
 
 	def merge(self,read):

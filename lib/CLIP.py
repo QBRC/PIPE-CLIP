@@ -5,6 +5,7 @@ import logging
 import pysam
 import random
 import Utils
+import Alignment
 
 
 class CLIP:
@@ -15,7 +16,8 @@ class CLIP:
 		self.currentGroupKey = "None"
 		self.currentGroup = [] #Used in rmdup
 		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
-		self.clusters = {} #Dictionary of bed instance
+		self.clusters = [] 
+		self.currentCluster = Alignment.BED("",0,0,"",0,".")
 		self.mutations = {} #Dictionary of bed instance
 		self.wig = None
 		self.coverage = 0 #"reads coverage of this sample"
@@ -79,6 +81,11 @@ class CLIP:
 	def printFilteredReads(self):
 		for i in self.filteredAlignment:
 			print i
+	
+	def printClusters(self):
+		for i in self.clusters:
+			print i
+	
 	def updatePreviousQul(self,n,q,m):
 		self.previousQul[0] = n
 		self.previousQul[1] = q
@@ -111,8 +118,29 @@ class CLIP:
 			#print self.currentGroup[index]
 			return self.currentGroup[index]
 
-	def updateCLIPinfo(self,read):
-		pass
+	def updateCluster(self,read):
+		'''Cluster new read to known clusters and update cluster reads count'''
+		strandDic = {"True":"-","False":"+"}
+		clusterName = "cluster"+"_"+str(len(self.clusters)+1)
+		newRead = Alignment.BED(self.originalBAM.getrname(read.tid),read.pos,read.pos+len(read.seq),clusterName,1,strandDic[str(read.is_reverse)])
+		if self.currentCluster.chr == "": #Initiate cluster
+			self.currentCluster = newRead
+			self.clusters.append(self.currentCluster)
+		else:
+			if self.currentCluster.overlap(newRead):
+				self.currentCluster.merge(newRead)
+				self.clusters[-1]=self.currentCluster
+			else:#New read is a new cluster
+				#self.clusters.append(self.currentCluster)
+				self.currentCluster = newRead
+				self.clusters.append(self.currentCluster)
+
+	def updateCLIPinfo(self,read,matchlen):
+		'''Update sample coverage info, clustering, mutation info'''
+		#update sample coverage info
+		self.coverage += matchlen
+		#update cluster info
+		self.updateCluster(read)
 
 
 
@@ -142,7 +170,7 @@ class CLIP:
 							keep = self.rmdup()
 							self.currentGroup = []
 							self.filteredAlignment.append(keep)
-							self.updateCLIPinfo(keep)
+							self.updateCLIPinfo(keep,mlen)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
 				else:
 					self.updateCLIPinfo(alignment)
@@ -151,5 +179,6 @@ class CLIP:
 			keep = self.rmdup()
 			self.currentGroup = []
 			self.filteredAlignment.append(keep)
-			self.updateCLIPinfo(keep)
+			self.updateCLIPinfo(keep,mlen)
+		
 

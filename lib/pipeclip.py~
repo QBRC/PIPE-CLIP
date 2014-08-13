@@ -36,7 +36,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 	if myClip.testInput():#check input
 		print >> sys.stderr,"Input file OK"
 		if myClip.readfile():
-			myClip.filter(matchLength,mismatch,args.pcr,rmdup)
+			myClip.filter(matchLength,mismatch,clipType,rmdup)
 			myClip.printFilteredReads()
 	else:
 		print >> sys.stderr, "File corruputed, program exit."

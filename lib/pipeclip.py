@@ -37,7 +37,8 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 		print >> sys.stderr,"Input file OK"
 		if myClip.readfile():
 			myClip.filter(matchLength,mismatch,clipType,rmdup)
-			myClip.printFilteredReads()
+			#myClip.printFilteredReads()
+			myClip.printClusters()
 	else:
 		print >> sys.stderr, "File corruputed, program exit."
 		sys.exit(0)
