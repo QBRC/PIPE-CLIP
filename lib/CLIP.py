@@ -96,16 +96,19 @@ class CLIP:
 	
 	def iniDupGroupInfo(self,read,group_key,mlength,mismatch):
 		self.currentGroupKey = group_key
-		self.currentGroup.append(read)
+		self.currentGroup = [read]
 		self.updatePreviousQul(mlength,read.mapq,mismatch)
 
 	def rmdup(self):
 		'''Return random one read of highest quality from list'''
+		#print "get one from group"
 		if len(self.currentGroup)==1:
+			#print self.currentGroup[0]
 			return self.currentGroup[0]
 		else:
 			random.seed(1)
 			index = random.randint(0,len(self.currentGroup)-1)
+			#print self.currentGroup[index]
 			return self.currentGroup[index]
 
 	def updateCLIPinfo(self,read):
@@ -121,9 +124,12 @@ class CLIP:
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0
 		for alignment in self.originalBAM:
+			#print "Now processing",alignment.qname
 			flag,mlen,mis = Utils.readQuaFilter(alignment,matchLen,mismatch)
 			if flag:
-				#print >> sys.stderr, "Qualified read"
+				#print "Qualified read"
+				#print	alignment
+				#print "current Gourp key",self.currentGroupKey
 				if duprm > 0:
 					if duprm == 1:
 						groupkey = Utils.rmdupKey_Start(alignment)
@@ -132,12 +138,18 @@ class CLIP:
 					if groupkey == self.currentGroupKey:
 						self.updateCurrentGroup(alignment,mlen,mis)
 					else:
-						if self.currentGroupKey!="None":
+						if self.currentGroupKey!="None":#there are reads in current group
 							keep = self.rmdup()
+							self.currentGroup = []
 							self.filteredAlignment.append(keep)
 							self.updateCLIPinfo(keep)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
 				else:
 					self.updateCLIPinfo(alignment)
 		#clean up the final dupGroup
+		if len(self.currentGroup)>0:
+			keep = self.rmdup()
+			self.currentGroup = []
+			self.filteredAlignment.append(keep)
+			self.updateCLIPinfo(keep)
 
