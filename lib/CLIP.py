@@ -1,6 +1,7 @@
 '''Define CLIP class'''
 import sys
 import gzip
+import copy
 import logging
 import pysam
 import random
@@ -13,6 +14,7 @@ class CLIP:
 		self.filepath = fileaddr
 		self.originalBAM = None
 		self.filteredAlignment = []
+		self.type = 0
 		self.currentGroupKey = "None"
 		self.currentGroup = [] #Used in rmdup
 		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
@@ -134,13 +136,35 @@ class CLIP:
 				#self.clusters.append(self.currentCluster)
 				self.currentCluster = newRead
 				self.clusters.append(self.currentCluster)
+	
+	def findTruncation(self):
+		pass
 
-	def updateCLIPinfo(self,read,matchlen):
+	def findMutation(self,read):
+		'''No matter what kind of CLIP it is, return all mutations. All reads passed here for mutations must have mutations'''
+		for j in read.tags:
+			if j[0]=="MD":
+				try:
+					md_int = int(j[1])
+				except:#there are substitutions
+
+
+
+	def updateMutation(self,read,mis):
+		if self.type = 3:#iclip,find truncation
+			mutation = findTruncation(self,read)
+		else:
+			if mis > 0:
+				mutation = findMutation(self,read)
+
+	def updateCLIPinfo(self,read,matchlen,miscount):
 		'''Update sample coverage info, clustering, mutation info'''
 		#update sample coverage info
 		self.coverage += matchlen
 		#update cluster info
 		self.updateCluster(read)
+		#update mutation info
+		self.updateMutation(read,miscount)
 
 
 
@@ -149,6 +173,7 @@ class CLIP:
 		print >>sys.stderr,"match length:",matchLen
 		print >>sys.stderr,"CLIP type:",cliptype
 		print >>sys.stderr,"Rmdup code:",duprm
+		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0
 		for alignment in self.originalBAM:
@@ -170,7 +195,7 @@ class CLIP:
 							keep = self.rmdup()
 							self.currentGroup = []
 							self.filteredAlignment.append(keep)
-							self.updateCLIPinfo(keep,mlen)
+							self.updateCLIPinfo(keep,mlen,mis)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
 				else:
 					self.updateCLIPinfo(alignment)
@@ -179,6 +204,6 @@ class CLIP:
 			keep = self.rmdup()
 			self.currentGroup = []
 			self.filteredAlignment.append(keep)
-			self.updateCLIPinfo(keep,mlen)
+			self.updateCLIPinfo(keep,mlen,mis)
 		
 

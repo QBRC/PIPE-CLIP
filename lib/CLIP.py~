@@ -13,6 +13,7 @@ class CLIP:
 		self.filepath = fileaddr
 		self.originalBAM = None
 		self.filteredAlignment = []
+		self.type = 0
 		self.currentGroupKey = "None"
 		self.currentGroup = [] #Used in rmdup
 		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
@@ -121,7 +122,7 @@ class CLIP:
 	def updateCluster(self,read):
 		'''Cluster new read to known clusters and update cluster reads count'''
 		strandDic = {"True":"-","False":"+"}
-		clusterName = "cluster"+"_"+str(len(self.clusters))
+		clusterName = "cluster"+"_"+str(len(self.clusters)+1)
 		newRead = Alignment.BED(self.originalBAM.getrname(read.tid),read.pos,read.pos+len(read.seq),clusterName,1,strandDic[str(read.is_reverse)])
 		if self.currentCluster.chr == "": #Initiate cluster
 			self.currentCluster = newRead
@@ -134,6 +135,19 @@ class CLIP:
 				#self.clusters.append(self.currentCluster)
 				self.currentCluster = newRead
 				self.clusters.append(self.currentCluster)
+	
+	def findTruncation(self):
+		pass
+
+	def findMutation(self):
+		pass
+
+
+	def updateMutation(self,read):
+		if self.type = 3:#iclip,find truncation
+			mutation = findTruncation(self)
+		else:
+			mutation = findMutation(self)
 
 	def updateCLIPinfo(self,read,matchlen):
 		'''Update sample coverage info, clustering, mutation info'''
@@ -141,6 +155,8 @@ class CLIP:
 		self.coverage += matchlen
 		#update cluster info
 		self.updateCluster(read)
+		#update mutation info
+		self.updateMutation(read)
 
 
 
@@ -149,6 +165,7 @@ class CLIP:
 		print >>sys.stderr,"match length:",matchLen
 		print >>sys.stderr,"CLIP type:",cliptype
 		print >>sys.stderr,"Rmdup code:",duprm
+		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0
 		for alignment in self.originalBAM:
