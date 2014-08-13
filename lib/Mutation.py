@@ -86,9 +86,8 @@ def parseCIGAR(ci): #calculate match segment length list
 			matchSeg[-1]+=inse
 	return matchSeg	
 
-def parseMD(b):
-	myList = b
-	for j in myList:
+def parseMD(read):
+	for j in read.tags:
 		if j[0]=="MD":
 			md = copy.deepcopy(j[1])
 			num = md.replace('A','^').replace('G','^').replace('T','^').replace('C','^').replace('^^','^').split('^')
@@ -111,10 +110,23 @@ def parseMD(b):
 	return buf
 
 
-def insertionLocation(entry,num):#sam entry and insertion total number
-	insertionLoc = {} #key:ref_offset; value:list of seq_offset
-	ref_offset = 0
-	seq_offset = [0]
+def indelPos(read):#sam entry and insertion total number
+	'''Return insertion segment start offset on sequenced seq and length as tuple in a list'''
+	insertionLoc = []
+	deletionLoc = []
+	insertion_seq_offset = 0
+	deletion__seq_offset = 0
+	for i in read.cigar:
+		if i[0] in (0,4):#match or soft-clip
+			insertion_seq_offset += i[1]
+			deletion_seq_offset += i[1]
+		elif i[0]==1:#insertion
+			deletion_seq_offseq += i[1]
+			insertionLoc.append((insertion_seq_offset,i[1]))
+		elif i[0]==2:#deletion
+			deletionLoc.append((deletion_seq_offset,i[1]))
+	return (insertionLoc,deletionLoc)
+
 	preInsertion = 0 #used to check if it is the last insertion tag
 	for i in entry.cigar:
 		if i[0]==0 or i[0]==4:#match or soft clip
@@ -148,7 +160,7 @@ def countInsertionBefore(seqLoc,insertLocList):
 				ins += 1
 		return ins
 
-def  mutationLocation(entry,insertLoc):#return mutation location in 
+def  mutationLocation(entry,insertLoc):
 	mutations = []
 	match = entry
 	myList = match.tags
@@ -190,7 +202,7 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 					else:
 						chr = '+'
 					mutation = [str(loc),str(loc+1),match.qname,str(index-S_count),chr,origin+"->"+mu]
-					yield mutation
+					mutations.append(mutation)
 				else:
 					loc = st_genome+match.pos+offset-1 #0-based 
 					if match.is_reverse:
@@ -202,10 +214,10 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 					insertionBefore = countInsertionBefore(index1,insertLoc)
 					index1 += insertionBefore #added 9 Oct
 					mutation = [str(loc),str(loc+1),match.qname,str(index1),strand,"Deletion->"+ch]
-					yield mutation
+					mutations.append(mutation)
 					pre = ch
 
-	return
+	return mutations
 
 def RC(strList):
 	rc = []	
@@ -229,24 +241,21 @@ def RC(strList):
 def find(read):
 	mutationlist = []
 	[insertion,deletion,substi] = survey(item)
-	insertionSeqLoc = []
+	genome_weight = []
+	seq_weight = []
+	flags = []
+	new_seq = list(read.seq)
+	for i in range(len(read.seq)):
+		genome_weight.append(1)
+		seq_weight.append(1)
+		flags.append("M")
+	mdtags = parseMD(read)
 	if insertion > 0:
-		insertionDic = insertionLocation(item,insertion)
-		for k in insertionDic.keys():
-			for loc_index in range(len(insertionDic[k])):
-				insertionSeqLoc.append(insertionDic[k][loc_index])
-				mu = item.seq[insertionDic[k][loc_index]]
-				loc = k+loc_index+item.pos
-				if item.tid >=0:
-					chr = infile.getrname(item.tid)
-				if item.is_reverse:
-					strand = '-'
-					mu = RC([mu])[0]
-				else:
-					strand = "+"
-				if args.par==0:
-					print >>outputfile, "%s\t%s\t%s\t%s\t%s\t%s\t%s" % (chr,str(loc),str(loc+1),item.qname,str(insertionDic[k][loc_index]),strand,"Insertion->"+mu )
-			insertionSeqLoc.sort()
-	if deletion + substi > 0:
-		for mu in mutationLocation(item,insertionSeqLoc):
-			mutationlist.append(mu)
+		(insertion_info,deletion_info) = insertionLocation(read)
+		for loc,num in insertion_info:
+			for j in range(num):
+				genome_weight[loc+j] = 0
+				seq_weight[loc+j] = 1
+	#insert deletion into new_seq
+	for k in range(len(mdtags)):
+		if
