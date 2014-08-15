@@ -233,7 +233,7 @@ def RC(strList):
 		rc.append(st)
 	return(rc)
 
-def run(infile,read):
+def getMutaions(infile,read):
 	#tmp = pysam.Samfile("demo.bam",'wb',template=infile)
 	mutationList = []
 	b= item.tags
@@ -267,3 +267,19 @@ def run(infile,read):
 					newMu = MutationBed(chr,mu[0],mu[1],mu[2],mu[3],mu[4],mu[5])
 					mutationList.append(newMu)
 		return mutationList
+
+
+def getTruncation(infile,read):
+	'''One read only have one truncation, but in order to be consistent with muations, return a list'''
+	if read.is_reverse:
+		strand = "-"
+		start = read.pos + read.alen
+	else:
+		strand = "+"
+		start = read.pos
+	stop = start + 1
+	if read.tid>=0:
+		chr = infile.getrname(read.tid)
+	newTr = MutationBed(chr,start,stop,item.qname,0,strand,"truncation")
+	return [newTr] 
+

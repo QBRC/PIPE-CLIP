@@ -137,20 +137,12 @@ class CLIP:
 				self.currentCluster = newRead
 				self.clusters.append(self.currentCluster)
 	
-	def findTruncation(self):
-		pass
-
-	def findMutation(self,read):
-		'''No matter what kind of CLIP it is, return all mutations. All reads passed here for mutations must have mutations'''
-		return Mutation2.run(self.originalBAM,read)
-
-
 	def updateMutation(self,read,mis):
 		if self.type = 3:#iclip,find truncation
-			mutation = findTruncation(self,read)
+			mutation = Mutation2.getTruncations(self.originalBAM,read)
 		else:
 			if mis > 0:
-				mutation = findMutation(self,read)
+				mutation = Mutation2.getMutations(self.originalBAM,read)
 
 	def updateCLIPinfo(self,read,matchlen,miscount):
 		'''Update sample coverage info, clustering, mutation info'''
