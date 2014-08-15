@@ -142,9 +142,7 @@ class CLIP:
 
 	def findMutation(self,read):
 		'''No matter what kind of CLIP it is, return all mutations. All reads passed here for mutations must have mutations'''
-		for j in read.tags:
-			if j[0]=="MD":
-				mdtag = Utils.parseMD(j[1])
+		return Mutation2.run(self.originalBAM,read)
 
 
 	def updateMutation(self,read,mis):
