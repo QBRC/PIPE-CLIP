@@ -143,6 +143,12 @@ class CLIP:
 		else:
 			if mis > 0:
 				mutation = Mutation2.getMutations(self.originalBAM,read)
+		for m in mutation:
+			m_key = "_".join([chr,str(start),strand,type])
+			if self.mutations.has_key(m_key):
+				self.mutations[m_key].increaseScore()
+			else:
+				self.mutations[m_key]=m
 
 	def updateCLIPinfo(self,read,matchlen,miscount):
 		'''Update sample coverage info, clustering, mutation info'''

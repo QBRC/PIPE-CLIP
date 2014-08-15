@@ -280,6 +280,6 @@ def getTruncation(infile,read):
 	stop = start + 1
 	if read.tid>=0:
 		chr = infile.getrname(read.tid)
-	newTr = MutationBed(chr,start,stop,item.qname,0,strand,"truncation")
+	newTr = MutationBed(chr,start,stop,item.qname,1,strand,"truncation")
 	return [newTr] 
 

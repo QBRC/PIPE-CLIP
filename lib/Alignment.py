@@ -27,6 +27,11 @@ class BED:
 				return True
 			else:
 				return False
+	def updateScore(self,s):
+		self.score = s
+	
+	def increaseScore(self):
+		self.score += 1
 
 class BAM:
 	def __init__(self,filepath):
