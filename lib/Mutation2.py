@@ -18,6 +18,15 @@ class MutationBed(Alignment.BED):
 	def __init__(self,chr,start,stop,name,score,strand,type):
 		BED(chr,start,stop,name,score,strand,type)
 		self.type = type #insertion,deletion,type of substitution
+		self.kvalue = 0
+	
+	def updateK(self,k):
+		self.kvalue = k
+	
+	def __str__(self):
+		st = BED.__str__(self)
+		st += "\t"+self.type+"\t"+str(self.kvalue)
+		return st
 
 def countMatchNumber(b):
 	myList = b

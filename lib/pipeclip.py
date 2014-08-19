@@ -14,6 +14,7 @@ import os
 import CLIP
 import Alignment
 import Utils
+import Enrich
 
 def prepare_argparser():
 	description = "Find mutations"
@@ -39,6 +40,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			myClip.filter(matchLength,mismatch,clipType,rmdup)
 			#myClip.printFilteredReads()
 			myClip.printClusters()
+			#Enrich.mutationEnrich(myClip,fdrReliableMutation)
 	else:
 		print >> sys.stderr, "File corruputed, program exit."
 		sys.exit(0)

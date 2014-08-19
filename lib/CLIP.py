@@ -21,6 +21,7 @@ class CLIP:
 		self.clusters = [] 
 		self.currentCluster = Alignment.BED("",0,0,"",0,".")
 		self.mutations = {} #Dictionary of bed instance
+		self.mutationCount = 0
 		self.wig = None
 		self.coverage = 0 #"reads coverage of this sample"
 		self.bamheader = None
@@ -144,6 +145,7 @@ class CLIP:
 			if mis > 0:
 				mutation = Mutation2.getMutations(self.originalBAM,read)
 		for m in mutation:
+			self.mutationCount += 1
 			m_key = "_".join([chr,str(start),strand,type])
 			if self.mutations.has_key(m_key):
 				self.mutations[m_key].increaseScore()
