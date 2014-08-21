@@ -4,13 +4,13 @@
 
 import gzip
 
-class BED:
+class BED():
 	def __init__(self,chr,start,stop,name,score,strand):
 		self.chr = chr
 		self.start = start
 		self.stop = stop
 		self.name = name
-		self.score = score
+		self.score = int(score)
 		self.strand = strand
 	
 	def __str__(self):
@@ -28,7 +28,7 @@ class BED:
 			else:
 				return False
 	def updateScore(self,s):
-		self.score = s
+		self.score = int(s)
 	
 	def increaseScore(self):
 		self.score += 1

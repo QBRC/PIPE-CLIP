@@ -7,6 +7,7 @@ import pysam
 import random
 import Utils
 import Alignment
+import Mutation2
 
 
 class CLIP:
@@ -88,7 +89,11 @@ class CLIP:
 	def printClusters(self):
 		for i in self.clusters:
 			print i
-	
+
+	def printMutations(self):
+		for i in self.mutations.values():
+			print i
+
 	def updatePreviousQul(self,n,q,m):
 		self.previousQul[0] = n
 		self.previousQul[1] = q
@@ -139,13 +144,14 @@ class CLIP:
 				self.clusters.append(self.currentCluster)
 	
 	def updateMutation(self,read,mis):
-		if self.type = 3:#iclip,find truncation
+		if self.type == 3:#iclip,find truncation
 			mutation = Mutation2.getTruncations(self.originalBAM,read)
 		else:
 			if mis > 0:
 				mutation = Mutation2.getMutations(self.originalBAM,read)
 		for m in mutation:
-			m_key = "_".join([chr,str(start),strand,type])
+			self.mutationCount += 1
+			m_key = "_".join([m.chr,str(m.start),m.strand,m.type])
 			if self.mutations.has_key(m_key):
 				self.mutations[m_key].increaseScore()
 			else:
@@ -192,7 +198,7 @@ class CLIP:
 							self.updateCLIPinfo(keep,mlen,mis)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
 				else:
-					self.updateCLIPinfo(alignment)
+					self.updateCLIPinfo(alignment,mlen,mis)
 		#clean up the final dupGroup
 		if len(self.currentGroup)>0:
 			keep = self.rmdup()

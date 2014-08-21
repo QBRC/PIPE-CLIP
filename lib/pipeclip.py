@@ -39,7 +39,8 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 		if myClip.readfile():
 			myClip.filter(matchLength,mismatch,clipType,rmdup)
 			#myClip.printFilteredReads()
-			myClip.printClusters()
+			#myClip.printClusters()
+			myClip.printMutations()
 			#Enrich.mutationEnrich(myClip,fdrReliableMutation)
 	else:
 		print >> sys.stderr, "File corruputed, program exit."

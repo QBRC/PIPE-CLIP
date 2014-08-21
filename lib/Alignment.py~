@@ -4,7 +4,7 @@
 
 import gzip
 
-class BED:
+class BED():
 	def __init__(self,chr,start,stop,name,score,strand):
 		self.chr = chr
 		self.start = start
@@ -27,6 +27,11 @@ class BED:
 				return True
 			else:
 				return False
+	def updateScore(self,s):
+		self.score = int(s)
+	
+	def increaseScore(self):
+		self.score += 1
 
 class BAM:
 	def __init__(self,filepath):

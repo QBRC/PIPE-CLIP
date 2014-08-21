@@ -11,14 +11,14 @@ import copy
 import pysam
 from pysam import *
 import argparse as ap
-import Alignment
+from Alignment import BED
 
 
-class MutationBed(Alignment.BED):
+class MutationBed(BED):
 	def __init__(self,chr,start,stop,name,score,strand,type):
-		BED(chr,start,stop,name,score,strand,type)
 		self.type = type #insertion,deletion,type of substitution
 		self.kvalue = 0
+		BED.__init__(self,chr,start,stop,name,score,strand)
 	
 	def updateK(self,k):
 		self.kvalue = k
@@ -27,6 +27,7 @@ class MutationBed(Alignment.BED):
 		st = BED.__str__(self)
 		st += "\t"+self.type+"\t"+str(self.kvalue)
 		return st
+#End of class definition
 
 def countMatchNumber(b):
 	myList = b
@@ -129,7 +130,6 @@ def parseMD(b):
 def insertionLocation(entry,num):#sam entry and insertion total number
 	insertionLoc = {} #key:ref_offset; value:list of seq_offset
 	ref_offset = 0
-	p
 	seq_offset = [0]
 	preInsertion = 0 #used to check if it is the last insertion tag
 	for i in entry.cigar:
@@ -205,7 +205,7 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 						mu = t[1]
 					else:
 						chr = '+'
-					mutation = [str(loc),str(loc+1),match.qname,str(index-S_count),chr,origin+"->"+mu]
+					mutation = [str(loc),str(loc+1),match.qname,1,chr,origin+"->"+mu]#change offset into mutation count, which is 1
 					yield mutation
 				else:
 					loc = st_genome+match.pos+offset-1 #0-based 
@@ -217,7 +217,7 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 					index1 = loc - match.pos 
 					insertionBefore = countInsertionBefore(index1,insertLoc)
 					index1 += insertionBefore #added 9 Oct
-					mutation = [str(loc),str(loc+1),match.qname,str(index1),strand,"Deletion->"+ch]
+					mutation = [str(loc),str(loc+1),match.qname,1,strand,"Deletion->"+ch] #change str(index1) to 1
 					yield mutation
 					pre = ch
 
@@ -242,37 +242,37 @@ def RC(strList):
 		rc.append(st)
 	return(rc)
 
-def getMutaions(infile,read):
+def getMutations(infile,read):
 	#tmp = pysam.Samfile("demo.bam",'wb',template=infile)
 	mutationList = []
-	b= item.tags
+	b=read.tags
 	if countMismatch(b)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
 		#tmp.write(item)
-		sur = survey(item)
+		sur = survey(read)
 		insertion = sur[0]
 		deletion = sur[1]
 		substi = sur[2]
 		insertionSeqLoc = []
 		if insertion > 0:
-			insertionDic = insertionLocation(item,insertion)
+			insertionDic = insertionLocation(read,insertion)
 			for k in insertionDic.keys():
 				for loc_index in range(len(insertionDic[k])):
 					insertionSeqLoc.append(insertionDic[k][loc_index])
-					mu = item.seq[insertionDic[k][loc_index]]
-					loc = k+loc_index+item.pos
-					if item.tid >=0:
-						chr = infile.getrname(item.tid)
-					if item.is_reverse:
+					mu = read.seq[insertionDic[k][loc_index]]
+					loc = k+loc_index+read.pos
+					if read.tid >=0:
+						chr = infile.getrname(read.tid)
+					if read.is_reverse:
 						strand = '-'
 						mu = RC([mu])[0]
 					else:
 						strand = "+"
-					mutationList.append(MutationBed(chr,loc,loc+1,item.qname,insertionDic[k][loc_index]),strand,"Insertion->"+mu)
+					mutationList.append(MutationBed(chr,loc,loc+1,read.qname,1,strand,"Insertion->"+mu))#change insertionDic[k][loc_index] to 1
 			insertionSeqLoc.sort()
 		if deletion + substi > 0:
-			for mu in mutationLocation(item,insertionSeqLoc):
-				if item.tid>=0:
-					chr  = infile.getrname(item.tid)
+			for mu in mutationLocation(read,insertionSeqLoc):
+				if read.tid>=0:
+					chr  = infile.getrname(read.tid)
 					newMu = MutationBed(chr,mu[0],mu[1],mu[2],mu[3],mu[4],mu[5])
 					mutationList.append(newMu)
 		return mutationList
