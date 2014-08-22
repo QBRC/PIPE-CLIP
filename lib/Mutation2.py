@@ -19,6 +19,8 @@ class MutationBed(BED):
 		self.type = type #insertion,deletion,type of substitution
 		self.kvalue = 0
 		BED.__init__(self,chr,start,stop,name,score,strand)
+		self.pvalue = 0
+		self.qvalue = 0
 	
 	def updateK(self,k):
 		self.kvalue = k
