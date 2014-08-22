@@ -21,6 +21,7 @@ class MutationBed(BED):
 		BED.__init__(self,chr,start,stop,name,score,strand)
 		self.pvalue = 0
 		self.qvalue = 0
+		self.sig = False
 	
 	def updateK(self,k):
 		self.kvalue = k

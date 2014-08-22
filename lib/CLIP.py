@@ -94,6 +94,13 @@ class CLIP:
 		for i in self.mutations.values():
 			print i
 
+	def printReliableMutations(self):
+		for i in self.mutations.values():
+			if i.sig:
+				st = i.__str__()
+				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
+				print st
+	
 	def updatePreviousQul(self,n,q,m):
 		self.previousQul[0] = n
 		self.previousQul[1] = q
@@ -150,7 +157,7 @@ class CLIP:
 			if mis > 0:
 				mutation = Mutation2.getMutations(self.originalBAM,read)
 		for m in mutation:
-			print m
+			#print m
 			self.mutationCount += 1
 			m_key = "_".join([m.chr,str(m.start),m.strand,m.type])
 			if self.mutations.has_key(m_key):
