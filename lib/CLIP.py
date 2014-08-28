@@ -161,19 +161,23 @@ class CLIP:
 				self.clusters.append(self.currentCluster)
 	
 	def updateMutation(self,read,mis):
+		
 		if self.type == 3:#iclip,find truncation
 			mutation = Mutation2.getTruncations(self.originalBAM,read)
 		else:
 			if mis > 0:
 				mutation = Mutation2.getMutations(self.originalBAM,read)
-		for m in mutation:
-			#print m
-			self.mutationCount += 1
-			m_key = "_".join([m.chr,str(m.start),m.strand,m.type])
-			if self.mutations.has_key(m_key):
-				self.mutations[m_key].increaseScore()
 			else:
-				self.mutations[m_key]=m
+				mutation = []
+		if len(mutation)>0:
+			for m in mutation:
+				#print m
+				self.mutationCount += 1
+				m_key = "_".join([m.chr,str(m.start),m.strand,m.type])
+				if self.mutations.has_key(m_key):
+					self.mutations[m_key].increaseScore()
+				else:
+					self.mutations[m_key]=m
 
 	def updateCLIPinfo(self,read,matchlen,miscount):
 		'''Update sample coverage info, clustering, mutation info'''

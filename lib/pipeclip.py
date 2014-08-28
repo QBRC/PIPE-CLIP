@@ -9,6 +9,7 @@
 
 import sys
 import argparse
+import logging
 from subprocess import call
 import os
 import CLIP

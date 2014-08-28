@@ -9,6 +9,7 @@
 
 import sys
 import argparse
+import logging
 from subprocess import call
 import os
 import CLIP
@@ -41,10 +42,11 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			#myClip.printFilteredReads()
 			#myClip.printClusters()
 			#myClip.printMutations()
-			#Enrich.mutationEnrich(myClip,fdrReliableMutation)
+			Enrich.mutationEnrich(myClip,fdrReliableMutation)
 			#myClip.printReliableMutations()
 			Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
 			myClip.getCrosslinking()
+			myClip.printCrosslinkingSites()
 	else:
 		print >> sys.stderr, "File corruputed, program exit."
 		sys.exit(0)
@@ -54,6 +56,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 if __name__=="__main__":
 	arg_parser = prepare_argparser()
 	args = arg_parser.parse_args()
+	logging.basicConfig(file)
 	infile = args.infile                  # Input SAM/BAM file
 	outputPrefix = args.outfile           # Output prefix
 	matchLength = args.matchLength        # Shorted matched segment length
