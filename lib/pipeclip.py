@@ -41,10 +41,11 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			#myClip.printFilteredReads()
 			#myClip.printClusters()
 			#myClip.printMutations()
-			#Enrich.mutationEnrich(myClip,fdrReliableMutation)
+			Enrich.mutationEnrich(myClip,fdrReliableMutation)
 			#myClip.printReliableMutations()
 			Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
 			myClip.getCrosslinking()
+			myClip.printCrosslinkingSites()
 	else:
 		print >> sys.stderr, "File corruputed, program exit."
 		sys.exit(0)

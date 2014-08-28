@@ -105,6 +105,10 @@ class CLIP:
 
 	def printCrosslinkingSites(self):
 		for i in self.crosslinking.values():
+			st = i.__str__()
+			st += "\t"+"\t".join([str(i.clusterQ),str(i.fisherP)])
+			st += "\t"+",".join(i.mutationStarts)
+			st += "\t"+",".join(i.mutationNames)
 
 
 	def updatePreviousQul(self,n,q,m):

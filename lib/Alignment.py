@@ -34,6 +34,13 @@ class BED():
 	def increaseScore(self):
 		self.score += 1
 
+class ClusterBed(BED):
+	def __init__(self,chr,start,stop,name,score,strand):
+		BED.__init__(self,chr,start,stop,name,score,strand)
+		self.pvlaue = 0
+		self.qvalue = 0
+		self.sig = False
+
 class CrosslinkingBed(BED):
 	def __init__(self,chr,start,stop,name,score,strand,clusterP,clusterQ,mStart,mName):
 		self.fisherP = 0

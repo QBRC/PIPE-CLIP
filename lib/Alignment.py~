@@ -46,7 +46,7 @@ class CrosslinkingBed(BED):
 	
 	def addMutation(self,mu):#mu is a instance
 		self.mutationNames.append(mu.name)
-		self.mutationStarts.append(mu.start)
+		self.mutationStarts.append(str(mu.start))
 		self.mutationP.append(mu.pvalue)
 	
 	def fishertest(self):
