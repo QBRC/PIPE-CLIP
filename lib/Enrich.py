@@ -142,6 +142,17 @@ def clusterEnrich(clip,threshold=0.01):
 				if record.qvalue<=threshold:
 					record.sig = True
 
+def fisherTest(clusterp,mutationp):
+	R = robject.r
+	min_mp = min(mutationp)
+	try:
+		xsq = -2*math.log(clusterp * min_mp)
+		fp = R.pchisq(xsq,**{'df':4,'lower.tail':False,'log.p':True})[0]
+		fps = -1.0*fp
+	except:
+		fps = 0.0
+	return fps
+
 
 def mutationEnrich_ignore(clip):
 		coverage = clip.coverage

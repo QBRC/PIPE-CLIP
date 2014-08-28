@@ -26,7 +26,9 @@ class CLIP:
 		self.wig = None
 		self.coverage = 0 #"reads coverage of this sample"
 		self.bamheader = None
-	
+		self.crosslinking = {}
+		self.crosslinkingMutations = []
+
 	def __str__(self):
 		pass
 
@@ -137,7 +139,7 @@ class CLIP:
 		'''Cluster new read to known clusters and update cluster reads count'''
 		strandDic = {"True":"-","False":"+"}
 		clusterName = "cluster"+"_"+str(len(self.clusters)+1)
-		newRead = Alignment.BED(self.originalBAM.getrname(read.tid),read.pos,read.pos+len(read.seq),clusterName,1,strandDic[str(read.is_reverse)])
+		newRead = Mutation2.MutationBed(self.originalBAM.getrname(read.tid),read.pos,read.pos+len(read.seq),clusterName,1,strandDic[str(read.is_reverse)])
 		if self.currentCluster.chr == "": #Initiate cluster
 			self.currentCluster = newRead
 			self.clusters.append(self.currentCluster)
@@ -174,7 +176,17 @@ class CLIP:
 		#update mutation info
 		self.updateMutation(read,miscount)
 
-
+	def getCrosslinking(self):
+		'''Merge enriched clusters and reliable mutations together
+				Call Enrich.fisherTest() to calculate joint p vlaue
+		'''
+		for cluster in self.clusters:
+			for mutation in self.mutations.values():
+				if cluster.overlap(mutation):
+					if self.crosslinking.has_key(cluster.name):
+						self.crosslinking[cluster.name].addMutation(mutation)
+					else:
+						self.crosslinking[cluster.name] = Alignment.CrosslinkigBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name)
 
 	def filter(self,matchLen,mismatch,cliptype,duprm):
 		print >>sys.stderr,"Start to filter alignment using parameters:"

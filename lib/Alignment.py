@@ -3,6 +3,7 @@
 # Usage: definition of alignment files including BED and BAM
 
 import gzip
+import Enrich
 
 class BED():
 	def __init__(self,chr,start,stop,name,score,strand):
@@ -32,6 +33,27 @@ class BED():
 	
 	def increaseScore(self):
 		self.score += 1
+
+class CrosslinkingBed(BED):
+	def __init__(self,chr,start,stop,name,score,strand,clusterP,clusterQ,mStart,mName):
+		self.fisherP = 0
+		self.clusterP = clusterP
+		self.mutationP = []
+		self.qvalue = clusterQ
+		self.mutationStarts = [mStart]
+		self.mutationNames = [mName]
+		BED.__init__(self,chr,start,stop,name,score,strand)
+	
+	def addMutation(self,mu):#mu is a instance
+		self.mutationNames.append(mu.name)
+		self.mutationStarts.append(mu.start)
+		self.mutationP.append(mu.pvalue)
+	
+	def fishertest(self):
+		fp = Enrich.fisherTest(self.clusterP,self.mutationP)
+		self.fisherP = fp
+
+
 
 class BAM:
 	def __init__(self,filepath):

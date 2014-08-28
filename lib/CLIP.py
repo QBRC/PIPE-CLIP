@@ -26,7 +26,9 @@ class CLIP:
 		self.wig = None
 		self.coverage = 0 #"reads coverage of this sample"
 		self.bamheader = None
-	
+		self.crosslinking = {}
+		self.crosslinkingMutations = []
+
 	def __str__(self):
 		pass
 
@@ -173,6 +175,23 @@ class CLIP:
 		self.updateCluster(read)
 		#update mutation info
 		self.updateMutation(read,miscount)
+
+	def getCrosslinking(self):
+		'''Merge enriched clusters and reliable mutations together
+				Call Enrich.fisherTest() to calculate joint p vlaue
+		'''
+		for cluster in self.clusters:
+			for mutation in self.mutations.values():
+				if cluster.overlap(mutation):
+					if self.crosslinking.has_key(cluster.name):
+						self.crosslinking[cluster.name].addMutation(mutation)
+					else:
+						self.crosslinking[cluster.name] = Alignment.CrosslinkigBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name)
+		
+		#start to calculate fisher test p value
+		for k in self.crosslinking.keys():
+			self.crosslinking[k].fishertest()
+
 
 
 
