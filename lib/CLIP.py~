@@ -8,6 +8,9 @@ import random
 import Utils
 import Alignment
 import Mutation2
+import OptValidator
+
+OptValidator.opt_validate()
 
 
 class CLIP:
@@ -23,6 +26,8 @@ class CLIP:
 		self.currentCluster = Alignment.BED("",0,0,"",0,".")
 		self.mutations = {} #Dictionary of bed instance
 		self.mutationCount = 0
+		self.sigMutationCount = 0
+		self.sigClusterCount = 0
 		self.wig = None
 		self.coverage = 0 #"reads coverage of this sample"
 		self.bamheader = None
@@ -43,21 +48,19 @@ class CLIP:
 			try:
 				self.header = pysam.view("-SH",self.filepath)
 			except:
-				print >> sys.stderr, "Input file does not have header, please check your file. Program quit"
+				logging.error("Input file does not have header, please check your file. Program quit")
 				return (False,"None")
 		#Header test passed, test if it is BAM
 		try:
 			infile = gzip.open(self.filepath)
 			infile.readline(10)
 		except:#cannot read line, should be sam
-			print >> sys.stderr,"Input is SAM, converting to BAM...",
+			logging.info("Input is SAM, converting to BAM...")
 			bamout = ".".join(self.filepath.split(".")[0:-1])+"."+"bam"
-			print >> sys.stderr,bamout
 			infile = pysam.Samfile(self.filepath,"r",header=self.header)
 			#print >> sys.stderr,pysam.view("-SH",infile)
 			outfile = pysam.Samfile(bamout,"wb",template=infile)
 			for i in infile.fetch():
-				print >> sys.stderr,i
 				outfile.write(i)
 			self.filepath = bamout
 		#Now the infile is BAM,check if it is sorted
@@ -65,13 +68,13 @@ class CLIP:
 			pysam.index(self.filepath)
 			return True
 		else:#sort the BAM
-			print >> sys.stderr, "Input is not sorted, sorting file..."
+			logging.info("Input is not sorted, sorting file...")
 			bamsort = ".".join(self.filepath.split(".")[0:-1])+"."+"sort"
 			pysam.sort(self.filepath,bamsort)
 			pysam.index(bamsort+".bam")
 			self.filepath = bamsort+".bam" # change input file path
 			self.header = pysam.view("-H",bamsort+".bam")
-			print >> sys.stderr,self.header
+			logging.info("Input file sorted")
 			#if Utils.is_sorted(self.header):
 			#	print >> sys.stderr, "The file is sorted"
 			return True
@@ -81,7 +84,7 @@ class CLIP:
 			self.originalBAM = pysam.Samfile(self.filepath,"rb")
 			return True
 		except IOError,message:
-			print >> sys.stderr, "Cannot open input file",message
+			logging.error("Cannot open input file"+message)
 			return False
 
 	def printFilteredReads(self):
@@ -161,19 +164,23 @@ class CLIP:
 				self.clusters.append(self.currentCluster)
 	
 	def updateMutation(self,read,mis):
+		
 		if self.type == 3:#iclip,find truncation
 			mutation = Mutation2.getTruncations(self.originalBAM,read)
 		else:
 			if mis > 0:
 				mutation = Mutation2.getMutations(self.originalBAM,read)
-		for m in mutation:
-			#print m
-			self.mutationCount += 1
-			m_key = "_".join([m.chr,str(m.start),m.strand,m.type])
-			if self.mutations.has_key(m_key):
-				self.mutations[m_key].increaseScore()
 			else:
-				self.mutations[m_key]=m
+				mutation = []
+		if len(mutation)>0:
+			for m in mutation:
+				#print m
+				self.mutationCount += 1
+				m_key = "_".join([m.chr,str(m.start),m.strand,m.type])
+				if self.mutations.has_key(m_key):
+					self.mutations[m_key].increaseScore()
+				else:
+					self.mutations[m_key]=m
 
 	def updateCLIPinfo(self,read,matchlen,miscount):
 		'''Update sample coverage info, clustering, mutation info'''
@@ -207,10 +214,11 @@ class CLIP:
 
 
 	def filter(self,matchLen,mismatch,cliptype,duprm):
-		print >>sys.stderr,"Start to filter alignment using parameters:"
-		print >>sys.stderr,"match length:",matchLen
-		print >>sys.stderr,"CLIP type:",cliptype
-		print >>sys.stderr,"Rmdup code:",duprm
+		'''Filter the input BAM file according to parameters. Make clusters and mutations at the same time'''
+		logging.info("Start to filter alignment using parameters:")
+		logging.debug("match length:%d" % (matchLen))
+		logging.debug("CLIP type:%s" % (str(cliptype)))
+		logging.debug("Rmdup code:%s" % (str(duprm)))
 		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0
@@ -243,5 +251,11 @@ class CLIP:
 			self.currentGroup = []
 			self.filteredAlignment.append(keep)
 			self.updateCLIPinfo(keep,mlen,mis)
+
+		#Logging CLIP sample information
+		logging.debug("After filter, %d reads left" % (len(sefl.filteredAlignment)))
+		#logging.debug("There are %d clusters in total" % (len(self.clusters)))
+		#logging.debuf("There are %d mutations in total" % (len(self.mutations)))
+
 		
 

@@ -16,6 +16,7 @@ import CLIP
 import Alignment
 import Utils
 import Enrich
+import OptValidator
 
 def prepare_argparser():
 	description = "Find mutations"
@@ -34,19 +35,37 @@ def prepare_argparser():
 
 def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
 	myClip = CLIP.CLIP(infile)
-	print >> sys.stderr,"Start to run"
+	logging.info("Start to run")
 	if myClip.testInput():#check input
-		print >> sys.stderr,"Input file OK"
+		logging.info("Input file OK,start to run PIPE-CLIP")
 		if myClip.readfile():
 			myClip.filter(matchLength,mismatch,clipType,rmdup)
 			#myClip.printFilteredReads()
 			#myClip.printClusters()
 			#myClip.printMutations()
-			Enrich.mutationEnrich(myClip,fdrReliableMutation)
+			if len(myClip.clusters)>0:
+				logging.info("Get enriched clusters")
+				Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
+			else:
+				logging.error("There is no clusters found. Please check input.Exit program.")
+				sys.exit(1)
+			
+			if len(myClip.mutations.keys())>0:
+				logging.info("Get reliable mutations")
+				Enrich.mutationEnrich(myClip,fdrReliableMutation)
+			else:
+				logging.warning("There is no mutation found in this BAM file.")
 			#myClip.printReliableMutations()
-			Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
-			myClip.getCrosslinking()
-			myClip.printCrosslinkingSites()
+			if myClip.sigClusterCount > 0 and myClip.sigMutationCount>0:
+				myClip.getCrosslinking()
+				myClip.printCrosslinkingSites()
+			else:
+				if myClip.sigClusterCount <= 0:
+					logging.error("There is no enriched clusters for this sample, please check your input file. Exit.")
+					sys.exit(2)
+				elif myClip.sigMutationCount <=0:
+					logging.warning("There is no reliable mutations found. PIPE-CLIP will provide enriched clusters as crosslinking candidates.")
+					myClip.printEnrichedClusters()
 	else:
 		print >> sys.stderr, "File corruputed, program exit."
 		sys.exit(0)
@@ -56,7 +75,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 if __name__=="__main__":
 	arg_parser = prepare_argparser()
 	args = arg_parser.parse_args()
-	logging.basicConfig(file)
+	OptValidator.opt_validate()
 	infile = args.infile                  # Input SAM/BAM file
 	outputPrefix = args.outfile           # Output prefix
 	matchLength = args.matchLength        # Shorted matched segment length

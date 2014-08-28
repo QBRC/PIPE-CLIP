@@ -114,6 +114,7 @@ def mutationEnrich(clip,threshold=0.01):
 		mu.qvalue = pqDic[mu.pvalue]
 		if mu.qvalue <= threshold:
 			mu.sig = True
+			clip.sigMutationCount += 1
 
 def clusterEnrich(clip,threshold=0.01):
 	#write temp file
@@ -141,6 +142,7 @@ def clusterEnrich(clip,threshold=0.01):
 				record.qvalue = nbDic[r_key][1]
 				if record.qvalue<=threshold:
 					record.sig = True
+					clip.sigClusterCount += 1
 
 def fisherTest(clusterp,mutationp):
 	R = robject.r
