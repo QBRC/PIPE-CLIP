@@ -137,7 +137,7 @@ class CLIP:
 		'''Cluster new read to known clusters and update cluster reads count'''
 		strandDic = {"True":"-","False":"+"}
 		clusterName = "cluster"+"_"+str(len(self.clusters)+1)
-		newRead = Alignment.BED(self.originalBAM.getrname(read.tid),read.pos,read.pos+len(read.seq),clusterName,1,strandDic[str(read.is_reverse)])
+		newRead = Mutation2.MutationBed(self.originalBAM.getrname(read.tid),read.pos,read.pos+len(read.seq),clusterName,1,strandDic[str(read.is_reverse)])
 		if self.currentCluster.chr == "": #Initiate cluster
 			self.currentCluster = newRead
 			self.clusters.append(self.currentCluster)

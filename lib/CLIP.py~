@@ -98,7 +98,7 @@ class CLIP:
 		for i in self.mutations.values():
 			if i.sig:
 				st = i.__str__()
-				st += str(i.pvalue)+"\t"+str(i.qvalue)
+				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
 				print st
 	
 	def updatePreviousQul(self,n,q,m):
