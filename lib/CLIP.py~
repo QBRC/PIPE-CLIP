@@ -102,7 +102,11 @@ class CLIP:
 				st = i.__str__()
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
 				print st
-	
+
+	def printCrosslinkingSites(self):
+		for i in self.crosslinking.values():
+
+
 	def updatePreviousQul(self,n,q,m):
 		self.previousQul[0] = n
 		self.previousQul[1] = q
@@ -180,13 +184,23 @@ class CLIP:
 		'''Merge enriched clusters and reliable mutations together
 				Call Enrich.fisherTest() to calculate joint p vlaue
 		'''
-		for cluster in self.clusters:
-			for mutation in self.mutations.values():
-				if cluster.overlap(mutation):
-					if self.crosslinking.has_key(cluster.name):
-						self.crosslinking[cluster.name].addMutation(mutation)
-					else:
-						self.crosslinking[cluster.name] = Alignment.CrosslinkigBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name)
+		for cluster in self.clusters:#only check significant clusters and mutations
+			if cluster.sig:
+				for mutation in self.mutations.values():
+					if mutation.sig:
+						if cluster.overlap(mutation):
+							if self.crosslinking.has_key(cluster.name):
+								self.crosslinking[cluster.name].addMutation(mutation)
+								self.crosslinkingMutations.append(mutation)
+							else:
+								self.crosslinking[cluster.name] = Alignment.CrosslinkigBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name)
+		
+		#start to calculate fisher test p value
+		for k in self.crosslinking.keys():
+			self.crosslinking[k].fishertest()
+
+
+
 
 	def filter(self,matchLen,mismatch,cliptype,duprm):
 		print >>sys.stderr,"Start to filter alignment using parameters:"
