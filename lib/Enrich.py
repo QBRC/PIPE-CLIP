@@ -117,11 +117,15 @@ def mutationEnrich(clip,threshold=0.01):
 		except:
 			print >> sys.stderr,"Cannot find p value in dictionary"
 			continue
+	count = 0
 	for mu in clip.mutations.values():
 		name = str(mu.kvalue)+"_"+str(mu.score)
 		mu.pvalue = km_p[name]
 		mu.qvalue = pqDic[mu.pvalue]
 		if mu.qvalue <= threshold:
+			count += 1
+			new_mutationName = "Mutation_"+str(count)
+			mu.name = new_mutationName
 			mu.sig = True
 			clip.sigMutationCount += 1
 			clip.addSigToDic(clip.sigMutations,mu)
