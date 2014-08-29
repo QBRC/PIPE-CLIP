@@ -124,7 +124,11 @@ def mutationEnrich(clip,threshold=0.01):
 		if mu.qvalue <= threshold:
 			mu.sig = True
 			clip.sigMutationCount += 1
+			clip.addSigToDic(clip.sigMutations,mu)
 	logging.info("There are %d reliable mutations" % clip.sigMutationCount)
+
+
+
 def clusterEnrich(clip,threshold=0.01):
 	#write temp file
 	#temp_filename = "test.merge"#clip.filepath.split("/")[-1].split(".")[0]
@@ -152,12 +156,9 @@ def clusterEnrich(clip,threshold=0.01):
 			if nbDic.has_key(r_key):
 				clip.clusters[i].pvalue = nbDic[r_key][0]
 				clip.clusters[i].qvalue = nbDic[r_key][1]
-				try:
-					clip.clusters[i].sig = True
-					clip.sigClusterCount += 1
-				except:
-					print "wrong cluster",clip.clusters[i]
-					continue
+				clip.clusters[i].sig = True
+				clip.sigClusterCount += 1
+				#clip.addSigToDic(clip.sigClusters,clip.clusters[i])
 
 def fisherTest(clusterp,mutationp):
 	R = robject.r

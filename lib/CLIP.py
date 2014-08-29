@@ -24,8 +24,10 @@ class CLIP:
 		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
 		self.clusters = [] 
 		self.currentCluster = Alignment.BED("",0,0,"",0,".")
+		#self.sigClusters = {}
 		self.mutations = {} #Dictionary of bed instance
 		self.mutationCount = 0
+		self.sigMutations = {}#same as sigClusters
 		self.sigMutationCount = 0
 		self.sigClusterCount = 0
 		self.wig = None
@@ -106,9 +108,10 @@ class CLIP:
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
 				print st
 
-	def printEnrichedClusters(self):
-		for i in self.clusters:
-			if i.sig:
+	def printEnrichedItem(self,dic):
+		for k in dic.keys():
+			print k
+			for i in dic[k]:
 				st = i.__str__()
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
 				print st
@@ -116,7 +119,7 @@ class CLIP:
 	def printCrosslinkingSites(self):
 		for i in self.crosslinking.values():
 			st = i.__str__()
-			st += "\t"+"\t".join([str(i.clusterQ),str(i.fisherP)])
+			st += "\t"+"\t".join([str(i.qvalue),str(i.fisherP)])
 			st += "\t"+",".join(i.mutationStarts)
 			st += "\t"+",".join(i.mutationNames)
 
@@ -198,27 +201,32 @@ class CLIP:
 		#update mutation info
 		self.updateMutation(read,miscount)
 
+	def addSigToDic(self,dic,mu):
+		'''Add new mutation into the dictionary.Mutations should be sorted'''
+		if dic.has_key(mu.chr):
+			dic[mu.chr].append(mu)
+		else:
+			dic[mu.chr] = [mu]
+	
 	def getCrosslinking(self):
 		'''Merge enriched clusters and reliable mutations together
 				Call Enrich.fisherTest() to calculate joint p vlaue
 		'''
-		for cluster in self.clusters:#only check significant clusters and mutations
-			if cluster.sig:
-				for mutation in self.mutations.values():
-					if mutation.sig:
-						if cluster.overlap(mutation):
-							if self.crosslinking.has_key(cluster.name):
-								self.crosslinking[cluster.name].addMutation(mutation)
-								self.crosslinkingMutations.append(mutation)
-							else:
-								logging.debug("New cross linking %s",cluster.name)
-								self.crosslinking[cluster.name] = Alignment.CrosslinkingBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name)
-		
+		for cluster in self.clusters:
+			#logging.debug("P value of cluster is %f" % cluster.pvalue)
+			if cluster.sig and self.sigMutations.has_key(cluster.chr):
+				for mutation in self.sigMutations[cluster.chr]:
+					if cluster.overlap(mutation):
+						if self.crosslinking.has_key(cluster.name):
+							#logging.debug("Existing mutation pvalue:",self.crosslinking[cluster.name].mutationP)
+							self.crosslinking[cluster.name].addMutation(mutation)
+							self.crosslinkingMutations.append(mutation)
+						else:
+							logging.debug("New cross linking %s",cluster.name)
+							self.crosslinking[cluster.name] = Alignment.CrosslinkingBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name,mutation.pvalue)
 		#start to calculate fisher test p value
 		for k in self.crosslinking.keys():
-			print "Cross-linking mutations",k
-			print self.crosslinking[k].mutationP
-			#self.crosslinking[k].fishertest()
+			self.crosslinking[k].fishertest()
 
 
 

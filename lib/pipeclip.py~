@@ -47,7 +47,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 				logging.info("Get enriched clusters")
 				Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
 				logging.debug("Found %d enriched clusters" % myClip.sigClusterCount)
-				#myClip.printEnrichedClusters()
+				#myClip.printEnrichedItem(myClip.sigClusters)
 			else:
 				logging.error("There is no clusters found. Please check input.Exit program.")
 				sys.exit(1)
@@ -55,10 +55,11 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			if len(myClip.mutations.keys())>0:
 				logging.info("Get reliable mutations")
 				Enrich.mutationEnrich(myClip,fdrReliableMutation)
-				#myClip.printReliableMutations()
+				#myClip.printEnrichedItem(myClip.sigMutations)
 			else:
 				logging.warning("There is no mutation found in this BAM file.")
 			if myClip.sigClusterCount > 0 and myClip.sigMutationCount>0:
+				logging.info("Get cross-linking sites")
 				myClip.getCrosslinking()
 				if (len(myClip.crosslinking.keys())>0):
 					myClip.printCrosslinkingSites()

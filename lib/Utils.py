@@ -3,6 +3,7 @@
 # Usage: definition of utilities to handel pysam classes
 
 import sys
+import Alignment
 
 def is_sorted(header):
 	'''Get a BAM header, and check if this file is sorted or not
@@ -46,3 +47,8 @@ def rmdupKey_Seq(read):
 	k = str(read.tid)+":"+str(read.pos)+":"+str(read.is_reverse)+":"+read.seq
 	return k
 
+
+def bisort(alist,b):
+	'''List is a list of bed instances, b is also an instance'''
+	if isinstance(alist[0],Alignment.BED) and isinstance(b,Alignment.BED):
+		pass 

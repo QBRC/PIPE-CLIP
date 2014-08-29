@@ -36,18 +36,19 @@ class BED():
 
 class ClusterBed(BED):
 	def __init__(self,chr,start,stop,name,score,strand):
-		BED.__init__(self,chr,start,stop,name,score,strand)
-		self.pvlaue = 0
+		self.pvalue = 0
 		self.qvalue = 0
 		self.sig = False
+		BED.__init__(self,chr,start,stop,name,score,strand)
+
 
 class CrosslinkingBed(BED):
-	def __init__(self,chr,start,stop,name,score,strand,clusterP,clusterQ,mStart,mName):
+	def __init__(self,chr,start,stop,name,score,strand,clusterP,clusterQ,mStart,mName,mP):
 		self.fisherP = 0
 		self.clusterP = clusterP
-		self.mutationP = []
+		self.mutationP = [mP]
 		self.qvalue = clusterQ
-		self.mutationStarts = [mStart]
+		self.mutationStarts = [str(mStart)]
 		self.mutationNames = [mName]
 		BED.__init__(self,chr,start,stop,name,score,strand)
 	
