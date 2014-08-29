@@ -211,11 +211,14 @@ class CLIP:
 								self.crosslinking[cluster.name].addMutation(mutation)
 								self.crosslinkingMutations.append(mutation)
 							else:
-								self.crosslinking[cluster.name] = Alignment.CrosslinkigBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name)
+								logging.debug("New cross linking %s",cluster.name)
+								self.crosslinking[cluster.name] = Alignment.CrosslinkingBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name)
 		
 		#start to calculate fisher test p value
 		for k in self.crosslinking.keys():
-			self.crosslinking[k].fishertest()
+			print "Cross-linking mutations",k
+			print self.crosslinking[k].mutationP
+			#self.crosslinking[k].fishertest()
 
 
 
@@ -226,11 +229,16 @@ class CLIP:
 		logging.debug("match length:%d" % (matchLen))
 		logging.debug("CLIP type:%s" % (str(cliptype)))
 		logging.debug("Rmdup code:%s" % (str(duprm)))
+		logging.debug("There are %d reads in origianl input file" % (self.originalBAM.mapped))
 		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0
+		count = 0
 		for alignment in self.originalBAM:
 			#print "Now processing",alignment.qname
+			count += 1
+			if count % 100000 ==0:
+				logging.debug("Processed %d reads." % count)
 			flag,mlen,mis = Utils.readQuaFilter(alignment,matchLen,mismatch)
 			if flag:
 				#print "Qualified read"
@@ -250,7 +258,8 @@ class CLIP:
 							self.filteredAlignment.append(keep)
 							self.updateCLIPinfo(keep,mlen,mis)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
-				else:
+				else:#there is no rmdup
+					self.filteredAlignment.append(alignment)
 					self.updateCLIPinfo(alignment,mlen,mis)
 		#clean up the final dupGroup
 		if len(self.currentGroup)>0:
@@ -260,9 +269,9 @@ class CLIP:
 			self.updateCLIPinfo(keep,mlen,mis)
 
 		#Logging CLIP sample information
-		logging.debug("After filter, %d reads left" % (len(sefl.filteredAlignment)))
-		#logging.debug("There are %d clusters in total" % (len(self.clusters)))
-		#logging.debuf("There are %d mutations in total" % (len(self.mutations)))
+		logging.debug("After filtering, %d reads left" % (len(self.filteredAlignment)))
+		logging.debug("There are %d clusters in total" % (len(self.clusters)))
+		logging.debug("There are %d mutations in total" % (len(self.mutations)))
 
 		
 

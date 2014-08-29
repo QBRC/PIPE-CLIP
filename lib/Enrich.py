@@ -10,6 +10,7 @@ import sys
 import re
 import random
 import string
+import logging
 import pysam
 from pysam import *
 import argparse as ap
@@ -21,6 +22,9 @@ from rpy2.robjects import FloatVector
 import math
 from collections import Counter
 import subprocess
+import OptValidator
+
+OptValidator.opt_validate()
 
 stats = importr('stats')
 
@@ -46,7 +50,11 @@ def KMvalue(mapfile,mufile):
 		'''
 		km = []#store mutations with updated k value
 		km_pair = {}#Dic of count tuples of (k,m),key:"K_M"
+		count = 0
 		for item in mufile:
+			count += 1
+			if count % 5000 == 0:
+				logging.info("Counting K-M for %d mutation sites" % count)
 			st = []
 			strand = item.strand 
 			M = item.score
@@ -86,6 +94,7 @@ def mutationEnrich(clip,threshold=0.01):
 	totalMuCount = clip.mutationCount
 	#(original_KM,KM_test) = KMvalue(clip.originalBAM, clip.mutations)
 	KM_test = KMvalue(clip.originalBAM, clip.mutations.values())#check after doing KM, if clip.mutations changed
+	logging.info("Finished K-M counting, starting fitting.")
 	R = robject.r
 	reliableList = []
 	P = totalMuCount/coverage
@@ -115,7 +124,7 @@ def mutationEnrich(clip,threshold=0.01):
 		if mu.qvalue <= threshold:
 			mu.sig = True
 			clip.sigMutationCount += 1
-
+	logging.info("There are %d reliable mutations" % clip.sigMutationCount)
 def clusterEnrich(clip,threshold=0.01):
 	#write temp file
 	#temp_filename = "test.merge"#clip.filepath.split("/")[-1].split(".")[0]
@@ -128,21 +137,27 @@ def clusterEnrich(clip,threshold=0.01):
 	#stdout_value = p.communicate()[0]
 	#output = subprocess.check_output['ls','-l','test.merge.ztnb']
 	if True:#int(output.split()[4])>100: #more than header,file OK
-		enrich_parameter = open("test.merge.ztnb","r")
+		enrich_parameter = open("../test/test.merge.ztnb","r")
 		nbDic = {}
 		for item in enrich_parameter:
 			buf = item.rstrip().split("\t")
 			nb_key = "_".join(buf[0:2]) #reads_length as key
+			#logging.debug("NB_key %s" % nb_key)
 			if not nbDic.has_key(nb_key):
 				nbDic[nb_key]=(buf[2],buf[3])#pvalue and qvalue
-		for record in clip.clusters:
-			r_key = str(record.stop-record.start)+"_"+str(record.score)
+		logging.info("There are %d read-length pairs" % (len(nbDic.keys())))
+		for i in range(len(clip.clusters)):
+			r_key = str(clip.clusters[i].score)+"_"+str(clip.clusters[i].stop-clip.clusters[i].start)
+			#logging.debug("Keys from clip.clusters,%s" % r_key)
 			if nbDic.has_key(r_key):
-				record.pvalue = nbDic[r_key][0]
-				record.qvalue = nbDic[r_key][1]
-				if record.qvalue<=threshold:
-					record.sig = True
+				clip.clusters[i].pvalue = nbDic[r_key][0]
+				clip.clusters[i].qvalue = nbDic[r_key][1]
+				try:
+					clip.clusters[i].sig = True
 					clip.sigClusterCount += 1
+				except:
+					print "wrong cluster",clip.clusters[i]
+					continue
 
 def fisherTest(clusterp,mutationp):
 	R = robject.r
