@@ -47,6 +47,16 @@ def rmdupKey_Seq(read):
 	k = str(read.tid)+":"+str(read.pos)+":"+str(read.is_reverse)+":"+read.seq
 	return k
 
+def filterMutations(mlist,feature,keep=True):
+	newList = []
+	for i in mlist:
+		if i.type==feature:
+			if keep:
+				newList.append(i)
+		else:
+			if not keep:
+				newList.append(i)
+	return newList
 
 def bisort(alist,b):
 	'''List is a list of bed instances, b is also an instance'''

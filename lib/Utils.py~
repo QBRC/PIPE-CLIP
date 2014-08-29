@@ -51,4 +51,4 @@ def rmdupKey_Seq(read):
 def bisort(alist,b):
 	'''List is a list of bed instances, b is also an instance'''
 	if isinstance(alist[0],Alignment.BED) and isinstance(b,Alignment.BED):
-		mylist = 
+		pass 

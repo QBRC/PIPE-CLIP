@@ -176,14 +176,19 @@ class CLIP:
 	def updateMutation(self,read,mis):
 		
 		if self.type == 3:#iclip,find truncation
-			mutation = Mutation2.getTruncations(self.originalBAM,read)
+			mutations = Mutation2.getTruncations(self.originalBAM,read)
 		else:
 			if mis > 0:
-				mutation = Mutation2.getMutations(self.originalBAM,read)
+				mutations = Mutation2.getMutations(self.originalBAM,read)
+				if self.type ==1:
+					mutation_filter = Utils.filterMutation(mlist,"G->C",True)
+				elif self.type ==2:
+					mutation_filter = Utils.filterMutation(mlist,"A->T",True)
+				mutations = mutation_filter
 			else:
 				mutation = []
-		if len(mutation)>0:
-			for m in mutation:
+		if len(mutations)>0:
+			for m in mutations:
 				#print m
 				self.mutationCount += 1
 				m_key = "_".join([m.chr,str(m.start),m.strand,m.type])
