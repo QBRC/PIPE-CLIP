@@ -181,9 +181,9 @@ class CLIP:
 			if mis > 0:
 				mutations = Mutation2.getMutations(self.originalBAM,read)
 				if self.type ==1:
-					mutation_filter = Utils.filterMutation(mlist,"G->C",True)
+					mutation_filter = Utils.filterMutation(mlist,"T->C",True)
 				elif self.type ==2:
-					mutation_filter = Utils.filterMutation(mlist,"A->T",True)
+					mutation_filter = Utils.filterMutation(mlist,"G->A",True)
 				mutations = mutation_filter
 			else:
 				mutation = []
@@ -222,13 +222,19 @@ class CLIP:
 			if cluster.sig and self.sigMutations.has_key(cluster.chr):
 				for mutation in self.sigMutations[cluster.chr]:
 					if cluster.overlap(mutation):
-						if self.crosslinking.has_key(cluster.name):
+						if self.type == 0:#HITS-CLIP
+							mutation_key = mutation.type.split("->")[0]
+							if mutation_key in ["A","C","G","T"]:
+								mutation_key = "Substitution"
+							cross_key = cluster.name+"_"+mutation_key
+						else:
+							cross_key = cluster.name
+						if self.crosslinking.has_key(cross_key):
 							#logging.debug("Existing mutation pvalue:",self.crosslinking[cluster.name].mutationP)
-							self.crosslinking[cluster.name].addMutation(mutation)
+							self.crosslinking[cross_key].addMutation(mutation)
 							self.crosslinkingMutations.append(mutation)
 						else:
-							logging.debug("New cross linking %s",cluster.name)
-							self.crosslinking[cluster.name] = Alignment.CrosslinkingBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name,mutation.pvalue)
+							self.crosslinking[cross_key] = Alignment.CrosslinkingBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name,mutation.pvalue)
 		#start to calculate fisher test p value
 		for k in self.crosslinking.keys():
 			self.crosslinking[k].fishertest()

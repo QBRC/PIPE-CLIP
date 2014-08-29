@@ -181,20 +181,16 @@ class CLIP:
 			if mis > 0:
 				mutations = Mutation2.getMutations(self.originalBAM,read)
 				if self.type ==1:
-					mutation_filter = Utils.filterMutation(mlist,"G->C",True)
+					mutation_filter = Utils.filterMutation(mlist,"T->C",True)
 				elif self.type ==2:
-					mutation_filter = Utils.filterMutation(mlist,"A->T",True)
+					mutation_filter = Utils.filterMutation(mlist,"G->A",True)
+				mutations = mutation_filter
 			else:
 				mutation = []
 		if len(mutations)>0:
 			for m in mutations:
 				#print m
-				if self.type == 1:#PAR-4SU
-					if m.type == "G->C":
-						self.mutationCount += 1
-				elif self.type == 2:#PAR-6SG
-					if m.type == "A->T":
-						self.mutationCount += 1
+				self.mutationCount += 1
 				m_key = "_".join([m.chr,str(m.start),m.strand,m.type])
 				if self.mutations.has_key(m_key):
 					self.mutations[m_key].increaseScore()
@@ -226,7 +222,11 @@ class CLIP:
 			if cluster.sig and self.sigMutations.has_key(cluster.chr):
 				for mutation in self.sigMutations[cluster.chr]:
 					if cluster.overlap(mutation):
-						if self.crosslinking.has_key(cluster.name):
+						if self.type == 0:#HITS-CLIP
+							cross_key = cluster.name+"_"+mutation.type.split("->")[0]
+						else:
+							cross_key = cluster.name
+						if self.crosslinking.has_key(cross_key):
 							#logging.debug("Existing mutation pvalue:",self.crosslinking[cluster.name].mutationP)
 							self.crosslinking[cluster.name].addMutation(mutation)
 							self.crosslinkingMutations.append(mutation)
