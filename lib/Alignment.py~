@@ -23,11 +23,12 @@ class BED():
 		self.score += 1
 
 	def overlap(self,read):
-		if self.chr == read.chr or self.strand == read.strand:
+		if self.chr == read.chr and self.strand == read.strand:
 			if self.start <= read.stop and self.stop >=read.start:
 				return True
 			else:
 				return False
+	
 	def updateScore(self,s):
 		self.score = int(s)
 	
@@ -43,10 +44,10 @@ class ClusterBed(BED):
 
 
 class CrosslinkingBed(BED):
-	def __init__(self,chr,start,stop,name,score,strand,clusterP,clusterQ,mStart,mName):
+	def __init__(self,chr,start,stop,name,score,strand,clusterP,clusterQ,mStart,mName,mP):
 		self.fisherP = 0
 		self.clusterP = clusterP
-		self.mutationP = []
+		self.mutationP = [mP]
 		self.qvalue = clusterQ
 		self.mutationStarts = [str(mStart)]
 		self.mutationNames = [mName]

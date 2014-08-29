@@ -101,12 +101,16 @@ class CLIP:
 		for i in self.mutations.values():
 			print i
 
-	def printReliableMutations(self):
-		for i in self.mutations.values():
+	def printReliableList(self,mylist):
+		for i in mylist:
 			if i.sig:
 				st = i.__str__()
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
 				print st
+	
+	def printList(self,mylist):
+		for i in mylist:
+			print i
 
 	def printEnrichedItem(self,dic):
 		for k in dic.keys():
@@ -116,12 +120,29 @@ class CLIP:
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
 				print st
 	
-	def printCrosslinkingSites(self):
-		for i in self.crosslinking.values():
-			st = i.__str__()
-			st += "\t"+"\t".join([str(i.qvalue),str(i.fisherP)])
-			st += "\t"+",".join(i.mutationStarts)
-			st += "\t"+",".join(i.mutationNames)
+	def printCrosslinkingSites(self,output="pipeclip"):
+		if self.type == 0:#HITS-CLIP, three output
+			output_del = open(output+"_deletion_crosslinking.txt","w")
+			output_sub = open(output+"_substitution_crosslinking.txt","w")
+			output_ins = open(output+"_insertion_crosslinking.txt","w")
+		else:
+			output_name = open(output+"_crosslinking.txt","w")
+		for k in self.crosslinking.keys():
+			st = self.crosslinking[k].__str__()
+			st += "\t"+"\t".join([str(self.crosslinking[k].qvalue),str(self.crosslinking[k].fisherP)])
+			st += "\t"+",".join(self.crosslinking[k].mutationStarts)
+			st += "\t"+",".join(self.crosslinking[k].mutationNames)
+			if self.type == 0:
+				output_key =  k.split("_")[-1]
+				if output_key == "Deletion":
+					print >> output_del,st
+				elif output_key == "Insertion":
+					print >> output_ins,st
+				elif output_key == "Substitution":
+					print >> output_sub,st
+			else:
+				print >> output_name,st
+
 
 
 	def updatePreviousQul(self,n,q,m):
@@ -182,11 +203,12 @@ class CLIP:
 				mutations = Mutation2.getMutations(self.originalBAM,read)
 				if self.type ==1:
 					mutation_filter = Utils.filterMutation(mlist,"T->C",True)
+					mutations = mutation_filter
 				elif self.type ==2:
 					mutation_filter = Utils.filterMutation(mlist,"G->A",True)
-				mutations = mutation_filter
+					mutations = mutation_filter
 			else:
-				mutation = []
+				mutations = []
 		if len(mutations)>0:
 			for m in mutations:
 				#print m
@@ -219,20 +241,26 @@ class CLIP:
 		'''
 		for cluster in self.clusters:
 			#logging.debug("P value of cluster is %f" % cluster.pvalue)
-			if cluster.sig and self.sigMutations.has_key(cluster.chr):
+			if cluster.name in ["cluster_136","cluster_216","cluster_390"]:#cluster.sig and self.sigMutations.has_key(cluster.chr):
 				for mutation in self.sigMutations[cluster.chr]:
+					logging.debug("Cluster loc %d,%d ; Mutation loc %d,%d, mutation type %s" % (cluster.start,cluster.stop,mutation.start,mutation.stop,mutation.type))
 					if cluster.overlap(mutation):
+						logging.debug("Overlapped")
 						if self.type == 0:#HITS-CLIP
-							cross_key = cluster.name+"_"+mutation.type.split("->")[0]
+							mutation_key = mutation.type.split("->")[0]
+							if mutation_key in ["A","C","G","T"]:
+								mutation_key = "Substitution"
+							cross_key = cluster.name+"_"+mutation_key
+							logging.debug("crosslinking key %s" % cross_key)
 						else:
 							cross_key = cluster.name
 						if self.crosslinking.has_key(cross_key):
 							#logging.debug("Existing mutation pvalue:",self.crosslinking[cluster.name].mutationP)
-							self.crosslinking[cluster.name].addMutation(mutation)
+							self.crosslinking[cross_key].addMutation(mutation)
 							self.crosslinkingMutations.append(mutation)
 						else:
-							logging.debug("New cross linking %s",cluster.name)
-							self.crosslinking[cluster.name] = Alignment.CrosslinkingBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name,mutation.pvalue)
+							self.crosslinking[cross_key] = Alignment.CrosslinkingBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name,mutation.pvalue)
+							self.crosslinkingMutations.append(mutation)
 		#start to calculate fisher test p value
 		for k in self.crosslinking.keys():
 			self.crosslinking[k].fishertest()
@@ -243,10 +271,10 @@ class CLIP:
 	def filter(self,matchLen,mismatch,cliptype,duprm):
 		'''Filter the input BAM file according to parameters. Make clusters and mutations at the same time'''
 		logging.info("Start to filter alignment using parameters:")
-		logging.debug("match length:%d" % (matchLen))
-		logging.debug("CLIP type:%s" % (str(cliptype)))
-		logging.debug("Rmdup code:%s" % (str(duprm)))
-		logging.debug("There are %d reads in origianl input file" % (self.originalBAM.mapped))
+		logging.info("match length:%d" % (matchLen))
+		logging.info("CLIP type:%s" % (str(cliptype)))
+		logging.info("Rmdup code:%s" % (str(duprm)))
+		logging.info("There are %d reads in origianl input file" % (self.originalBAM.mapped))
 		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0

@@ -8,8 +8,8 @@ import Enrich
 class BED():
 	def __init__(self,chr,start,stop,name,score,strand):
 		self.chr = chr
-		self.start = start
-		self.stop = stop
+		self.start = int(start)
+		self.stop = int(stop)
 		self.name = name
 		self.score = int(score)
 		self.strand = strand
@@ -23,11 +23,12 @@ class BED():
 		self.score += 1
 
 	def overlap(self,read):
-		if self.chr == read.chr or self.strand == read.strand:
+		if self.chr == read.chr and self.strand == read.strand:
 			if self.start <= read.stop and self.stop >=read.start:
 				return True
 			else:
 				return False
+	
 	def updateScore(self,s):
 		self.score = int(s)
 	
