@@ -46,9 +46,9 @@ class ClusterBed(BED):
 class CrosslinkingBed(BED):
 	def __init__(self,chr,start,stop,name,score,strand,clusterP,clusterQ,mStart,mName,mP):
 		self.fisherP = 0
-		self.clusterP = clusterP
+		self.clusterP = float(clusterP)
 		self.mutationP = [mP]
-		self.qvalue = clusterQ
+		self.qvalue = float(clusterQ)
 		self.mutationStarts = [str(mStart)]
 		self.mutationNames = [mName]
 		BED.__init__(self,chr,start,stop,name,score,strand)
@@ -72,6 +72,6 @@ class BAM:
 
 	def checkHeader(self):
 		'''Use gzip package to check if this is a bam or sam'''
-
+		pass
 
 

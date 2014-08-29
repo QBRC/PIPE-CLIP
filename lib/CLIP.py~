@@ -241,11 +241,11 @@ class CLIP:
 		'''
 		for cluster in self.clusters:
 			#logging.debug("P value of cluster is %f" % cluster.pvalue)
-			if cluster.name in ["cluster_136","cluster_216","cluster_390"]:#cluster.sig and self.sigMutations.has_key(cluster.chr):
+			if cluster.sig and self.sigMutations.has_key(cluster.chr):
 				for mutation in self.sigMutations[cluster.chr]:
-					logging.debug("Cluster loc %d,%d ; Mutation loc %d,%d, mutation type %s" % (cluster.start,cluster.stop,mutation.start,mutation.stop,mutation.type))
+					#logging.debug("Cluster loc %d,%d ; Mutation loc %d,%d, mutation type %s" % (cluster.start,cluster.stop,mutation.start,mutation.stop,mutation.type))
 					if cluster.overlap(mutation):
-						logging.debug("Overlapped")
+						#logging.debug("Overlapped")
 						if self.type == 0:#HITS-CLIP
 							mutation_key = mutation.type.split("->")[0]
 							if mutation_key in ["A","C","G","T"]:

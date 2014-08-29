@@ -8,8 +8,8 @@ import Enrich
 class BED():
 	def __init__(self,chr,start,stop,name,score,strand):
 		self.chr = chr
-		self.start = start
-		self.stop = stop
+		self.start = int(start)
+		self.stop = int(stop)
 		self.name = name
 		self.score = int(score)
 		self.strand = strand
@@ -72,6 +72,6 @@ class BAM:
 
 	def checkHeader(self):
 		'''Use gzip package to check if this is a bam or sam'''
-
+		pass
 
 

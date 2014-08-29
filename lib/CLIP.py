@@ -251,7 +251,6 @@ class CLIP:
 							if mutation_key in ["A","C","G","T"]:
 								mutation_key = "Substitution"
 							cross_key = cluster.name+"_"+mutation_key
-							logging.debug("crosslinking key %s" % cross_key)
 						else:
 							cross_key = cluster.name
 						if self.crosslinking.has_key(cross_key):
