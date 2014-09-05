@@ -3,6 +3,7 @@ import sys
 import gzip
 import copy
 import logging
+import math
 import pysam
 import random
 import Utils
@@ -89,17 +90,17 @@ class CLIP:
 			logging.error("Cannot open input file"+message)
 			return False
 
-	def printFilteredReads(self):
-		for i in self.filteredAlignment:
-			print i
+#	def printFilteredReads(self):
+#		for i in self.filteredAlignment:
+#			print i
 	
-	def printClusters(self):
-		for i in self.clusters:
-			print i
+#	def printClusters(self):
+#		for i in self.clusters:
+#			print i
 
-	def printMutations(self):
-		for i in self.mutations.values():
-			print i
+#	def printMutations(self):
+#		for i in self.mutations.values():
+#			print i
 
 	def printReliableList(self,mylist):
 		for i in mylist:
@@ -129,7 +130,7 @@ class CLIP:
 			output_name = open(output+"_crosslinking.txt","w")
 		for k in self.crosslinking.keys():
 			st = self.crosslinking[k].__str__()
-			st += "\t"+"\t".join([str(self.crosslinking[k].qvalue),str(self.crosslinking[k].fisherP)])
+			st += "\t"+"\t".join([str(math.log(self.crosslinking[k].qvalue)),str(self.crosslinking[k].fisherP)])
 			st += "\t"+",".join(self.crosslinking[k].mutationStarts)
 			st += "\t"+",".join(self.crosslinking[k].mutationNames)
 			if self.type == 0:

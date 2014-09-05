@@ -89,17 +89,17 @@ class CLIP:
 			logging.error("Cannot open input file"+message)
 			return False
 
-	def printFilteredReads(self):
-		for i in self.filteredAlignment:
-			print i
+#	def printFilteredReads(self):
+#		for i in self.filteredAlignment:
+#			print i
 	
-	def printClusters(self):
-		for i in self.clusters:
-			print i
+#	def printClusters(self):
+#		for i in self.clusters:
+#			print i
 
-	def printMutations(self):
-		for i in self.mutations.values():
-			print i
+#	def printMutations(self):
+#		for i in self.mutations.values():
+#			print i
 
 	def printReliableList(self,mylist):
 		for i in mylist:
@@ -251,7 +251,6 @@ class CLIP:
 							if mutation_key in ["A","C","G","T"]:
 								mutation_key = "Substitution"
 							cross_key = cluster.name+"_"+mutation_key
-							logging.debug("crosslinking key %s" % cross_key)
 						else:
 							cross_key = cluster.name
 						if self.crosslinking.has_key(cross_key):
