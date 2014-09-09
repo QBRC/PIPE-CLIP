@@ -139,12 +139,35 @@ def clusterEnrich(clip,threshold=0.01):
 	#fh = open(temp_filename,"w")
 	#for i in clip.clusters:
 	#	print >> fh, "\t".join(i)
-	
-	#r_args = ['Rscript','ZTNB.R','test.merge',threshold,' 2>err']
-	#p = subprocess.Popen(args)
-	#stdout_value = p.communicate()[0]
-	#output = subprocess.check_output['ls','-l','test.merge.ztnb']
-	if True:#int(output.split()[4])>100: #more than header,file OK
+
+
+	#Call R code and get result
+	epsilon = [0.01,0.15,0.1]
+	step = [0.1,0.08,0.05]
+	for index in range(3):
+		e = epsilon[index]
+		s = step[index]
+		r_args = ['Rscript','ZTNB.R','test.merge',threshold,e,s]
+		p = subprocess.Popen(args)
+		stdout_value = p.communicate()[0]
+		#output = subprocess.check_output['ls','-l','test.merge.ztnb']
+		#output_log = subprocess.check_output['ls','-l','test.merge.ztnblog']
+		#If regression converged, there is no need to try other epsilon or step,check log file flag: Y means coverged, N means not converged 
+		try:
+			r_output_log = open("test.merge.ztnblog","r")
+			flag = r_outpu_log.read(1)
+			if flag == "Y":#converged
+				break
+			elif flag=="N":
+				continue
+			else:
+				logging.info("No log file was produced by R code, continue regression using other parameters anyway.")
+				continue
+
+	#check ztnb file
+
+	r_output = subprocess.check_output['ls','-l','test.merge.ztnb']
+	if True:#int(r_output.split()[4])>100: #more than header,file OK
 		enrich_parameter = open("../test/test.merge.ztnb","r")
 		nbDic = {}
 		for item in enrich_parameter:

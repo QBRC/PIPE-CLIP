@@ -1,4 +1,4 @@
-#!/usr/bin/python
+!/usr/bin/python
 # Programmer : beibei.chen@utsouthwestern.edu
 # Usage: Find genomic location and type of mutations
 # Input: BAM
@@ -13,7 +13,8 @@ import copy
 import pysam
 from pysam import *
 import argparse as ap
-"""
+import logging
+
 def prepare_argparser():
   description = "Find mutations"
   epilog = "For command line options of each command, type %(prog)s COMMAND -h"
@@ -22,7 +23,7 @@ def prepare_argparser():
   argparser.add_argument("-o","--output",dest = "outfile", type = str,required = True, help = "output file, default is stdout")
   argparser.add_argument("-p",dest = "par", type = int,default = 0, help = "CLIP type, output will only contain specific mutations. 0 for HITS-CLIP, 1 for PAR-CLIP (T->C) and 2 for PAR-CLIP (G->A)")
   return(argparser)
-"""
+
 class findMutationRunner:
   def __init__(self,inputFile,outputFile,par):
     self.inputFile = inputFile
@@ -250,8 +251,8 @@ class findMutationRunner:
     header = "#"+"\t".join(["chr","start","stop","id","offset","strand","type"])
     print >>outputfile, header 
     for item in infile:
-      b= item.tags
-      if self.countMismatch(b)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
+      print >> sys.stderr,"Processing",item.qname
+      if self.countMismatch(item.tags)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
         #tmp.write(item)
         sur = self.survey(item)
         insertion = sur[0]
@@ -311,8 +312,8 @@ def findMutationMainNoArgs():
   outputfile = open(args.outfile,"wa") #ouput mutation bed
 
   par = args.par
-  findMutationRunner = findMutationRunner(infile,outputfile,par)
-  findMutationRunner.run()
+  myRunner = findMutationRunner(infile,outputfile,par)
+  myRunner.run()
 
 if __name__=="__main__":
   findMutationMainNoArgs()

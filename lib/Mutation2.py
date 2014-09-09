@@ -181,6 +181,7 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 		st_genome = 0
 		offset = 0
 		pre = ':'
+		set_insertion = 0 #recored insertion numbers already counted
 		for ch in mdlist:#i[1] is the MD tag
 			if ch.isdigit():
 				st_seq += int(ch)
@@ -195,7 +196,9 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 					index = st_seq+S_count+offset
 					insertionBefore = countInsertionBefore(index,insertLoc)
 					loc = st_genome+match.pos+offset#-insertionBefore #0-based 
-					index += insertionBefore # add on 9 Oct
+					index += insertionBefore-set_insertion # add on 9 Oct,modify 9,9 2014
+					set_insertion = insertionBefore
+
 					#print index,len(match.seq)
 					mu = match.seq[index]
 					offset = index-S_count+1

@@ -126,9 +126,10 @@ for (i in intercept1)
 if((biggest_likelihood==-99999999) && (khat==0) && (muhat ==0))
 {
   #No model converged,exit
-  errmsg = paste(errmsg,"No model converged for this run.",sep="\n");
+  errmsg = paste("N:No model converged for this run.",errmsg,sep="\n");
 } else {
   # model parameters
+	errmsg = paste("Y:Coverged for this run.",errmsg,sep="\n");
   nbsize = khat * mu;
   nbmu = muhat * mu;
   nb.pvalue[cdx] = pnbinom(tread_fit - 1, size = nbsize, mu = nbmu, lower.tail = FALSE) / (1-dnbinom(0, size = nbsize, mu = nbmu))
