@@ -191,7 +191,7 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 				st_genome += 1
 				pre = ch
 			elif ch.isalpha():
-				if not pre == '^':
+				if (not pre == '^') and (pre.isdigit()):
 					origin = ch
 					index = st_seq+S_count+offset
 					insertionBefore = countInsertionBefore(index,insertLoc)
@@ -213,7 +213,9 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 						chr = '+'
 					mutation = [str(loc),str(loc+1),match.qname,1,chr,origin+"->"+mu]#change offset into mutation count, which is 1
 					yield mutation
-				else:
+				else:#this is a deletion
+					if pre in ["A","G","T","C"]:
+						st_genome += 1
 					loc = st_genome+match.pos+offset-1 #0-based 
 					if match.is_reverse:
 						strand = '-'
