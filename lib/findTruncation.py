@@ -3,7 +3,7 @@
 # Usage:Report the truncation site of iCLIP BAM file 
 # Input: BAM
 # Output: BED
-# Last modified: 19 Dec 2013
+# Last modified: 9 Sep 2014
 
 import sys
 import re
@@ -18,11 +18,13 @@ class findTruncation:
   def run(self):
     self.outputFile.write("#chr\tstart\tend\tcluster_name\toffset\tstrand\ttype");
     for item in self.mapped_bam:
-      end = item.pos+1
       if item.is_reverse:
         strand = '-'
+        start = item.pos + item.alen
       else:
         strand = '+'
+        start = item.pos
+      end = start + 1
       if item.tid>=0:
         chr = self.mapped_bam.getrname(item.tid)
       else:
