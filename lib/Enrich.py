@@ -135,10 +135,10 @@ def mutationEnrich(clip,threshold=0.01):
 
 def clusterEnrich(clip,threshold=0.01):
 	#write temp file
-	#temp_filename = "test.merge"#clip.filepath.split("/")[-1].split(".")[0]
-	#fh = open(temp_filename,"w")
-	#for i in clip.clusters:
-	#	print >> fh, "\t".join(i)
+	temp_filename = "test.merge"#clip.filepath.split("/")[-1].split(".")[0]
+	fh = open(temp_filename,"w")
+	for i in clip.clusters:
+		print >> fh, "\t".join(i)
 
 
 	#Call R code and get result
@@ -160,14 +160,14 @@ def clusterEnrich(clip,threshold=0.01):
 				break
 			elif flag=="N":
 				continue
-			else:
-				logging.info("No log file was produced by R code, continue regression using other parameters anyway.")
-				continue
+		except:
+			logging.info("No log file was produced by R code, continue regression using other parameters anyway.")
+			continue
 
 	#check ztnb file
 
 	r_output = subprocess.check_output['ls','-l','test.merge.ztnb']
-	if True:#int(r_output.split()[4])>100: #more than header,file OK
+	if int(r_output.split()[4])>100: #more than header,file OK
 		enrich_parameter = open("../test/test.merge.ztnb","r")
 		nbDic = {}
 		for item in enrich_parameter:
