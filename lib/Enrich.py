@@ -194,9 +194,13 @@ def fisherTest(clusterp,mutationp):
 	min_mp = min(mutationp)
 	#logging.debug("clusterP %f,%s" % (clusterp, type(clusterp)))
 	#logging.debug("mutationP %f,%s" % (min_mp, type(min_mp)))
-	xsq = -2*math.log(clusterp * min_mp)
-	fp = R.pchisq(xsq,**{'df':4,'lower.tail':False,'log.p':True})[0]
-	fps = -1.0*fp
+	product = clusterp * min_mp
+	if product == 0:
+		fps = 0
+	else:
+		xsq = -2*math.log(clusterp * min_mp)
+		fp = R.pchisq(xsq,**{'df':4,'lower.tail':False,'log.p':True})[0]
+		fps = -1.0*fp
 	return fps
 
 
