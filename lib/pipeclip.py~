@@ -63,7 +63,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 				myClip.getCrosslinking()
 				if (len(myClip.crosslinking.keys())>0):
 					myClip.printCrosslinkingSites()
-					#myClip.printList(myClip.crosslinkingMutations)
+					myClip.printList(myClip.crosslinkingMutations)
 				else:
 					logging.warning("There is no crosslinking found. May be caused by no reliable mutations in enriched clusters. Print out enriched clusters instead.")
 					myClip.printEnrichClusters()

@@ -138,7 +138,7 @@ def clusterEnrich(clip,threshold=0.01):
 	temp_filename = "test.merge"#clip.filepath.split("/")[-1].split(".")[0]
 	fh = open(temp_filename,"w")
 	for i in clip.clusters:
-		print >> fh, "\t".join(i)
+		print >> fh,i
 
 
 	#Call R code and get result
@@ -148,14 +148,15 @@ def clusterEnrich(clip,threshold=0.01):
 		e = epsilon[index]
 		s = step[index]
 		r_args = ['Rscript','ZTNB.R','test.merge',threshold,e,s]
-		p = subprocess.Popen(args)
+		p = subprocess.Popen(r_args)
 		stdout_value = p.communicate()[0]
 		#output = subprocess.check_output['ls','-l','test.merge.ztnb']
 		#output_log = subprocess.check_output['ls','-l','test.merge.ztnblog']
 		#If regression converged, there is no need to try other epsilon or step,check log file flag: Y means coverged, N means not converged 
 		try:
 			r_output_log = open("test.merge.ztnblog","r")
-			flag = r_outpu_log.read(1)
+			logging.debug("Log file opened")
+			flag = r_output_log.read(1)
 			if flag == "Y":#converged
 				break
 			elif flag=="N":
@@ -168,14 +169,15 @@ def clusterEnrich(clip,threshold=0.01):
 
 	r_output = subprocess.check_output['ls','-l','test.merge.ztnb']
 	if int(r_output.split()[4])>100: #more than header,file OK
-		enrich_parameter = open("../test/test.merge.ztnb","r")
+		enrich_parameter = open("test.merge.ztnb","r")
 		nbDic = {}
 		for item in enrich_parameter:
 			buf = item.rstrip().split("\t")
-			nb_key = "_".join(buf[0:2]) #reads_length as key
-			#logging.debug("NB_key %s" % nb_key)
-			if not nbDic.has_key(nb_key):
-				nbDic[nb_key]=(buf[2],buf[3])#pvalue and qvalue
+			if buf[0]!="#":
+				nb_key = "_".join(buf[0:2]) #reads_length as key
+				#logging.debug("NB_key %s" % nb_key)
+				if not nbDic.has_key(nb_key):
+					nbDic[nb_key]=(buf[2],buf[3])#pvalue and qvalue
 		logging.info("There are %d read-length pairs" % (len(nbDic.keys())))
 		for i in range(len(clip.clusters)):
 			r_key = str(clip.clusters[i].score)+"_"+str(clip.clusters[i].stop-clip.clusters[i].start)

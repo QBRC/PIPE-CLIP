@@ -37,14 +37,14 @@ wdx = which(wts>0);
 tread = rown[wdx];
 tlen = coln[wdx];
 twts = wts[wdx];
-print("local polynomial regression")
+#print("local polynomial regression")
 # local polynomial regression: read ~ len
 # smoothing parameter: 
 alp = 0.95
 # polynomial degree:
 pd = 1
 lregfit = loess(tread ~ tlen, weights = twts, span = alp, family ="symmetric", degree = pd);
-print("loess finished")
+#print("loess finished")
 mu = lregfit$fitted;
 mu[mu<=0] = min(exp(-4),mu[mu>0]); # bounded mean function
 logmu = log(mu);
@@ -65,13 +65,13 @@ mu = lregfit$fitted;
 mu[mu<=0] = min(exp(-4),mu[mu>0]); # bounded mean function
 logmu = log(mu);
 
-print("Start vgam binomial");
-print(paste("Epsilon",vglm_epsilon));
-print(paste("Step",vglm_step));
+#print("Start vgam binomial");
+#print(paste("Epsilon",vglm_epsilon));
+#print(paste("Step",vglm_step));
 # negative binomail regression with the known predictor log(mu)
 
-intercept1 = seq(-1,0,1);
-intercept2 = seq(-1,0,1);
+intercept1 = c(-1)#seq(-1,0,1);
+intercept2 = c(-1)#seq(-1,0,1);
 biggest_likelihood = -99999999;
 khat = 0;
 muhat = 0;
@@ -83,7 +83,7 @@ for (i in intercept1)
 {
   for (j in intercept2)
   {
-    print(paste("Coef start",i,j));
+    #print(paste("Coef start",i,j));
     #print(paste("Recent likelihood",biggest_likelihood))
     #print(paste("NB parameters",khat,muhat))
     nb<-tryCatch({vglm(tread_fit ~ 1, posnegbinomial(), weight = twts_fit, maxit = 200, trace = FALSE, step = vglm_step,offset = logmu,epsilon=vglm_epsilon,silent=FALSE,coefstart=c(i,j))},warning = function(w){
