@@ -11,11 +11,11 @@
 #3:Regression epsilon
 #4:Regression step
 
-#suppressMessages(require(MASS));
-#suppressMessages(require(VGAM));
+suppressMessages(require(MASS));
+suppressMessages(require(VGAM));
 
-require(MASS)
-require(VGAM)
+#require(MASS)
+#require(VGAM)
 args = commandArgs(TRUE);
 data = read.table(args[1], sep = "\t");
 len = data[,3] - data[,2];

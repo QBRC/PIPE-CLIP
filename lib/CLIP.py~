@@ -21,6 +21,7 @@ class CLIP:
 		self.filteredBAM =None
 		self.filteredAlignment = 0
 		self.type = 0
+		self.outprefix = "pipeclip"
 		self.currentGroupKey = "None"
 		self.currentGroup = [] #Used in rmdup
 		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
@@ -103,34 +104,60 @@ class CLIP:
 #		for i in self.mutations.values():
 #			print i
 
-	def printReliableList(self,mylist):
+	def printReliableMutations(self):
+		outfile = open(self.outprefix+".reliableMutations.bed","w")
+		header = "chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
+		print >> outfile,header
+		self.printEnrichedItem(self.sigMutations,outfile)
+
+	
+	def printEnrichedClusters(self):
+		outfile = open(self.outprefix+".enrichedClusterss.bed","w")
+		header = "chr\tstart\tstop\tcluster_name\tread_count\tstrand\tp_value\tfdr"
+		print >> outfile,header
+		self.printReliableList(self.clusters,outfile)
+	
+	def printCrosslinkingMutations(self):
+		outfile = open(self.outprefix+".crosslinkingMutations.bed","w")
+		header = "chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
+		print outfile,header
+		self.printList(self.crosslinkingMutations,outfile)
+
+
+	def printReliableList(self,mylist,fh):
 		for i in mylist:
 			if i.sig:
 				st = i.__str__()
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
-				print st
+				print >>fh,st
 	
-	def printList(self,mylist):
+	def printList(self,mylist,fh):
 		for i in mylist:
-			print i
+			print >>fh,i
 
-	def printEnrichedItem(self,dic):
+	def printEnrichedItem(self,dic,fh):
 		for k in dic.keys():
 			for i in dic[k]:
 				st = i.__str__()
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
-				print st
+				print >> fh,st
 	
-	def printCrosslinkingSites(self,output="pipeclip"):
+	def printCrosslinkingSites(self):
+		output = self.outprefix
+		header = "chr\tstart\tstop\tcluster_name\treads_count\tstrand\tcluster_fdr\tcrosslinking_fisherP\tmutation_pos\tmutation_name"
 		if self.type == 0:#HITS-CLIP, three output
 			output_del = open(output+"_deletion_crosslinking.txt","w")
 			output_sub = open(output+"_substitution_crosslinking.txt","w")
 			output_ins = open(output+"_insertion_crosslinking.txt","w")
+			print >> output_del,header
+			print >> output_sub,header
+			print >> output_ins,header
 		else:
 			output_name = open(output+"_crosslinking.txt","w")
+			print >> output_name,header
 		for k in self.crosslinking.keys():
 			st = self.crosslinking[k].__str__()
-			st += "\t"+"\t".join([str(math.log(self.crosslinking[k].qvalue)),str(self.crosslinking[k].fisherP)])
+			st += "\t"+"\t".join([str(self.crosslinking[k].qvalue),str(self.crosslinking[k].fisherP)])
 			st += "\t"+",".join(self.crosslinking[k].mutationStarts)
 			st += "\t"+",".join(self.crosslinking[k].mutationNames)
 			if self.type == 0:
@@ -143,8 +170,14 @@ class CLIP:
 					print >> output_sub,st
 			else:
 				print >> output_name,st
-
-
+		
+		if self.type == 0:
+			output_del.close()
+			output_sub.close()
+			output_ins.close()
+		else:
+			output_name.close()
+		
 
 	def updatePreviousQul(self,n,q,m):
 		self.previousQul[0] = n
@@ -276,6 +309,7 @@ class CLIP:
 		logging.info("Rmdup code:%s" % (str(duprm)))
 		logging.info("There are %d reads in origianl input file" % (self.originalBAM.mapped))
 		outBAM = pysam.Samfile(outprefix+".filtered.bam","wb",template=self.originalBAM)
+		self.outprefix = outprefix
 		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0

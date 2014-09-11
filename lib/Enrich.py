@@ -139,15 +139,14 @@ def clusterEnrich(clip,threshold=0.01):
 	fh = open(temp_filename,"w")
 	for i in clip.clusters:
 		print >> fh,i
-
-
+	fh.close()
 	#Call R code and get result
 	epsilon = [0.01,0.15,0.1]
 	step = [0.1,0.08,0.05]
 	for index in range(3):
 		e = epsilon[index]
 		s = step[index]
-		r_args = ['Rscript','ZTNB.R','test.merge',str(threshold),str(e),str(s)]
+		r_args = ['Rscript','ZTNB_tryCatch.R','test.merge',str(threshold),str(e),str(s)]
 		p = subprocess.Popen(r_args)
 		stdout_value = p.communicate()[0]
 		#output = subprocess.check_output['ls','-l','test.merge.ztnb']
@@ -200,7 +199,7 @@ def fisherTest(clusterp,mutationp):
 	else:
 		xsq = -2*math.log(clusterp * min_mp)
 		fp = R.pchisq(xsq,**{'df':4,'lower.tail':False,'log.p':True})[0]
-		fps = -1.0*fp
+		fps = math.exp(fp)
 	return fps
 
 

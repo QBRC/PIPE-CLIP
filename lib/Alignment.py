@@ -42,6 +42,22 @@ class ClusterBed(BED):
 		self.sig = False
 		BED.__init__(self,chr,start,stop,name,score,strand)
 
+class MutationBed(BED):
+	def __init__(self,chr,start,stop,name,score,strand,type):
+		self.type = type#insertion,deletion,type of substitution
+		self.kvalue = 0
+		BED.__init__(self,chr,start,stop,name,score,strand)
+		self.pvalue = 0
+		self.qvalue = 0
+		self.sig = False
+
+	def updateK(self,k):
+		self.kvalue = k
+
+	def __str__(self):
+		st  = BED.__str__(self)
+		st += "\t"+self.type+"\t"+str(self.kvalue)
+		return st
 
 class CrosslinkingBed(BED):
 	def __init__(self,chr,start,stop,name,score,strand,clusterP,clusterQ,mStart,mName,mP):
