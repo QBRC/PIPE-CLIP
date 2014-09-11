@@ -167,7 +167,7 @@ def clusterEnrich(clip,threshold=0.01):
 
 	#check ztnb file
 
-	r_output = subprocess.check_output['ls','-l','test.merge.ztnb']
+	r_output = subprocess.check_output(['ls','-l','test.merge.ztnb'])
 	if int(r_output.split()[4])>100: #more than header,file OK
 		enrich_parameter = open("test.merge.ztnb","r")
 		nbDic = {}
