@@ -116,7 +116,6 @@ class CLIP:
 
 	def printEnrichedItem(self,dic):
 		for k in dic.keys():
-			print k
 			for i in dic[k]:
 				st = i.__str__()
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)

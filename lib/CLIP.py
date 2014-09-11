@@ -130,7 +130,7 @@ class CLIP:
 			output_name = open(output+"_crosslinking.txt","w")
 		for k in self.crosslinking.keys():
 			st = self.crosslinking[k].__str__()
-			st += "\t"+"\t".join([str(math.log(self.crosslinking[k].qvalue)),str(self.crosslinking[k].fisherP)])
+			st += "\t"+"\t".join([str(self.crosslinking[k].qvalue),str(self.crosslinking[k].fisherP)])
 			st += "\t"+",".join(self.crosslinking[k].mutationStarts)
 			st += "\t"+",".join(self.crosslinking[k].mutationNames)
 			if self.type == 0:
