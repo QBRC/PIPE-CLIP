@@ -18,7 +18,8 @@ class CLIP:
 	def __init__(self,fileaddr):
 		self.filepath = fileaddr
 		self.originalBAM = None
-		self.filteredAlignment = []
+		self.filteredBAM =None
+		self.filteredAlignment = 0
 		self.type = 0
 		self.currentGroupKey = "None"
 		self.currentGroup = [] #Used in rmdup
@@ -115,7 +116,6 @@ class CLIP:
 
 	def printEnrichedItem(self,dic):
 		for k in dic.keys():
-			print k
 			for i in dic[k]:
 				st = i.__str__()
 				st += "\t"+str(i.pvalue)+"\t"+str(i.qvalue)
@@ -268,13 +268,14 @@ class CLIP:
 
 
 
-	def filter(self,matchLen,mismatch,cliptype,duprm):
+	def filter(self,matchLen,mismatch,cliptype,duprm,outprefix):
 		'''Filter the input BAM file according to parameters. Make clusters and mutations at the same time'''
 		logging.info("Start to filter alignment using parameters:")
 		logging.info("match length:%d" % (matchLen))
 		logging.info("CLIP type:%s" % (str(cliptype)))
 		logging.info("Rmdup code:%s" % (str(duprm)))
 		logging.info("There are %d reads in origianl input file" % (self.originalBAM.mapped))
+		outBAM = pysam.Samfile(outprefix+".filtered.bam","wb",template=self.originalBAM)
 		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0
@@ -300,21 +301,27 @@ class CLIP:
 						if self.currentGroupKey!="None":#there are reads in current group
 							keep = self.rmdup()
 							self.currentGroup = []
-							self.filteredAlignment.append(keep)
+							self.filteredAlignment += 1
 							self.updateCLIPinfo(keep,mlen,mis)
+							outBAM.write(keep)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
 				else:#there is no rmdup
-					self.filteredAlignment.append(alignment)
+					self.filteredAlignment+=1
 					self.updateCLIPinfo(alignment,mlen,mis)
+					outBAM.write(alignment)
 		#clean up the final dupGroup
 		if len(self.currentGroup)>0:
 			keep = self.rmdup()
 			self.currentGroup = []
-			self.filteredAlignment.append(keep)
+			self.filteredAlignment+=1
 			self.updateCLIPinfo(keep,mlen,mis)
+			outBAM.write(alignment)
 
 		#Logging CLIP sample information
-		logging.debug("After filtering, %d reads left" % (len(self.filteredAlignment)))
+		outBAM.close()
+		pysam.index(outprefix+".filtered.bam")
+		self.filteredBAM = pysam.Samfile(outprefix+".filtered.bam","rb")# move file pointer to the file head
+		logging.debug("After filtering, %d reads left" % (self.filteredBAM.mapped))
 		logging.debug("There are %d clusters in total" % (len(self.clusters)))
 		logging.debug("There are %d mutations in total" % (len(self.mutations)))
 

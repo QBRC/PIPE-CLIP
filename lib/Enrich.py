@@ -93,7 +93,7 @@ def mutationEnrich(clip,threshold=0.01):
 	coverage = clip.coverage *1.0
 	totalMuCount = clip.mutationCount
 	#(original_KM,KM_test) = KMvalue(clip.originalBAM, clip.mutations)
-	KM_test = KMvalue(clip.originalBAM, clip.mutations.values())#check after doing KM, if clip.mutations changed
+	KM_test = KMvalue(clip.filteredBAM, clip.mutations.values())#check after doing KM, if clip.mutations changed
 	logging.info("Finished K-M counting, starting fitting.")
 	R = robject.r
 	reliableList = []
@@ -147,7 +147,7 @@ def clusterEnrich(clip,threshold=0.01):
 	for index in range(3):
 		e = epsilon[index]
 		s = step[index]
-		r_args = ['Rscript','ZTNB.R','test.merge',threshold,e,s]
+		r_args = ['Rscript','ZTNB.R','test.merge',str(threshold),str(e),str(s)]
 		p = subprocess.Popen(r_args)
 		stdout_value = p.communicate()[0]
 		#output = subprocess.check_output['ls','-l','test.merge.ztnb']
