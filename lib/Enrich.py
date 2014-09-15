@@ -140,7 +140,7 @@ def mutationEnrich(clip,threshold=0.01):
 
 def clusterEnrich(clip,threshold=0.01):
 	#write temp file
-	temp_filename = "test.merge"#clip.filepath.split("/")[-1].split(".")[0]
+	temp_filename = clip.outprefix+".merge"#clip.filepath.split("/")[-1].split(".")[0]
 	fh = open(temp_filename,"w")
 	for i in clip.clusters:
 		print >> fh,i
@@ -148,17 +148,17 @@ def clusterEnrich(clip,threshold=0.01):
 	#Call R code and get result
 	epsilon = [0.01,0.15,0.1]
 	step = [0.1,0.08,0.05]
-	for index in range(3):
+	for index in range(len(epsilon)):
 		e = epsilon[index]
 		s = step[index]
-		r_args = ['Rscript','ZTNB_tryCatch.R','test.merge',str(threshold),str(e),str(s)]
+		r_args = ['Rscript','ZTNB_tryCatch.R',temp_filename,str(threshold),str(e),str(s)]
 		p = subprocess.Popen(r_args)
 		stdout_value = p.communicate()[0]
 		#output = subprocess.check_output['ls','-l','test.merge.ztnb']
 		#output_log = subprocess.check_output['ls','-l','test.merge.ztnblog']
 		#If regression converged, there is no need to try other epsilon or step,check log file flag: Y means coverged, N means not converged 
 		try:
-			r_output_log = open("test.merge.ztnblog","r")
+			r_output_log = open(temp_filename+".ztnblog","r")
 			logging.debug("Log file opened")
 			flag = r_output_log.read(1)
 			if flag == "Y":#converged
@@ -173,7 +173,7 @@ def clusterEnrich(clip,threshold=0.01):
 
 	r_output = subprocess.check_output(['ls','-l','test.merge.ztnb'])
 	if int(r_output.split()[4])>100: #more than header,file OK
-		enrich_parameter = open("test.merge.ztnb","r")
+		enrich_parameter = open(temp_filename+".ztnb","r")
 		nbDic = {}
 		for item in enrich_parameter:
 			buf = item.rstrip().split("\t")
