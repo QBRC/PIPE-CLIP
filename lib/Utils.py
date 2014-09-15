@@ -4,6 +4,7 @@
 
 import sys
 import Alignment
+import subprocess
 
 def is_sorted(header):
 	'''Get a BAM header, and check if this file is sorted or not
@@ -57,6 +58,14 @@ def filterMutations(mlist,feature,keep=True):
 			if not keep:
 				newList.append(i)
 	return newList
+
+def annotation(fileaddr,species):
+	'''Call Homer annotation script'''
+	outfile = open(fileaddr+".anno","w")
+	args = ['annotatePeaks.pl',fileaddr,species]
+	p = subprocess.Popen(args,stdout=outfile)
+	stdout_value = p.communicate()[0]
+	outfile.close()
 
 def bisort(alist,b):
 	'''List is a list of bed instances, b is also an instance'''

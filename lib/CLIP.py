@@ -10,6 +10,7 @@ import Utils
 import Alignment
 import Mutation2
 import OptValidator
+import subprocess
 
 OptValidator.opt_validate()
 
@@ -106,20 +107,21 @@ class CLIP:
 
 	def printReliableMutations(self):
 		outfile = open(self.outprefix+".reliableMutations.bed","w")
-		header = "chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
+		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
 		print >> outfile,header
 		self.printEnrichedItem(self.sigMutations,outfile)
 
 	
 	def printEnrichedClusters(self):
-		outfile = open(self.outprefix+".enrichedClusterss.bed","w")
-		header = "chr\tstart\tstop\tcluster_name\tread_count\tstrand\tp_value\tfdr"
+		outfile = open(self.outprefix+".enrichedClusters.bed","w")
+		header = "#chr\tstart\tstop\tcluster_name\tread_count\tstrand\tp_value\tfdr"
 		print >> outfile,header
 		self.printReliableList(self.clusters,outfile)
+		return [self.outprefix+".enrichedClusters.bed"]
 	
 	def printCrosslinkingMutations(self):
 		outfile = open(self.outprefix+".crosslinkingMutations.bed","w")
-		header = "chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
+		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
 		print >> outfile,header
 		self.printReliableList(self.crosslinkingMutations,outfile)
 
@@ -144,7 +146,7 @@ class CLIP:
 	
 	def printCrosslinkingSites(self):
 		output = self.outprefix
-		header = "chr\tstart\tstop\tcluster_name\treads_count\tstrand\tcluster_fdr\tcrosslinking_fisherP\tmutation_pos\tmutation_name"
+		header = "#chr\tstart\tstop\tcluster_name\treads_count\tstrand\tcluster_fdr\tcrosslinking_fisherP\tmutation_pos\tmutation_name"
 		if self.type == 0:#HITS-CLIP, three output
 			output_del = open(output+"_deletion_crosslinking.txt","w")
 			output_sub = open(output+"_substitution_crosslinking.txt","w")
@@ -175,8 +177,10 @@ class CLIP:
 			output_del.close()
 			output_sub.close()
 			output_ins.close()
+			return [output+"_insertion_crosslinking.txt",output+"_deletion_crosslinking.txt",output+"_substitution_crosslinking.txt"]
 		else:
 			output_name.close()
+			return [output+"_crosslinking.txt"]
 		
 
 	def updatePreviousQul(self,n,q,m):
@@ -297,8 +301,6 @@ class CLIP:
 		#start to calculate fisher test p value
 		for k in self.crosslinking.keys():
 			self.crosslinking[k].fishertest()
-
-
 
 
 	def filter(self,matchLen,mismatch,cliptype,duprm,outprefix):

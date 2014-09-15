@@ -71,6 +71,7 @@ def KMvalue(mapfile,mufile):
 								K += 1
 			if K>=M:
 				item.updateK(K)
+				#logging.debug("K value for item %s is %d" % (item, K))
 				pair_name = str(K)+"_"+str(M)
 				if km_pair.has_key(pair_name):
 					km_pair[pair_name] += 1
@@ -120,7 +121,11 @@ def mutationEnrich(clip,threshold=0.01):
 	count = 0
 	for mu in clip.mutations.values():
 		name = str(mu.kvalue)+"_"+str(mu.score)
-		mu.pvalue = km_p[name]
+		try:
+			mu.pvalue = km_p[name]
+		except:
+			#logging.debug("Problem with %s" % mu)
+			continue
 		mu.qvalue = pqDic[mu.pvalue]
 		if mu.qvalue <= threshold:
 			count += 1
