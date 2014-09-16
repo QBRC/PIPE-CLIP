@@ -106,21 +106,21 @@ class CLIP:
 #			print i
 
 	def printReliableMutations(self):
-		outfile = open(self.outprefix+".reliableMutations.bed","w")
+		outfile = open("../output/"+self.outprefix+".reliableMutations.bed","w")
 		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
 		print >> outfile,header
 		self.printEnrichedItem(self.sigMutations,outfile)
 
 	
 	def printEnrichedClusters(self):
-		outfile = open(self.outprefix+".enrichedClusters.bed","w")
+		outfile = open("../output/"+self.outprefix+".enrichedClusters.bed","w")
 		header = "#chr\tstart\tstop\tcluster_name\tread_count\tstrand\tp_value\tfdr"
 		print >> outfile,header
 		self.printReliableList(self.clusters,outfile)
-		return [self.outprefix+".enrichedClusters.bed"]
+		return ["../output"+self.outprefix+".enrichedClusters.bed"]
 	
 	def printCrosslinkingMutations(self):
-		outfile = open(self.outprefix+".crosslinkingMutations.bed","w")
+		outfile = open("../output/"+self.outprefix+".crosslinkingMutations.bed","w")
 		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
 		print >> outfile,header
 		self.printReliableList(self.crosslinkingMutations,outfile)
@@ -148,14 +148,14 @@ class CLIP:
 		output = self.outprefix
 		header = "#chr\tstart\tstop\tcluster_name\treads_count\tstrand\tcluster_fdr\tcrosslinking_fisherP\tmutation_pos\tmutation_name"
 		if self.type == 0:#HITS-CLIP, three output
-			output_del = open(output+"_deletion_crosslinking.txt","w")
-			output_sub = open(output+"_substitution_crosslinking.txt","w")
-			output_ins = open(output+"_insertion_crosslinking.txt","w")
+			output_del = open("../output/"+output+"_deletion_crosslinking.txt","w")
+			output_sub = open("../output/"+output+"_substitution_crosslinking.txt","w")
+			output_ins = open("../output/"+output+"_insertion_crosslinking.txt","w")
 			print >> output_del,header
 			print >> output_sub,header
 			print >> output_ins,header
 		else:
-			output_name = open(output+"_crosslinking.txt","w")
+			output_name = open("../output/"+output+"_crosslinking.txt","w")
 			print >> output_name,header
 		for k in self.crosslinking.keys():
 			st = self.crosslinking[k].__str__()
@@ -177,10 +177,10 @@ class CLIP:
 			output_del.close()
 			output_sub.close()
 			output_ins.close()
-			return [output+"_insertion_crosslinking.txt",output+"_deletion_crosslinking.txt",output+"_substitution_crosslinking.txt"]
+			return ["../output/"+output+"_insertion_crosslinking.txt","../output/"+output+"_deletion_crosslinking.txt","../output/"+output+"_substitution_crosslinking.txt"]
 		else:
 			output_name.close()
-			return [output+"_crosslinking.txt"]
+			return ["../output/"+output+"_crosslinking.txt"]
 		
 
 	def updatePreviousQul(self,n,q,m):

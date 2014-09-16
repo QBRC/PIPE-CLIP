@@ -46,9 +46,13 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			#myClip.printMutations()
 			if len(myClip.clusters)>0:
 				logging.info("Get enriched clusters")
-				Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
-				logging.debug("Found %d enriched clusters" % myClip.sigClusterCount)
-				myClip.printEnrichedClusters()
+				status = Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
+				if status:
+					logging.info("Found %d enriched clusters" % myClip.sigClusterCount)
+					myClip.printEnrichedClusters()
+				else:
+					logging.error("There is no enriched cluster found. Exit program")
+					sys.exit(1)
 			else:
 				logging.error("There is no clusters found. Please check input.Exit program.")
 				sys.exit(1)

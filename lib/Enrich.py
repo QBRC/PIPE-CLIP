@@ -159,7 +159,7 @@ def clusterEnrich(clip,threshold=0.01):
 		#If regression converged, there is no need to try other epsilon or step,check log file flag: Y means coverged, N means not converged 
 		try:
 			r_output_log = open(temp_filename+".ztnblog","r")
-			logging.debug("Log file opened")
+			#logging.debug("Log file opened")
 			flag = r_output_log.read(1)
 			if flag == "Y":#converged
 				break
@@ -170,10 +170,13 @@ def clusterEnrich(clip,threshold=0.01):
 			continue
 
 	#check ztnb file
-
-	r_output = subprocess.check_output(['ls','-l','test.merge.ztnb'])
+	r_output = subprocess.check_output(['ls','-l',temp_filename+'.ztnb'])
 	if int(r_output.split()[4])>100: #more than header,file OK
-		enrich_parameter = open(temp_filename+".ztnb","r")
+		try:
+			enrich_parameter = open(temp_filename+".ztnb","r")
+		except IOError,message:
+			logging.error("Cannot open ztnb result file")
+			return False
 		nbDic = {}
 		for item in enrich_parameter:
 			buf = item.rstrip().split("\t")
@@ -183,15 +186,20 @@ def clusterEnrich(clip,threshold=0.01):
 				if not nbDic.has_key(nb_key):
 					nbDic[nb_key]=(buf[2],buf[3])#pvalue and qvalue
 		logging.info("There are %d read-length pairs" % (len(nbDic.keys())))
-		for i in range(len(clip.clusters)):
-			r_key = str(clip.clusters[i].score)+"_"+str(clip.clusters[i].stop-clip.clusters[i].start)
-			#logging.debug("Keys from clip.clusters,%s" % r_key)
-			if nbDic.has_key(r_key):
-				clip.clusters[i].pvalue = nbDic[r_key][0]
-				clip.clusters[i].qvalue = nbDic[r_key][1]
-				clip.clusters[i].sig = True
-				clip.sigClusterCount += 1
+		if len(nbDic.keys())==0:
+			logging.error("There are no read-length pairs found by ZTNB. Exit.")
+			return False
+		else:
+			for i in range(len(clip.clusters)):
+				r_key = str(clip.clusters[i].score)+"_"+str(clip.clusters[i].stop-clip.clusters[i].start)
+				#logging.debug("Keys from clip.clusters,%s" % r_key)
+				if nbDic.has_key(r_key):
+					clip.clusters[i].pvalue = nbDic[r_key][0]
+					clip.clusters[i].qvalue = nbDic[r_key][1]
+					clip.clusters[i].sig = True
+					clip.sigClusterCount += 1
 				#clip.addSigToDic(clip.sigClusters,clip.clusters[i])
+			return True
 
 def fisherTest(clusterp,mutationp):
 	R = robject.r
@@ -210,8 +218,6 @@ def fisherTest(clusterp,mutationp):
 
 def mutationEnrich_ignore(clip):
 		coverage = clip.coverage
-
-
 		if self.isPar: #input is a par,no need to split the file
 			filename = self.outputRoot+".bed"
 			outputfile = open(filename,"wa")
