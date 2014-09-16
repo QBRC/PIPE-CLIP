@@ -19,4 +19,4 @@ Installation tips:
 - Make sure bedtools are in your PATH. You can test this by type "intersectBed" from anywhere and you should get help information of this command.
  
 
-Contact: beibei.chen@utsouthwestern.edu, yang.xie@utsouthwestern.edu
+Contact: beibei.chen@utsouthwestern.edu
