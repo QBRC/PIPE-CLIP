@@ -140,7 +140,7 @@ def mutationEnrich(clip,threshold=0.01):
 
 def clusterEnrich(clip,threshold=0.01):
 	#write temp file
-	temp_filename = clip.outprefix+".merge"#clip.filepath.split("/")[-1].split(".")[0]
+	temp_filename = "../output/"+clip.outprefix+".merge"#clip.filepath.split("/")[-1].split(".")[0]
 	fh = open(temp_filename,"w")
 	for i in clip.clusters:
 		print >> fh,i
