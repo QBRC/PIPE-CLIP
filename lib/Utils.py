@@ -5,6 +5,7 @@
 import sys
 import Alignment
 import subprocess
+import logging
 
 def is_sorted(header):
 	'''Get a BAM header, and check if this file is sorted or not
@@ -24,13 +25,16 @@ def is_sorted(header):
 def readQuaFilter(read,mlen,mis):
 	matchlen = 0
 	mismatch = 0
-	for i in read.cigar:
-		if i[0]<=1:
-			matchlen += i[1]
-	for j in read.tags:
-		if j[0]=="NM":
-			mismatch = j[1]
-			break
+	try:
+		for i in read.cigar:
+			if i[0]<=1:
+				matchlen += i[1]
+		for j in read.tags:
+			if j[0]=="NM":
+				mismatch = j[1]
+				break
+	except:
+		logging.debug("Problematic read %s" % (read))
 	#print >> sys.stderr,"mLen and mis for read",read.qname,"are",matchlen,mismatch
 	if matchlen>=mlen and mismatch<=mis:
 		return (True,matchlen,mismatch)

@@ -318,6 +318,8 @@ class CLIP:
 		count = 0
 		for alignment in self.originalBAM:
 			#print "Now processing",alignment.qname
+			if not alignment.cigar : #reads is unmapped
+				continue
 			count += 1
 			if count % 100000 ==0:
 				logging.debug("Processed %d reads." % count)
