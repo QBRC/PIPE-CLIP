@@ -71,6 +71,16 @@ def annotation(fileaddr,species):
 	stdout_value = p.communicate()[0]
 	outfile.close()
 
+def makeWig(bamfile):
+	wig = {}
+	for r in bamfile.references:
+		wig[r] = {}
+		for pileupColumn in bamfile.pileup(r):
+			wig[r][pileupColumn.pos]=pileupColumn.n
+	return wig
+	
+
+
 def bisort(alist,b):
 	'''List is a list of bed instances, b is also an instance'''
 	if isinstance(alist[0],Alignment.BED) and isinstance(b,Alignment.BED):

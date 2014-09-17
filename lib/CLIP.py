@@ -20,6 +20,8 @@ class CLIP:
 		self.filepath = fileaddr
 		self.originalBAM = None
 		self.filteredBAM =None
+		self.posfilteredBAM = None
+		self.negfilteredBAM = None
 		self.filteredAlignment = 0
 		self.type = 0
 		self.outprefix = "pipeclip"
@@ -101,9 +103,9 @@ class CLIP:
 #		for i in self.clusters:
 #			print i
 
-#	def printMutations(self):
-#		for i in self.mutations.values():
-#			print i
+	def printMutations(self):
+		for i in self.mutations.values():
+			print i
 
 	def printReliableMutations(self):
 		outfile = open("../output/"+self.outprefix+".reliableMutations.bed","w")
@@ -310,7 +312,9 @@ class CLIP:
 		logging.info("CLIP type:%s" % (str(cliptype)))
 		logging.info("Rmdup code:%s" % (str(duprm)))
 		logging.info("There are %d reads in origianl input file" % (self.originalBAM.mapped))
-		outBAM = pysam.Samfile(outprefix+".filtered.bam","wb",template=self.originalBAM)
+		#outBAM = pysam.Samfile(outprefix+".filtered.bam","wb",template=self.originalBAM)
+		outBAM_pos = pysam.Samfile(outprefix+".pos.filtered.bam","wb",template=self.originalBAM)
+		outBAM_neg = pysam.Samfile(outprefix+".neg.filtered.bam","wb",template=self.originalBAM)
 		self.outprefix = outprefix
 		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
@@ -341,25 +345,44 @@ class CLIP:
 							self.currentGroup = []
 							self.filteredAlignment += 1
 							self.updateCLIPinfo(keep,mlen,mis)
-							outBAM.write(keep)
+							#outBAM.write(keep)
+							if keep.is_reverse:
+								outBAM_neg.write(keep)
+							else:
+								outBAM_pos.write(keep)
 						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
 				else:#there is no rmdup
 					self.filteredAlignment+=1
 					self.updateCLIPinfo(alignment,mlen,mis)
-					outBAM.write(alignment)
+					#outBAM.write(alignment)
+					if alignment.is_reverse:
+						outBAM_neg.write(alignment)
+					else:
+						outBAM_pos.write(alignment)
 		#clean up the final dupGroup
 		if len(self.currentGroup)>0:
 			keep = self.rmdup()
 			self.currentGroup = []
 			self.filteredAlignment+=1
 			self.updateCLIPinfo(keep,mlen,mis)
-			outBAM.write(alignment)
+			#outBAM.write(alignment)
 
+			if alignment.is_reverse:
+				outBAM_neg.write(alignment)
+			else:
+				outBAM_pos.write(alignment)
 		#Logging CLIP sample information
-		outBAM.close()
-		pysam.index(outprefix+".filtered.bam")
-		self.filteredBAM = pysam.Samfile(outprefix+".filtered.bam","rb")# move file pointer to the file head
-		logging.debug("After filtering, %d reads left" % (self.filteredBAM.mapped))
+		#outBAM.close()
+		outBAM_pos.close()
+		outBAM_neg.close()
+		#pysam.index(outprefix+".filtered.bam")
+		pysam.index(outprefix+".pos.filtered.bam")
+		pysam.index(outprefix+".neg.filtered.bam")
+		#self.filteredBAM = pysam.Samfile(outprefix+".filtered.bam","rb")# move file pointer to the file head
+		
+		self.posfilteredBAM = pysam.Samfile(outprefix+".pos.filtered.bam","rb")# move file pointer to the file head
+		self.negfilteredBAM = pysam.Samfile(outprefix+".neg.filtered.bam","rb")# move file pointer to the file head
+		#logging.debug("After filtering, %d reads left" % (self.filteredBAM.mapped))
 		logging.debug("There are %d clusters in total" % (len(self.clusters)))
 		logging.debug("There are %d mutations in total" % (len(self.mutations)))
 

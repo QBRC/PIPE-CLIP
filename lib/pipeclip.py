@@ -43,7 +43,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			myClip.filter(matchLength,mismatch,clipType,rmdup,outputPrefix)
 			#myClip.printFilteredReads()
 			#myClip.printClusters()
-			#myClip.printMutations()
+			myClip.printMutations()
 			if len(myClip.clusters)>0:
 				logging.info("Get enriched clusters")
 				status = Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
