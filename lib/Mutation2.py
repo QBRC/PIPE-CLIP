@@ -183,18 +183,19 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 
 					#print index,len(match.seq)
 					mu = match.seq[index]
-					offset = index-S_count+1
-					st_seq = 0
-					st_genome = 0
-					if match.is_reverse:
-						chr = '-'
-						t = RC([origin,mu])
-						origin = t[0]
-						mu = t[1]
-					else:
-						chr = '+'
-					mutation = [str(loc),str(loc+1),match.qname,1,chr,origin+"->"+mu]#change offset into mutation count, which is 1
-					yield mutation
+					if mu.upper() != "N":
+						offset = index-S_count+1
+						st_seq = 0
+						st_genome = 0
+						if match.is_reverse:
+							chr = '-'
+							t = RC([origin,mu])
+							origin = t[0]
+							mu = t[1]
+						else:
+							chr = '+'
+						mutation = [str(loc),str(loc+1),match.qname,1,chr,origin+"->"+mu]#change offset into mutation count, which is 1
+						yield mutation
 				else:#this is a deletion
 					if pre in ["A","G","T","C"]:
 						st_genome += 1

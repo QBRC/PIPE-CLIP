@@ -11,20 +11,21 @@ import Alignment
 import Mutation2
 import OptValidator
 import subprocess
+import datetime
 
 OptValidator.opt_validate()
 
 
 class CLIP:
-	def __init__(self,fileaddr):
+	def __init__(self,fileaddr,prefix):
 		self.filepath = fileaddr
 		self.originalBAM = None
-		self.filteredBAM =None
+		self.originalMapped = 0
 		self.posfilteredBAM = None
 		self.negfilteredBAM = None
 		self.filteredAlignment = 0
 		self.type = 0
-		self.outprefix = "pipeclip"
+		self.outprefix = prefix
 		self.currentGroupKey = "None"
 		self.currentGroup = [] #Used in rmdup
 		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
@@ -108,21 +109,21 @@ class CLIP:
 			print i
 
 	def printReliableMutations(self):
-		outfile = open("../output/"+self.outprefix+".reliableMutations.bed","w")
+		outfile = open(self.outprefix+".reliableMutations.bed","w")
 		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
 		print >> outfile,header
 		self.printEnrichedItem(self.sigMutations,outfile)
 
 	
 	def printEnrichedClusters(self):
-		outfile = open("../output/"+self.outprefix+".enrichedClusters.bed","w")
+		outfile = open(self.outprefix+".enrichedClusters.bed","w")
 		header = "#chr\tstart\tstop\tcluster_name\tread_count\tstrand\tp_value\tfdr"
 		print >> outfile,header
 		self.printReliableList(self.clusters,outfile)
-		return ["../output"+self.outprefix+".enrichedClusters.bed"]
+		return [self.outprefix+".enrichedClusters.bed"]
 	
 	def printCrosslinkingMutations(self):
-		outfile = open("../output/"+self.outprefix+".crosslinkingMutations.bed","w")
+		outfile = open(self.outprefix+".crosslinkingMutations.bed","w")
 		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
 		print >> outfile,header
 		self.printReliableList(self.crosslinkingMutations,outfile)
@@ -150,14 +151,14 @@ class CLIP:
 		output = self.outprefix
 		header = "#chr\tstart\tstop\tcluster_name\treads_count\tstrand\tcluster_fdr\tcrosslinking_fisherP\tmutation_pos\tmutation_name"
 		if self.type == 0:#HITS-CLIP, three output
-			output_del = open("../output/"+output+"_deletion_crosslinking.txt","w")
-			output_sub = open("../output/"+output+"_substitution_crosslinking.txt","w")
-			output_ins = open("../output/"+output+"_insertion_crosslinking.txt","w")
+			output_del = open(output+"_deletion_crosslinking.txt","w")
+			output_sub = open(output+"_substitution_crosslinking.txt","w")
+			output_ins = open(output+"_insertion_crosslinking.txt","w")
 			print >> output_del,header
 			print >> output_sub,header
 			print >> output_ins,header
 		else:
-			output_name = open("../output/"+output+"_crosslinking.txt","w")
+			output_name = open(output+"_crosslinking.txt","w")
 			print >> output_name,header
 		for k in self.crosslinking.keys():
 			st = self.crosslinking[k].__str__()
@@ -179,10 +180,10 @@ class CLIP:
 			output_del.close()
 			output_sub.close()
 			output_ins.close()
-			return ["../output/"+output+"_insertion_crosslinking.txt","../output/"+output+"_deletion_crosslinking.txt","../output/"+output+"_substitution_crosslinking.txt"]
+			return [output+"_insertion_crosslinking.txt",output+"_deletion_crosslinking.txt",output+"_substitution_crosslinking.txt"]
 		else:
 			output_name.close()
-			return ["../output/"+output+"_crosslinking.txt"]
+			return [output+"_crosslinking.txt"]
 		
 
 	def updatePreviousQul(self,n,q,m):
@@ -305,7 +306,7 @@ class CLIP:
 			self.crosslinking[k].fishertest()
 
 
-	def filter(self,matchLen,mismatch,cliptype,duprm,outprefix):
+	def filter(self,matchLen,mismatch,cliptype,duprm):
 		'''Filter the input BAM file according to parameters. Make clusters and mutations at the same time'''
 		logging.info("Start to filter alignment using parameters:")
 		logging.info("match length:%d" % (matchLen))
@@ -313,20 +314,23 @@ class CLIP:
 		logging.info("Rmdup code:%s" % (str(duprm)))
 		logging.info("There are %d reads in origianl input file" % (self.originalBAM.mapped))
 		#outBAM = pysam.Samfile(outprefix+".filtered.bam","wb",template=self.originalBAM)
-		outBAM_pos = pysam.Samfile(outprefix+".pos.filtered.bam","wb",template=self.originalBAM)
-		outBAM_neg = pysam.Samfile(outprefix+".neg.filtered.bam","wb",template=self.originalBAM)
-		self.outprefix = outprefix
+		self.originalMapped = self.originalBAM.mapped
+		outBAM_pos = pysam.Samfile(self.outprefix+".pos.filtered.bam","wb",template=self.originalBAM)
+		outBAM_neg = pysam.Samfile(self.outprefix+".neg.filtered.bam","wb",template=self.originalBAM)
 		self.type = cliptype
 		if cliptype == 3:#make sure there is no rmdup for iCLIP data
 			duprm = 0
 		count = 0
+		start_time = datetime.datetime.now()
 		for alignment in self.originalBAM:
 			#print "Now processing",alignment.qname
 			if not alignment.cigar : #reads is unmapped
 				continue
 			count += 1
 			if count % 100000 ==0:
-				logging.debug("Processed %d reads." % count)
+				stop_time = datetime.datetime.now()
+				logging.debug("Processed %d reads in %s" % (count,str(stop_time-start_time)))
+				start_time = stop_time
 			flag,mlen,mis = Utils.readQuaFilter(alignment,matchLen,mismatch)
 			if flag:
 				#print "Qualified read"
@@ -382,7 +386,8 @@ class CLIP:
 		
 		self.posfilteredBAM = pysam.Samfile(outprefix+".pos.filtered.bam","rb")# move file pointer to the file head
 		self.negfilteredBAM = pysam.Samfile(outprefix+".neg.filtered.bam","rb")# move file pointer to the file head
-		#logging.debug("After filtering, %d reads left" % (self.filteredBAM.mapped))
+		self.originalBAM = None 
+		logging.debug("After filtering, %d reads left" % (self.filteredAlignment))
 		logging.debug("There are %d clusters in total" % (len(self.clusters)))
 		logging.debug("There are %d mutations in total" % (len(self.mutations)))
 

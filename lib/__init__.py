@@ -1,11 +1,11 @@
 #indicate this folder contains packages
-import annotatePeaks
-import barcodeRemoval
-import findMutation
-import findTruncation
-import getCluster
-import getCrosslinking
-import inputProcess
-import SAMFilter
-from mergeReads import *
-import mutationFilter
+import Alignment
+import Enrich
+import CLIP
+import Mutation2
+import Utils
+import OptValidator
+#import inputProcess
+#import SAMFilter
+#from mergeReads import *
+#import mutationFilter
