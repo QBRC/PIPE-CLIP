@@ -45,7 +45,7 @@ def BH(pvalue,pRank,N):
 	qva = max(pvalue, q)
 	return qva
 
-def KMvalue_wig(posmapfile,negmapfile,mufile):
+def KMvalue(posmapfile,negmapfile,mufile):
 		'''
 		Calculate K(coverage) value for each mutation location
 		Mutations are already unique.
@@ -70,21 +70,19 @@ def KMvalue_wig(posmapfile,negmapfile,mufile):
 			K = 0
 			#logging.debug("Time begin to pileup is %s" % (str(datetime.datetime.now())))
 			if strand == "+":	
-					K = poswig[item.chr][int(item.start)]
+				try:	
+					K = poswig[item.chr][str(item.start)]
+				except:
+					continue
+			
 			elif strand == "-":
-					K = negwig[item.chr][int(item.start)]
-#BC#			for pileupColumn in mapfile.pileup(item.chr,int(item.start),int(item.stop)):
-#BC#				if pileupColumn.pos == int(item.start): #find the mutation site
-#BC#					K = 0 #pileupColumn.n #edited 1023
-#BC#					for pileupRead in pileupColumn.pileups:
-#BC#						if pileupRead.alignment.is_reverse:
-#BC#							if strand == "-":
-#BC#								K += 1
-#BC#						else: #pileup alignment is on plus strand
-#BC#							if strand == "+": #changed - into +
-#BC#								K += 1
+				try:	
+					K = negwig[item.chr][str(item.start)]
+				except:
+					continue
 			if K>=M:
 				item.updateK(K)
+				print item
 				#logging.debug("K value for item %s is %d" % (item, K))
 				pair_name = str(K)+"_"+str(M)
 				if km_pair.has_key(pair_name):
@@ -94,7 +92,7 @@ def KMvalue_wig(posmapfile,negmapfile,mufile):
 				#km.append(item)
 		return km_pair
 
-def KMvalue(posmapfile,negmapfile,mufile):
+def KMvalue_ignore(posmapfile,negmapfile,mufile):
 		'''
 		Calculate K(coverage) value for each mutation location
 		Mutations are already unique.
@@ -102,6 +100,7 @@ def KMvalue(posmapfile,negmapfile,mufile):
 		km = []#store mutations with updated k value
 		km_pair = {}#Dic of count tuples of (k,m),key:"K_M"
 		count = 0
+
 		start_time = datetime.datetime.now()
 		for item in mufile:
 			count += 1
@@ -113,7 +112,7 @@ def KMvalue(posmapfile,negmapfile,mufile):
 			strand = item.strand 
 			M = item.score
 			K = 0
-			#logging.debug("Time begin to pileup is %s" % (str(datetime.datetime.now())))
+			logging.debug("Time begin to pileup is %s, mutation %d" % (str(datetime.datetime.now()),count))
 			if strand == "+":
 				for pileupColumn in posmapfile.pileup(item.chr,int(item.start),int(item.stop)):
 					if pileupColumn == int(item.start):
@@ -124,16 +123,6 @@ def KMvalue(posmapfile,negmapfile,mufile):
 					if pileupColumn == int(item.start):
 						K = pileupColumn.n
 						break
-#BC#			for pileupColumn in mapfile.pileup(item.chr,int(item.start),int(item.stop)):
-#BC#				if pileupColumn.pos == int(item.start): #find the mutation site
-#BC#					K = 0 #pileupColumn.n #edited 1023
-#BC#					for pileupRead in pileupColumn.pileups:
-#BC#						if pileupRead.alignment.is_reverse:
-#BC#							if strand == "-":
-#BC#								K += 1
-#BC#						else: #pileup alignment is on plus strand
-#BC#							if strand == "+": #changed - into +
-#BC#								K += 1
 			if K>=M:
 				item.updateK(K)
 				#logging.debug("K value for item %s is %d" % (item, K))
@@ -159,7 +148,7 @@ def mutationEnrich(clip,threshold=0.01):
 	coverage = clip.coverage *1.0
 	totalMuCount = clip.mutationCount
 	#(original_KM,KM_test) = KMvalue(clip.originalBAM, clip.mutations)
-	KM_test = KMvalue_wig(clip.posfilteredBAM,clip.negfilteredBAM, clip.mutations.values())#check after doing KM, if clip.mutations changed
+	KM_test = KMvalue(clip.posfilteredBAM,clip.negfilteredBAM, clip.mutations.values())#check after doing KM, if clip.mutations changed
 	logging.info("Finished K-M counting, starting fitting.")
 	R = robject.r
 	reliableList = []

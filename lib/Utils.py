@@ -76,7 +76,7 @@ def makeWig(bamfile):
 	for r in bamfile.references:
 		wig[r] = {}
 		for pileupColumn in bamfile.pileup(r):
-			wig[r][pileupColumn.pos]=pileupColumn.n
+			wig[r][str(pileupColumn.pos)]=pileupColumn.n
 	return wig
 	
 
