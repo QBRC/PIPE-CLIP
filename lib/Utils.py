@@ -25,17 +25,22 @@ def is_sorted(header):
 def readQuaFilter(read,mlen,mis):
 	matchlen = 0
 	mismatch = 0
+	#logging.debug("read %s,cigar %s,tags %s" % (read.qname,read.cigar,read.tags))
 	try:
 		for i in read.cigar:
-			if i[0]<=1:
+			#logging.debug(i)
+			if i[0]==0:
 				matchlen += i[1]
+			elif i[0]==1:
+				mismatch += i[1]
 		for j in read.tags:
 			if j[0]=="NM":
-				mismatch = j[1]
+				mismatch += j[1]
 				break
+		#logging.debug("matchlen %d,mismatch %d" % (matchlen,mismatch))
 	except:
-		logging.debug("Problematic read %s" % (read))
-	#print >> sys.stderr,"mLen and mis for read",read.qname,"are",matchlen,mismatch
+		#logging.debug("Problematic read %s" % (read))
+		pass
 	if matchlen>=mlen and mismatch<=mis:
 		return (True,matchlen,mismatch)
 	else:

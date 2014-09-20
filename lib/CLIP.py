@@ -236,20 +236,17 @@ class CLIP:
 				self.clusters.append(self.currentCluster)
 	
 	def updateMutation(self,read,mis):
-		
+		mutations = []
 		if self.type == 3:#iclip,find truncation
 			mutations = Mutation2.getTruncations(self.originalBAM,read)
 		else:
-			if mis > 0:
-				mutations = Mutation2.getMutations(self.originalBAM,read)
-				if self.type ==1:
-					mutation_filter = Utils.filterMutation(mlist,"T->C",True)
-					mutations = mutation_filter
-				elif self.type ==2:
-					mutation_filter = Utils.filterMutation(mlist,"G->A",True)
-					mutations = mutation_filter
-			else:
-				mutations = []
+			mutations = Mutation2.getMutations(self.originalBAM,read)
+			if self.type ==1:
+				mutation_filter = Utils.filterMutation(mlist,"T->C",True)
+				mutations = mutation_filter
+			elif self.type ==2:
+				mutation_filter = Utils.filterMutation(mlist,"G->A",True)
+				mutations = mutation_filter
 		if len(mutations)>0:
 			for m in mutations:
 				#print m
@@ -259,15 +256,17 @@ class CLIP:
 					self.mutations[m_key].increaseScore()
 				else:
 					self.mutations[m_key]=m
-
+	
 	def updateCLIPinfo(self,read,matchlen,miscount):
 		'''Update sample coverage info, clustering, mutation info'''
+		#logging.debug("read %s, cigar %s,mismatch %d" % (read.qname,read.cigar,miscount))
 		#update sample coverage info
 		self.coverage += matchlen
 		#update cluster info
 		self.updateCluster(read)
 		#update mutation info
-		self.updateMutation(read,miscount)
+		if miscount > 0:
+			self.updateMutation(read,miscount)
 
 	def addSigToDic(self,dic,mu):
 		'''Add new mutation into the dictionary.Mutations should be sorted'''
@@ -337,25 +336,30 @@ class CLIP:
 				#print	alignment
 				#print "current Gourp key",self.currentGroupKey
 				if duprm > 0:
+					#get group key
 					if duprm == 1:
 						groupkey = Utils.rmdupKey_Start(alignment)
 					elif duprm == 2:
 						groupkey = Utils.rmdupKey_Seq(alignment)
-					if groupkey == self.currentGroupKey:
+					#check current group
+					if groupkey == self.currentGroupKey:#overlap with current group, update group
 						self.updateCurrentGroup(alignment,mlen,mis)
-					else:
-						if self.currentGroupKey!="None":#there are reads in current group
+					else:#get read from current group and discard it, use current read to start a new current group
+						if self.currentGroupKey!="None":#current group exists
 							keep = self.rmdup()
+							#logging.debug("Pop out read to keep %s" % keep)
 							self.currentGroup = []
 							self.filteredAlignment += 1
+							flag,mlen,mis = Utils.readQuaFilter(keep,matchLen,mismatch)
 							self.updateCLIPinfo(keep,mlen,mis)
 							#outBAM.write(keep)
 							if keep.is_reverse:
 								outBAM_neg.write(keep)
 							else:
 								outBAM_pos.write(keep)
-						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)
+						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)#make new group using current alignment
 				else:#there is no rmdup
+					#logging.debug("Good read, update clip info %s" % read.qname)
 					self.filteredAlignment+=1
 					self.updateCLIPinfo(alignment,mlen,mis)
 					#outBAM.write(alignment)
@@ -363,29 +367,29 @@ class CLIP:
 						outBAM_neg.write(alignment)
 					else:
 						outBAM_pos.write(alignment)
-		#clean up the final dupGroup
+		#clean up the final dupGroup, if rmdup==0, there is no final dupGroup
 		if len(self.currentGroup)>0:
 			keep = self.rmdup()
 			self.currentGroup = []
 			self.filteredAlignment+=1
+			flag,mlen,mis = Utils.readQuaFilter(keep,matchLen,mismatch)
 			self.updateCLIPinfo(keep,mlen,mis)
 			#outBAM.write(alignment)
-
-			if alignment.is_reverse:
-				outBAM_neg.write(alignment)
+			if keep.is_reverse:
+				outBAM_neg.write(keep)
 			else:
-				outBAM_pos.write(alignment)
+				outBAM_pos.write(keep)
 		#Logging CLIP sample information
 		#outBAM.close()
 		outBAM_pos.close()
 		outBAM_neg.close()
 		#pysam.index(outprefix+".filtered.bam")
-		pysam.index(outprefix+".pos.filtered.bam")
-		pysam.index(outprefix+".neg.filtered.bam")
+		pysam.index(self.outprefix+".pos.filtered.bam")
+		pysam.index(self.outprefix+".neg.filtered.bam")
 		#self.filteredBAM = pysam.Samfile(outprefix+".filtered.bam","rb")# move file pointer to the file head
 		
-		self.posfilteredBAM = pysam.Samfile(outprefix+".pos.filtered.bam","rb")# move file pointer to the file head
-		self.negfilteredBAM = pysam.Samfile(outprefix+".neg.filtered.bam","rb")# move file pointer to the file head
+		self.posfilteredBAM = pysam.Samfile(self.outprefix+".pos.filtered.bam","rb")# move file pointer to the file head
+		self.negfilteredBAM = pysam.Samfile(self.outprefix+".neg.filtered.bam","rb")# move file pointer to the file head
 		self.originalBAM = None 
 		logging.debug("After filtering, %d reads left" % (self.filteredAlignment))
 		logging.debug("There are %d clusters in total" % (len(self.clusters)))

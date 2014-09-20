@@ -5,7 +5,3 @@ import CLIP
 import Mutation2
 import Utils
 import OptValidator
-#import inputProcess
-#import SAMFilter
-#from mergeReads import *
-#import mutationFilter

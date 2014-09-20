@@ -12,6 +12,10 @@ import pysam
 from pysam import *
 import argparse as ap
 from Alignment import MutationBed
+import logging
+import OptValidator
+
+OptValidator.opt_validate()
 
 
 def countMatchNumber(b):
@@ -235,6 +239,7 @@ def RC(strList):
 
 def getMutations(infile,read):
 	#tmp = pysam.Samfile("demo.bam",'wb',template=infile)
+	#logging.debug("call getMutation function %s" % read)
 	mutationList = []
 	b=read.tags
 	if countMismatch(b)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
@@ -266,6 +271,7 @@ def getMutations(infile,read):
 					chr  = infile.getrname(read.tid)
 					newMu = MutationBed(chr,mu[0],mu[1],mu[2],mu[3],mu[4],mu[5])
 					mutationList.append(newMu)
+		#logging.debug(mutationList)
 		return mutationList
 
 

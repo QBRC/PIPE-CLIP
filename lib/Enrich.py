@@ -82,7 +82,7 @@ def KMvalue(posmapfile,negmapfile,mufile):
 					continue
 			if K>=M:
 				item.updateK(K)
-				print item
+				#print item
 				#logging.debug("K value for item %s is %d" % (item, K))
 				pair_name = str(K)+"_"+str(M)
 				if km_pair.has_key(pair_name):
@@ -207,7 +207,7 @@ def clusterEnrich(clip,threshold=0.01):
 	for index in range(len(epsilon)):
 		e = epsilon[index]
 		s = step[index]
-		r_args = ['Rscript','ZTNB_tryCatch.R',temp_filename,str(threshold),str(e),str(s)]
+		r_args = ['Rscript','lib/ZTNB_tryCatch.R',temp_filename,str(threshold),str(e),str(s)]
 		p = subprocess.Popen(r_args)
 		stdout_value = p.communicate()[0]
 		#output = subprocess.check_output['ls','-l','test.merge.ztnb']
@@ -255,7 +255,10 @@ def clusterEnrich(clip,threshold=0.01):
 				clip.clusters[i].sig = True
 				clip.sigClusterCount += 1
 			#clip.addSigToDic(clip.sigClusters,clip.clusters[i])
-		return True
+		if clip.sigClusterCount == 0:
+			return False
+		else:
+			return True
 
 def fisherTest(clusterp,mutationp):
 	R = robject.r
