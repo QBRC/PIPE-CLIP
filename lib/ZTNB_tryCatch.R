@@ -3,7 +3,7 @@
 #Usage: Get all the reads count and length combinations of enriched clusters
 #Input: BED file with score column as reads number
 #Output: table with reads count, length, p value and fdr
-#Last modified: 19 Dec 2013
+#Last modified: 20 Sep 2014
 
 #command line parameters:
 #1:input file name. After running the code, two output files: input.ztnb and input.ztnblog will be created
@@ -140,9 +140,9 @@ if((biggest_likelihood==-99999999) && (khat==0) && (muhat ==0))
   # read counts and cluster length of clusters whose FDR <= cut
   nb.out = as.data.frame(matrix(c(tread[nbdx],tlen[nbdx],nb.pvalue[nbdx],nb.fdr[nbdx]),sum(nbdx),4))
   names(nb.out) = c("read","length","p","fdr")
-  outname = paste(args[1],".ztnb",sep="")
+  outname = paste(args[1],".pipeclip.ztnb",sep="")
   write.table(nb.out,outname,sep="\t",quote=F,row.names=F);
 }#end of output
 #Out out error log file
 #close(logfile);
-write(errmsg,paste(args[1],".ztnblog",sep=""));
+write(errmsg,paste(args[1],".pipeclip.ztnblog",sep=""));

@@ -109,21 +109,21 @@ class CLIP:
 			print i
 
 	def printReliableMutations(self):
-		outfile = open(self.outprefix+".reliableMutations.bed","w")
+		outfile = open(self.outprefix+".reliableMutations.pipeclip.bed","w")
 		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
 		print >> outfile,header
 		self.printEnrichedItem(self.sigMutations,outfile)
 
 	
 	def printEnrichedClusters(self):
-		outfile = open(self.outprefix+".enrichedClusters.bed","w")
+		outfile = open(self.outprefix+".enrichedClusters.pipeclip.bed","w")
 		header = "#chr\tstart\tstop\tcluster_name\tread_count\tstrand\tp_value\tfdr"
 		print >> outfile,header
 		self.printReliableList(self.clusters,outfile)
-		return [self.outprefix+".enrichedClusters.bed"]
+		return [self.outprefix+".enrichedClusters.pipeclip.bed"]
 	
 	def printCrosslinkingMutations(self):
-		outfile = open(self.outprefix+".crosslinkingMutations.bed","w")
+		outfile = open(self.outprefix+".crosslinkingMutations.pipeclip.bed","w")
 		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
 		print >> outfile,header
 		self.printReliableList(self.crosslinkingMutations,outfile)
@@ -151,14 +151,14 @@ class CLIP:
 		output = self.outprefix
 		header = "#chr\tstart\tstop\tcluster_name\treads_count\tstrand\tcluster_fdr\tcrosslinking_fisherP\tmutation_pos\tmutation_name"
 		if self.type == 0:#HITS-CLIP, three output
-			output_del = open(output+"_deletion_crosslinking.txt","w")
-			output_sub = open(output+"_substitution_crosslinking.txt","w")
-			output_ins = open(output+"_insertion_crosslinking.txt","w")
+			output_del = open(output+"_deletion_crosslinking.pipeclip.txt","w")
+			output_sub = open(output+"_substitution_crosslinking.pipeclip.txt","w")
+			output_ins = open(output+"_insertion_crosslinking.pipeclip.txt","w")
 			print >> output_del,header
 			print >> output_sub,header
 			print >> output_ins,header
 		else:
-			output_name = open(output+"_crosslinking.txt","w")
+			output_name = open(output+"_crosslinking.pipeclip.txt","w")
 			print >> output_name,header
 		for k in self.crosslinking.keys():
 			st = self.crosslinking[k].__str__()
@@ -180,10 +180,10 @@ class CLIP:
 			output_del.close()
 			output_sub.close()
 			output_ins.close()
-			return [output+"_insertion_crosslinking.txt",output+"_deletion_crosslinking.txt",output+"_substitution_crosslinking.txt"]
+			return [output+"_insertion_crosslinking.pipeclip.txt",output+"_deletion_crosslinking.pipeclip.txt",output+"_substitution_crosslinking.pipeclip.txt"]
 		else:
 			output_name.close()
-			return [output+"_crosslinking.txt"]
+			return [output+"_crosslinking.pipeclip.txt"]
 		
 
 	def updatePreviousQul(self,n,q,m):
@@ -309,6 +309,7 @@ class CLIP:
 		'''Filter the input BAM file according to parameters. Make clusters and mutations at the same time'''
 		logging.info("Start to filter alignment using parameters:")
 		logging.info("match length:%d" % (matchLen))
+		logging.info("mismatch count: %d" % (mismatch))
 		logging.info("CLIP type:%s" % (str(cliptype)))
 		logging.info("Rmdup code:%s" % (str(duprm)))
 		logging.info("There are %d reads in origianl input file" % (self.originalBAM.mapped))
@@ -326,7 +327,7 @@ class CLIP:
 			if not alignment.cigar : #reads is unmapped
 				continue
 			count += 1
-			if count % 100000 ==0:
+			if count % 500000 ==0:
 				stop_time = datetime.datetime.now()
 				logging.debug("Processed %d reads in %s" % (count,str(stop_time-start_time)))
 				start_time = stop_time
@@ -394,6 +395,4 @@ class CLIP:
 		logging.debug("After filtering, %d reads left" % (self.filteredAlignment))
 		logging.debug("There are %d clusters in total" % (len(self.clusters)))
 		logging.debug("There are %d mutations in total" % (len(self.mutations)))
-
-		
 

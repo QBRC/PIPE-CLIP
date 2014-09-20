@@ -53,16 +53,16 @@ def KMvalue(posmapfile,negmapfile,mufile):
 		km = []#store mutations with updated k value
 		km_pair = {}#Dic of count tuples of (k,m),key:"K_M"
 		count = 0
-		logging.debug("make wig %s" % str(datetime.datetime.now()))
+		#logging.debug("make wig %s" % str(datetime.datetime.now()))
 		poswig = Utils.makeWig(posmapfile)
 		negwig = Utils.makeWig(negmapfile)
 		start_time = datetime.datetime.now()
-		logging.debug("finish making wig %s" %  str(start_time))
+		#logging.debug("finish making wig %s" %  str(start_time))
 		for item in mufile:
 			count += 1
 			if count % 5000 == 0:
 				stop_time = datetime.datetime.now()
-				logging.info("Counting K-M for %d mutation sites, using %s" % (count,str(stop_time-start_time)))
+				#logging.debug("Counting K-M for %d mutation sites, using %s" % (count,str(stop_time-start_time)))
 				start_time = stop_time
 			st = []
 			strand = item.strand 
@@ -151,7 +151,7 @@ def mutationEnrich(clip,threshold=0.01):
 	KM_test = KMvalue(clip.posfilteredBAM,clip.negfilteredBAM, clip.mutations.values())#check after doing KM, if clip.mutations changed
 	clip.posfilteredBAM = None
 	clip.negfilteredBAM = None
-	logging.info("Finished K-M counting, starting fitting.")
+	#logging.info("Finished K-M counting, starting fitting.")
 	R = robject.r
 	reliableList = []
 	P = totalMuCount/coverage
@@ -190,7 +190,7 @@ def mutationEnrich(clip,threshold=0.01):
 			mu.sig = True
 			clip.sigMutationCount += 1
 			clip.addSigToDic(clip.sigMutations,mu)
-	logging.info("There are %d reliable mutations" % clip.sigMutationCount)
+	#logging.info("There are %d reliable mutations" % clip.sigMutationCount)
 
 
 
@@ -214,7 +214,7 @@ def clusterEnrich(clip,threshold=0.01):
 		#output_log = subprocess.check_output['ls','-l','test.merge.ztnblog']
 		#If regression converged, there is no need to try other epsilon or step,check log file flag: Y means coverged, N means not converged 
 		try:
-			r_output_log = open(temp_filename+".ztnblog","r")
+			r_output_log = open(temp_filename+".pipeclip.ztnblog","r")
 			#logging.debug("Log file opened")
 			flag = r_output_log.read(1)
 			if flag == "Y":#converged
@@ -229,7 +229,7 @@ def clusterEnrich(clip,threshold=0.01):
 	#r_output = subprocess.check_output(['ls','-l',temp_filename+'.ztnb'])
 	#if int(r_output.split()[4])>100: #more than header,file OK
 	try:
-		enrich_parameter = open(temp_filename+".ztnb","r")
+		enrich_parameter = open(temp_filename+".pipeclip.ztnb","r")
 	except IOError,message:
 		logging.error("Cannot open ztnb result file")
 		return False
@@ -241,7 +241,7 @@ def clusterEnrich(clip,threshold=0.01):
 			#logging.debug("NB_key %s" % nb_key)
 			if not nbDic.has_key(nb_key):
 				nbDic[nb_key]=(buf[2],buf[3])#pvalue and qvalue
-	logging.info("There are %d read-length pairs" % (len(nbDic.keys())))
+	#logging.info("There are %d read-length pairs" % (len(nbDic.keys())))
 	if len(nbDic.keys())==0:
 		logging.error("There are no read-length pairs found by ZTNB. Exit.")
 		return False

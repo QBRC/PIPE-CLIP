@@ -52,6 +52,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			if len(myClip.mutations.keys())>0:
 				logging.info("Get reliable mutations")
 				Enrich.mutationEnrich(myClip,fdrReliableMutation)
+				logging.info("There are %d reliable mutations" % myClip.sigMutationCount)
 				myClip.printReliableMutations()
 			else:
 				logging.warning("There is no mutation found in this BAM file.")
@@ -74,6 +75,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 					outfilelist = myClip.printEnrichClusters()
 			#annotation if possible
 		if species in ["mm10","mm9","hg19"]:
+			logging.info("Started to annotate cross-linking sits using HOMER")
 			for name in outfilelist:
 				#logging.debug("Start to do annotation for %s" % name)
 				Utils.annotation(name,species)
@@ -84,7 +86,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 		print >> logfile, "%d out of %d mutations are reliable." % (myClip.sigMutationCount,myClip.mutationCount)
 		print >> logfile, "%d crosslinking site candidates are found, with %d supporting reliable mutations." % (len(myClip.crosslinking.keys()),len(myClip.crosslinkingMutations))
 		logfile.close()
-		
+		logging.info("PIPE-CLIP finished the job, please check your results. :)")	
 	else:
 		logging.error("File corruputed, program exit.")
 		sys.exit(0)
