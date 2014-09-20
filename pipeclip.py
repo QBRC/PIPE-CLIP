@@ -80,8 +80,8 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 		#output a status log file
 		logfile = open(outputPrefix+".pipeclip.summary.log","w")
 		print >> logfile, "There are %d mapped reads in input BAM file. After filtering,%d reads left" % (myClip.originalMapped,myClip.filteredAlignment)
-		print >> logfile, "%d out of %d clusters are enriched." % (self.sigClusterCount,len(self.clusters))
-		print >> logfile, "%d out of %d mutations are reliable." % (self.sigMutationCount,self.mutationCount)
+		print >> logfile, "%d out of %d clusters are enriched." % (myClip.sigClusterCount,len(myClip.clusters))
+		print >> logfile, "%d out of %d mutations are reliable." % (myClip.sigMutationCount,myClip.mutationCount)
 		print >> logfile, "%d crosslinking site candidates are found, with %d supporting reliable mutations." % (len(myClip.crosslinking.keys()),len(myClip.crosslinkingMutations))
 		logfile.close()
 		
