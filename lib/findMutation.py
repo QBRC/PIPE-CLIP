@@ -13,7 +13,8 @@ import copy
 import pysam
 from pysam import *
 import argparse as ap
-"""
+import logging
+
 def prepare_argparser():
   description = "Find mutations"
   epilog = "For command line options of each command, type %(prog)s COMMAND -h"
@@ -22,7 +23,7 @@ def prepare_argparser():
   argparser.add_argument("-o","--output",dest = "outfile", type = str,required = True, help = "output file, default is stdout")
   argparser.add_argument("-p",dest = "par", type = int,default = 0, help = "CLIP type, output will only contain specific mutations. 0 for HITS-CLIP, 1 for PAR-CLIP (T->C) and 2 for PAR-CLIP (G->A)")
   return(argparser)
-"""
+
 class findMutationRunner:
   def __init__(self,inputFile,outputFile,par):
     self.inputFile = inputFile
@@ -178,6 +179,7 @@ class findMutationRunner:
       st_genome = 0
       offset = 0
       pre = ':'
+      set_insertion = 0
       for ch in mdlist:#i[1] is the MD tag
         if ch.isdigit():
           st_seq += int(ch)
@@ -187,13 +189,13 @@ class findMutationRunner:
           st_genome += 1
           pre = ch
         elif ch.isalpha():
-          if not pre == '^':
+          if (not pre == '^') and (pre.isdigit()):
             origin = ch
             index = st_seq+S_count+offset
             insertionBefore = self.countInsertionBefore(index,insertLoc)
             loc = st_genome+match.pos+offset#-insertionBefore #0-based 
-            index += insertionBefore # add on 9 Oct
-            #print index,len(match.seq)
+            index += insertionBefore - set_insertion# add on 9 Oct
+            set_insertion = insertionBefore
             mu = match.seq[index]
             offset = index-S_count+1
             st_seq = 0
@@ -208,6 +210,8 @@ class findMutationRunner:
             mutation = [str(loc),str(loc+1),match.qname,str(index-S_count),chr,origin+"->"+mu]
             yield mutation
           else:
+            if pre in ["A","G","T","C"]:
+              st_genome += 1
             loc = st_genome+match.pos+offset-1 #0-based 
             if match.is_reverse:
               strand = '-'
@@ -216,7 +220,8 @@ class findMutationRunner:
               strand = '+'
             index1 = loc - match.pos 
             insertionBefore = self.countInsertionBefore(index1,insertLoc)
-            index1 += insertionBefore #added 9 Oct
+            index1 += insertionBefore - set_insertion#added 9 Oct
+            set_insertion = insertionBefore
             mutation = [str(loc),str(loc+1),match.qname,str(index1),strand,"Deletion->"+ch]
             yield mutation
             pre = ch
@@ -250,8 +255,8 @@ class findMutationRunner:
     header = "#"+"\t".join(["chr","start","stop","id","offset","strand","type"])
     print >>outputfile, header 
     for item in infile:
-      b= item.tags
-      if self.countMismatch(b)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
+      #print >> sys.stderr,"Processing",item.qname
+      if self.countMismatch(item.tags)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
         #tmp.write(item)
         sur = self.survey(item)
         insertion = sur[0]
@@ -311,8 +316,8 @@ def findMutationMainNoArgs():
   outputfile = open(args.outfile,"wa") #ouput mutation bed
 
   par = args.par
-  findMutationRunner = findMutationRunner(infile,outputfile,par)
-  findMutationRunner.run()
+  myRunner = findMutationRunner(infile,outputfile,par)
+  myRunner.run()
 
 if __name__=="__main__":
   findMutationMainNoArgs()

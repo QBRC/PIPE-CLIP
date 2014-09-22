@@ -5,12 +5,18 @@
 #Required packages: pysam, ghmm, pybedtools
 #Last modification: 18 Sep 2014
 
+#from lib import *
 
 import sys
 import argparse
 import logging
+from subprocess import call
 import os
-from lib import *
+import CLIP
+import Alignment
+import Utils
+import Enrich
+import OptValidator
 
 def prepare_argparser():
 	description = "Find mutations"
@@ -24,18 +30,18 @@ def prepare_argparser():
 	argparser.add_argument("-r","--rmdup",dest = "dupRemove", type = int,required = True, help = "Remove PCR duplicate (0)No removal; (1)Remove by read start; (2)Remove by sequence; ", choices=[0,1,2])
 	argparser.add_argument("-M","--fdrMutation",dest = "fdrMutation", type = float,required = True, help = "FDR for reliable mutations")
 	argparser.add_argument("-C","--fdrCluster",dest = "fdrCluster", type = float,required = True, help = "FDR for enriched clusters")
-	argparser.add_argument("-s","--species",dest = "species", type = str, help = "Species [\"mm10\",\"hg19\"]",choices=["mm10","hg19"])
+	argparser.add_argument("-s","--species",dest = "species", type = str,required = True, help = "Species [\"mm10\",\"hg19\"]",choices=["mm10","hg19"])
 	return(argparser)
 
 def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
-	myClip = CLIP.CLIP(infile,outputPrefix)
+	myClip = CLIP.CLIP(infile)
 	logging.info("Start to run")
 	if myClip.testInput():#check input
 		logging.info("Input file OK,start to run PIPE-CLIP")
 		logging.info("Species info %s" % species)
 		if myClip.readfile():
-			myClip.filter(matchLength,mismatch,clipType,rmdup)
-			#myClip.printMutations()
+			myClip.filter(matchLength,mismatch,clipType,rmdup,outputPrefix)
+			myClip.printMutations()
 			if len(myClip.clusters)>0:
 				logging.info("Get enriched clusters")
 				status = Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
@@ -52,7 +58,6 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			if len(myClip.mutations.keys())>0:
 				logging.info("Get reliable mutations")
 				Enrich.mutationEnrich(myClip,fdrReliableMutation)
-				logging.info("There are %d reliable mutations" % myClip.sigMutationCount)
 				myClip.printReliableMutations()
 			else:
 				logging.warning("There is no mutation found in this BAM file.")
@@ -74,21 +79,13 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 					logging.warning("There is no reliable mutations found. PIPE-CLIP will provide enriched clusters as crosslinking candidates.")
 					outfilelist = myClip.printEnrichClusters()
 			#annotation if possible
+		#logging.debug(outfilelist)
 		if species in ["mm10","mm9","hg19"]:
-			logging.info("Started to annotate cross-linking sits using HOMER")
 			for name in outfilelist:
 				#logging.debug("Start to do annotation for %s" % name)
 				Utils.annotation(name,species)
-		#output a status log file
-		logfile = open(outputPrefix+".pipeclip.summary.log","w")
-		print >> logfile, "There are %d mapped reads in input BAM file. After filtering,%d reads left" % (myClip.originalMapped,myClip.filteredAlignment)
-		print >> logfile, "%d out of %d clusters are enriched." % (myClip.sigClusterCount,len(myClip.clusters))
-		print >> logfile, "%d out of %d mutations are reliable." % (myClip.sigMutationCount,myClip.mutationCount)
-		print >> logfile, "%d crosslinking site candidates are found, with %d supporting reliable mutations." % (len(myClip.crosslinking.keys()),len(myClip.crosslinkingMutations))
-		logfile.close()
-		logging.info("PIPE-CLIP finished the job, please check your results. :)")	
 	else:
-		logging.error("File corruputed, program exit.")
+		print >> sys.stderr, "File corruputed, program exit."
 		sys.exit(0)
 	
 	

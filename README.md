@@ -1,6 +1,6 @@
 PIPE-CLIP
 =========
-
+This is a test
 Pipeline for CLIP-seq Analysis.
 - Galaxy site: http://pipeclip.qbrc.org/
 - Publication: http://genomebiology.com/2014/15/1/R18
