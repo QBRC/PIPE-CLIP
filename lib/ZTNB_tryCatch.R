@@ -70,8 +70,8 @@ logmu = log(mu);
 #print(paste("Step",vglm_step));
 # negative binomail regression with the known predictor log(mu)
 
-intercept1 = c(-1)#seq(-1,0,1);
-intercept2 = c(-1)#seq(-1,0,1);
+intercept1 = seq(-1,1,0.5);
+intercept2 = seq(-1,1,0.5);
 biggest_likelihood = -99999999;
 khat = 0;
 muhat = 0;
