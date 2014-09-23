@@ -10,6 +10,7 @@ import sys
 import argparse
 import logging
 import os
+from time import gmtime, strftime
 from lib import *
 
 def prepare_argparser():
@@ -81,6 +82,8 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 				Utils.annotation(name,species)
 		#output a status log file
 		logfile = open(outputPrefix+".pipeclip.summary.log","w")
+		print >>logfile,"PIPE-CLIP run finished. Parameters are:"
+		print >> logfile,"Input BAM: %s \nOutput prefix: %s \nMinimum matched length: %d \nMaximum mismatch count: %d \nPCR duplicate removal code: %d \nFDR for enriched clusters: %f \nFDR for reliable mutations: %f" % (infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,fdrReliableMutation)
 		print >> logfile, "There are %d mapped reads in input BAM file. After filtering,%d reads left" % (myClip.originalMapped,myClip.filteredAlignment)
 		print >> logfile, "%d out of %d clusters are enriched." % (myClip.sigClusterCount,len(myClip.clusters))
 		print >> logfile, "%d out of %d mutations are reliable." % (myClip.sigMutationCount,myClip.mutationCount)
