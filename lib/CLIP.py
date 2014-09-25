@@ -242,10 +242,10 @@ class CLIP:
 		else:
 			mutations = Mutation2.getMutations(self.originalBAM,read)
 			if self.type ==1:
-				mutation_filter = Utils.filterMutation(mlist,"T->C",True)
+				mutation_filter = Utils.filterMutations(mutations,"T->C",True)
 				mutations = mutation_filter
 			elif self.type ==2:
-				mutation_filter = Utils.filterMutation(mlist,"G->A",True)
+				mutation_filter = Utils.filterMutations(mutations,"G->A",True)
 				mutations = mutation_filter
 		if len(mutations)>0:
 			for m in mutations:
