@@ -44,7 +44,7 @@ alp = 0.95
 # polynomial degree:
 pd = 1
 lregfit = loess(tread ~ tlen, weights = twts, span = alp, family ="symmetric", degree = pd);
-#print("loess finished")
+
 mu = lregfit$fitted;
 mu[mu<=0] = min(exp(-4),mu[mu>0]); # bounded mean function
 logmu = log(mu);
@@ -65,9 +65,6 @@ mu = lregfit$fitted;
 mu[mu<=0] = min(exp(-4),mu[mu>0]); # bounded mean function
 logmu = log(mu);
 
-#print("Start vgam binomial");
-#print(paste("Epsilon",vglm_epsilon));
-#print(paste("Step",vglm_step));
 # negative binomail regression with the known predictor log(mu)
 
 intercept1 = seq(-1,1,0.5);
@@ -79,6 +76,42 @@ converge_flag = FALSE;
 errmsg = paste("Error/warning messages for run using Epsilon:",vglm_epsilon,"and step size:",vglm_step,".");
 options(warn=1);
 
+
+#use default setting first to see if it could converge
+nb<-tryCatch({vglm(tread_fit ~ 1, posnegbinomial(), weight = twts_fit, maxit = 200, trace = FALSE, step = vglm_step,offset = logmu,epsilon=vglm_epsilon,silent=FALSE)},warning = function(w){
+    #print(paste("typeof warning",typeof(w["message"])))
+    warnmsg = strsplit(toString(w["message"])," iteration")[[1]][1];
+    if(grepl("convergence not obtained",warnmsg))
+    {
+      newmsg = paste("Convergence not obtained in 200 iterarions");
+      return(newmsg);
+    }
+    }, error = function(e){
+      newmsg = paste("Program failed to converge.");
+      return(newmsg)
+    }, finally = {
+    })# end of try-catch
+    if (length(nb)>0)
+    {
+      if(typeof(nb)=="S4")
+      {
+        #print("Converged, get regression class")
+        if(logLik(nb)>=biggest_likelihood & Coef(nb)["size"]<=100)
+        {
+          biggest_likelihood = logLik(nb);
+          khat <- Coef(nb)["size"];
+          muhat <- Coef(nb)["munb"];
+        }
+       
+      } else if (typeof(nb)=="character")
+      {
+        errmsg = paste(errmsg,nb,sep="\n")
+      }
+    }
+
+
+if((biggest_likelihood==-99999999) && (khat==0) && (muhat ==0))
+{#try different coef start
 for (i in intercept1)
 {
   for (j in intercept2)
@@ -118,11 +151,8 @@ for (i in intercept1)
     }
   }# end of loop intercept2
  }# end of loop intercept1
-#print(paste("Biggest loglikelihood",biggest_likelihood));
-#print(paste("NB parameters",khat,muhat))
-#print("Finished fitting");
-#print(paste("Error message for this run",errmsg))
-#Finished fitting, calculate p value
+}#end of try different coefstart
+
 if((biggest_likelihood==-99999999) && (khat==0) && (muhat ==0))
 {
   #No model converged,exit
@@ -143,6 +173,4 @@ if((biggest_likelihood==-99999999) && (khat==0) && (muhat ==0))
   outname = paste(args[1],".pipeclip.ztnb",sep="")
   write.table(nb.out,outname,sep="\t",quote=F,row.names=F);
 }#end of output
-#Out out error log file
-#close(logfile);
 write(errmsg,paste(args[1],".pipeclip.ztnblog",sep=""));

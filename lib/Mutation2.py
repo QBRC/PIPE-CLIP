@@ -275,7 +275,7 @@ def getMutations(infile,read):
 		return mutationList
 
 
-def getTruncation(infile,read):
+def getTruncations(infile,read):
 	'''One read only have one truncation, but in order to be consistent with muations, return a list'''
 	if read.is_reverse:
 		strand = "-"
@@ -286,6 +286,6 @@ def getTruncation(infile,read):
 	stop = start + 1
 	if read.tid>=0:
 		chr = infile.getrname(read.tid)
-	newTr = MutationBed(chr,start,stop,item.qname,1,strand,"truncation")
+	newTr = MutationBed(chr,start,stop,read.qname,1,strand,"truncation")
 	return [newTr] 
 
