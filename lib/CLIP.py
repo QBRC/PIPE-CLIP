@@ -29,15 +29,17 @@ class CLIP:
 		self.currentGroupKey = "None"
 		self.currentGroup = [] #Used in rmdup
 		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
-		self.clusters = [] 
-		self.currentCluster = Alignment.BED("",0,0,"",0,".")
+		self.clusters_plus = []
+		self.clusters_minus = []
+		self.clusters = []
+		self.currentCluster_plus = Alignment.BED("",0,0,"",0,"+")
+		self.currentCluster_minus = Alignment.BED("",0,0,"",0,"-")
 		#self.sigClusters = {}
 		self.mutations = {} #Dictionary of bed instance
 		self.mutationCount = 0
 		self.sigMutations = {}#same as sigClusters
 		self.sigMutationCount = 0
 		self.sigClusterCount = 0
-		self.wig = None
 		self.coverage = 0 #"reads coverage of this sample"
 		self.bamheader = None
 		self.crosslinking = {}
@@ -100,9 +102,9 @@ class CLIP:
 #		for i in self.filteredAlignment:
 #			print i
 	
-#	def printClusters(self):
-#		for i in self.clusters:
-#			print i
+	def printClusters(self):
+		for i in self.clusters:
+			print i
 
 	def printMutations(self):
 		for i in self.mutations.values():
@@ -221,19 +223,33 @@ class CLIP:
 	def updateCluster(self,read):
 		'''Cluster new read to known clusters and update cluster reads count'''
 		strandDic = {"True":"-","False":"+"}
-		clusterName = "cluster"+"_"+str(len(self.clusters)+1)
+		clusterName = "cluster"+"_"+str(len(self.clusters_plus)+len(self.clusters_minus)+1)
 		newRead = Alignment.ClusterBed(self.originalBAM.getrname(read.tid),read.pos,read.pos+len(read.seq),clusterName,1,strandDic[str(read.is_reverse)])
-		if self.currentCluster.chr == "": #Initiate cluster
-			self.currentCluster = newRead
-			self.clusters.append(self.currentCluster)
+		if read.is_reverse:
+			if self.currentCluster_minus.chr == "": #Initiate cluster
+				self.currentCluster_minus = newRead
+				self.clusters.append(self.currentCluster_minus)
+			else:
+				if self.currentCluster_minus.overlap(newRead):
+					self.currentCluster_minus.merge(newRead)
+					self.clusters_minus[-1]=self.currentCluster_minus
+				else:#New read is a new cluster
+					#self.clusters.append(self.currentCluster)
+					self.currentCluster_minus = newRead
+					self.clusters_minus.append(self.currentCluster_minus)
 		else:
-			if self.currentCluster.overlap(newRead):
-				self.currentCluster.merge(newRead)
-				self.clusters[-1]=self.currentCluster
-			else:#New read is a new cluster
-				#self.clusters.append(self.currentCluster)
-				self.currentCluster = newRead
-				self.clusters.append(self.currentCluster)
+			if self.currentCluster_plus.chr == "": #Initiate cluster
+				self.currentCluster_plus = newRead
+				self.clusters_plus.append(self.currentCluster_plus)
+			else:
+				if self.currentCluster_plus.overlap(newRead):
+					self.currentCluster_plus.merge(newRead)
+					self.clusters_plus[-1]=self.currentCluster_plus
+				else:#New read is a new cluster
+					#self.clusters.append(self.currentCluster)
+					self.currentCluster_plus = newRead
+					self.clusters_plus.append(self.currentCluster_plus)
+
 	
 	def updateMutation(self,read,mis):
 		mutations = []
@@ -393,6 +409,9 @@ class CLIP:
 		self.posfilteredBAM = pysam.Samfile(self.outprefix+".pos.filtered.bam","rb")# move file pointer to the file head
 		self.negfilteredBAM = pysam.Samfile(self.outprefix+".neg.filtered.bam","rb")# move file pointer to the file head
 		self.originalBAM = None 
+		self.clusters = self.clusters_plus + self.clusters_minus
+		self.clusters_plus = None
+		self.clusters_minus = None
 		logging.debug("After filtering, %d reads left" % (self.filteredAlignment))
 		logging.debug("There are %d clusters in total" % (len(self.clusters)))
 		logging.debug("There are %d mutations in total" % (len(self.mutations)))

@@ -3,7 +3,6 @@
 #Refactored by: eric.roos@utsouthwestern.edu
 #Usage: python pipeclip.py input.sam output_prefix match_length mismatch_number pcr_rm fdr_cluster clip_type fdr_mutation species
 #Required packages: pysam, ghmm, pybedtools
-#Last modification: 18 Sep 2014
 
 
 import sys
@@ -36,6 +35,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 		logging.info("Species info %s" % species)
 		if myClip.readfile():
 			myClip.filter(matchLength,mismatch,clipType,rmdup)
+			#myClip.printClusters()
 			#myClip.printMutations()
 			if len(myClip.clusters)>0:
 				logging.info("Get enriched clusters")
