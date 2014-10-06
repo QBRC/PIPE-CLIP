@@ -247,6 +247,7 @@ class CLIP:
 			elif self.type ==2:
 				mutation_filter = Utils.filterMutations(mutations,"G->A",True)
 				mutations = mutation_filter
+		#logging.debug("read %s " % read)
 		if len(mutations)>0:
 			for m in mutations:
 				#print m

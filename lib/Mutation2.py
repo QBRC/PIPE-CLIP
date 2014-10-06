@@ -47,12 +47,14 @@ def countMismatch(b):
 	for i in myList:
 		if i[0]=="NM":
 			return (i[1])
+	return 0
 
 def survey(entry):
+	#logging.debug(entry.cigar)
 	mismatchNumber = countMismatch(entry.tags)
 	insertionNumber = countInsertionNumber(entry.cigar)
 	deletionNumber = countDeletionNumber(entry.cigar)
-	substitutionNumber = mismatchNumber-insertionNumber-deletionNumber
+	substitutionNumber = max(0,mismatchNumber-deletionNumber)
 	#print insertionNumber,deletionNumber
 	return ([insertionNumber,deletionNumber,substitutionNumber])
 
@@ -92,6 +94,7 @@ def parseCIGAR(ci): #calculate match segment length list
 	return matchSeg	
 
 def parseMD(b):
+	buf = []
 	myList = b
 	for j in myList:
 		if j[0]=="MD":
@@ -242,37 +245,37 @@ def getMutations(infile,read):
 	#logging.debug("call getMutation function %s" % read)
 	mutationList = []
 	b=read.tags
-	if countMismatch(b)>0: #and countMismatch(b)<2 and countMatchNumber(item.cigar)>=20:
-		#tmp.write(item)
-		sur = survey(read)
-		insertion = sur[0]
-		deletion = sur[1]
-		substi = sur[2]
-		insertionSeqLoc = []
-		if insertion > 0:
-			insertionDic = insertionLocation(read,insertion)
-			for k in insertionDic.keys():
-				for loc_index in range(len(insertionDic[k])):
-					insertionSeqLoc.append(insertionDic[k][loc_index])
-					mu = read.seq[insertionDic[k][loc_index]]
-					loc = k+loc_index+read.pos
-					if read.tid >=0:
-						chr = infile.getrname(read.tid)
-					if read.is_reverse:
-						strand = '-'
-						mu = RC([mu])[0]
-					else:
-						strand = "+"
-					mutationList.append(MutationBed(chr,loc,loc+1,read.qname,1,strand,"Insertion->"+mu))#change insertionDic[k][loc_index] to 1
-			insertionSeqLoc.sort()
-		if deletion + substi > 0:
-			for mu in mutationLocation(read,insertionSeqLoc):
-				if read.tid>=0:
-					chr  = infile.getrname(read.tid)
-					newMu = MutationBed(chr,mu[0],mu[1],mu[2],mu[3],mu[4],mu[5])
-					mutationList.append(newMu)
-		#logging.debug(mutationList)
-		return mutationList
+	
+	sur = survey(read)
+	insertion = sur[0]
+	deletion = sur[1]
+	substi = sur[2]
+	#logging.debug("insertio:,%d, deletion:%d,sub:%d" % (insertion,deletion,substi))
+	insertionSeqLoc = []
+	if insertion > 0:
+		insertionDic = insertionLocation(read,insertion)
+		for k in insertionDic.keys():
+			for loc_index in range(len(insertionDic[k])):
+				insertionSeqLoc.append(insertionDic[k][loc_index])
+				mu = read.seq[insertionDic[k][loc_index]]
+				loc = k+loc_index+read.pos
+				if read.tid >=0:
+					chr = infile.getrname(read.tid)
+				if read.is_reverse:
+					strand = '-'
+					mu = RC([mu])[0]
+				else:
+					strand = "+"
+				mutationList.append(MutationBed(chr,loc,loc+1,read.qname,1,strand,"Insertion->"+mu))#change insertionDic[k][loc_index] to 1
+		insertionSeqLoc.sort()
+	if deletion + substi > 0:
+		for mu in mutationLocation(read,insertionSeqLoc):
+			if read.tid>=0:
+				chr  = infile.getrname(read.tid)
+				newMu = MutationBed(chr,mu[0],mu[1],mu[2],mu[3],mu[4],mu[5])
+				mutationList.append(newMu)
+	#logging.debug(mutationList)
+	return mutationList
 
 
 def getTruncations(infile,read):
