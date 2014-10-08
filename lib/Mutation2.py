@@ -214,7 +214,8 @@ def  mutationLocation(entry,insertLoc):#return mutation location in
 						strand = '+'
 					index1 = loc - match.pos 
 					insertionBefore = countInsertionBefore(index1,insertLoc)
-					index1 += insertionBefore #added 9 Oct
+					index1 += insertionBefore-set_insertion #added 9 Oct
+					set_insertion = insertionBefore
 					mutation = [str(loc),str(loc+1),match.qname,1,strand,"Deletion->"+ch] #change str(index1) to 1
 					yield mutation
 					pre = ch
