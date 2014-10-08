@@ -314,8 +314,8 @@ def findMutationMainNoArgs():
   outputfile = open(args.outfile,"wa") #ouput mutation bed
 
   par = args.par
-  findMutationRunner = findMutationRunner(infile,outputfile,par)
-  findMutationRunner.run()
+  myRunner = findMutationRunner(infile,outputfile,par)
+  myRunner.run()
 
 if __name__=="__main__":
   findMutationMainNoArgs()
