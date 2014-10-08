@@ -140,7 +140,7 @@ if((biggest_likelihood==-99999999) && (khat==0) && (muhat ==0))
   # read counts and cluster length of clusters whose FDR <= cut
   nb.out = as.data.frame(matrix(c(tread[nbdx],tlen[nbdx],nb.pvalue[nbdx],nb.fdr[nbdx]),sum(nbdx),4))
   names(nb.out) = c("read","length","p","fdr")
-  outname = paste(args[1],".pipeclip.ztnb",sep="")
+  outname = paste(args[1],".ztnb",sep="")
   write.table(nb.out,outname,sep="\t",quote=F,row.names=F);
 }#end of output
 #Out out error log file
