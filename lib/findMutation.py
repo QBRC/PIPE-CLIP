@@ -63,7 +63,7 @@ class findMutationRunner:
     mismatchNumber = self.countMismatch(entry.tags)
     insertionNumber = self.countInsertionNumber(entry.cigar)
     deletionNumber = self.countDeletionNumber(entry.cigar)
-    substitutionNumber = mismatchNumber-insertionNumber-deletionNumber
+    substitutionNumber = max(0,mismatchNumber-deletionNumber)
     #print insertionNumber,deletionNumber
     return ([insertionNumber,deletionNumber,substitutionNumber])
 
@@ -178,6 +178,7 @@ class findMutationRunner:
       st_genome = 0
       offset = 0
       pre = ':'
+			set_insertion = 0 #recored insertion numbers already counted
       for ch in mdlist:#i[1] is the MD tag
         if ch.isdigit():
           st_seq += int(ch)
@@ -192,7 +193,8 @@ class findMutationRunner:
             index = st_seq+S_count+offset
             insertionBefore = self.countInsertionBefore(index,insertLoc)
             loc = st_genome+match.pos+offset#-insertionBefore #0-based 
-            index += insertionBefore # add on 9 Oct
+            index += insertionBefore-set_insertion 
+						set_insertion = insertionBefore
             #print index,len(match.seq)
             mu = match.seq[index]
             offset = index-S_count+1
@@ -216,7 +218,8 @@ class findMutationRunner:
               strand = '+'
             index1 = loc - match.pos 
             insertionBefore = self.countInsertionBefore(index1,insertLoc)
-            index1 += insertionBefore #added 9 Oct
+            index1 += insertionBefore - set_insertion#added 9 Oct
+						set_insertion = insertionBefore
             mutation = [str(loc),str(loc+1),match.qname,str(index1),strand,"Deletion->"+ch]
             yield mutation
             pre = ch
