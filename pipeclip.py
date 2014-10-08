@@ -39,7 +39,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,pcr,fdrEnrichedCluster,
 
   ######################### Enrich clusters ######################
   #print "R Analysis"
-  call(["Rscript","lib/ZTNB.R",outputPrefix+".filter.rehead.merge",str(fdrEnrichedCluster)])
+  call(["Rscript","lib/ZTNB_tryCatch.R",outputPrefix+".filter.rehead.merge",str(fdrEnrichedCluster),"0.01","0.1"])
   #print "getCluster main"
   getCluster.getClusterMain(outputPrefix+".filter.rehead.merge",outputPrefix+".filter.rehead.merge.ztnb", outputPrefix+".filter.cluster.bed")
 
