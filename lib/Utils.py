@@ -85,6 +85,18 @@ def makeWig(bamfile):
 	return wig
 	
 
+def makeWigByChr(bamfile,chr):
+	wig = {}
+	for pileupColumn in bamfile.pileup(chr):
+			wig[str(pileupColumn.pos)]=pileupColumn.n
+	return wig
+
+
+def makeWigListByChr(bamfile,chr):
+	wig = Alignment.wiglist()
+	for pileupColumn in bamfile.pileup(chr):
+		wig.update(pileupColumn.pos,pileupColumn.n)
+	return wig
 
 def bisort(alist,b):
 	'''List is a list of bed instances, b is also an instance'''

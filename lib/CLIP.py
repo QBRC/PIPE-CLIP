@@ -12,7 +12,9 @@ import Mutation2
 import OptValidator
 import subprocess
 import datetime
+import gc
 
+gc.enable()
 OptValidator.opt_validate()
 
 
@@ -406,12 +408,14 @@ class CLIP:
 		pysam.index(self.outprefix+".neg.filtered.bam")
 		#self.filteredBAM = pysam.Samfile(outprefix+".filtered.bam","rb")# move file pointer to the file head
 		
-		self.posfilteredBAM = pysam.Samfile(self.outprefix+".pos.filtered.bam","rb")# move file pointer to the file head
-		self.negfilteredBAM = pysam.Samfile(self.outprefix+".neg.filtered.bam","rb")# move file pointer to the file head
-		self.originalBAM = None 
+		self.posfilteredBAM = self.outprefix+".pos.filtered.bam"
+		self.negfilteredBAM = self.outprefix+".neg.filtered.bam"
+		del self.originalBAM  
 		self.clusters = self.clusters_plus + self.clusters_minus
-		self.clusters_plus = None
-		self.clusters_minus = None
+		del self.clusters_plus
+		del self.clusters_minus
+		self.mutations = self.mutations.values()
+		gc.collect()
 		logging.debug("After filtering, %d reads left" % (self.filteredAlignment))
 		logging.debug("There are %d clusters in total" % (len(self.clusters)))
 		logging.debug("There are %d mutations in total" % (len(self.mutations)))

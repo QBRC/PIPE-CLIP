@@ -36,21 +36,21 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 		if myClip.readfile():
 			myClip.filter(matchLength,mismatch,clipType,rmdup)
 			#myClip.printClusters()
-			#myClip.printMutations()
-			if len(myClip.clusters)>0:
-				logging.info("Get enriched clusters")
-				status = Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
-				if status:
-					logging.info("Found %d enriched clusters" % myClip.sigClusterCount)
-					myClip.printEnrichedClusters()
-				else:
-					logging.error("There is no enriched cluster found. Exit program")
-					sys.exit(1)
-			else:
-				logging.error("There is no clusters found. Please check input.Exit program.")
-				sys.exit(1)
+		#	myClip.printMutations()
+#BC#			if len(myClip.clusters)>0:
+#BC#				logging.info("Get enriched clusters")
+#BC#				status = Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
+#BC#				if status:
+#BC#					logging.info("Found %d enriched clusters" % myClip.sigClusterCount)
+#BC#					myClip.printEnrichedClusters()
+#BC#				else:
+#BC#					logging.error("There is no enriched cluster found. Exit program")
+#BC#					sys.exit(1)
+#BC#			else:
+#BC#				logging.error("There is no clusters found. Please check input.Exit program.")
+#BC#				sys.exit(1)
 			
-			if len(myClip.mutations.keys())>0:
+			if len(myClip.mutations)>0:
 				logging.info("Get reliable mutations")
 				Enrich.mutationEnrich(myClip,fdrReliableMutation)
 				logging.info("There are %d reliable mutations" % myClip.sigMutationCount)
@@ -58,38 +58,38 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			else:
 				logging.warning("There is no mutation found in this BAM file.")
 			#Start to get crosslinking sites
-			if myClip.sigClusterCount > 0 and myClip.sigMutationCount>0:
-				logging.info("Get cross-linking sites")
-				myClip.getCrosslinking()
-				if (len(myClip.crosslinking.keys())>0):
-					outfilelist = myClip.printCrosslinkingSites()
-					myClip.printCrosslinkingMutations()
-				else:
-					logging.warning("There is no crosslinking found. May be caused by no reliable mutations in enriched clusters. Print out enriched clusters instead.")
-					outfilelist = myClip.printEnrichClusters()
-			else:
-				if myClip.sigClusterCount <= 0:
-					logging.error("There is no enriched clusters for this sample, please check your input file. Exit.")
-					sys.exit(2)
-				elif myClip.sigMutationCount <=0:
-					logging.warning("There is no reliable mutations found. PIPE-CLIP will provide enriched clusters as crosslinking candidates.")
-					outfilelist = myClip.printEnrichClusters()
-			#annotation if possible
-		if species in ["mm10","mm9","hg19"]:
-			logging.info("Started to annotate cross-linking sits using HOMER")
-			for name in outfilelist:
-				#logging.debug("Start to do annotation for %s" % name)
-				Utils.annotation(name,species)
-		#output a status log file
-		logfile = open(outputPrefix+".pipeclip.summary.log","w")
-		print >>logfile,"PIPE-CLIP run finished. Parameters are:"
-		print >> logfile,"Input BAM: %s \nOutput prefix: %s \nMinimum matched length: %d \nMaximum mismatch count: %d \nPCR duplicate removal code: %d \nFDR for enriched clusters: %f \nFDR for reliable mutations: %f" % (infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,fdrReliableMutation)
-		print >> logfile, "There are %d mapped reads in input BAM file. After filtering,%d reads left" % (myClip.originalMapped,myClip.filteredAlignment)
-		print >> logfile, "%d out of %d clusters are enriched." % (myClip.sigClusterCount,len(myClip.clusters))
-		print >> logfile, "%d out of %d mutations are reliable." % (myClip.sigMutationCount,myClip.mutationCount)
-		print >> logfile, "%d crosslinking site candidates are found, with %d supporting reliable mutations." % (len(myClip.crosslinking.keys()),len(myClip.crosslinkingMutations))
-		logfile.close()
-		logging.info("PIPE-CLIP finished the job, please check your results. :)")	
+#BC#			if myClip.sigClusterCount > 0 and myClip.sigMutationCount>0:
+#BC#				logging.info("Get cross-linking sites")
+#BC#				myClip.getCrosslinking()
+#BC#				if (len(myClip.crosslinking.keys())>0):
+#BC#					outfilelist = myClip.printCrosslinkingSites()
+#BC#					myClip.printCrosslinkingMutations()
+#BC#				else:
+#BC#					logging.warning("There is no crosslinking found. May be caused by no reliable mutations in enriched clusters. Print out enriched clusters instead.")
+#BC#					outfilelist = myClip.printEnrichClusters()
+#BC#			else:
+#BC#				if myClip.sigClusterCount <= 0:
+#BC#					logging.error("There is no enriched clusters for this sample, please check your input file. Exit.")
+#BC#					sys.exit(2)
+#BC#				elif myClip.sigMutationCount <=0:
+#BC#					logging.warning("There is no reliable mutations found. PIPE-CLIP will provide enriched clusters as crosslinking candidates.")
+#BC#					outfilelist = myClip.printEnrichClusters()
+#BC#			#annotation if possible
+#BC#		if species in ["mm10","mm9","hg19"]:
+#BC#			logging.info("Started to annotate cross-linking sits using HOMER")
+#BC#			for name in outfilelist:
+#BC#				#logging.debug("Start to do annotation for %s" % name)
+#BC#				Utils.annotation(name,species)
+#BC#		#output a status log file
+#BC#		logfile = open(outputPrefix+".pipeclip.summary.log","w")
+#BC#		print >>logfile,"PIPE-CLIP run finished. Parameters are:"
+#BC#		print >> logfile,"Input BAM: %s \nOutput prefix: %s \nMinimum matched length: %d \nMaximum mismatch count: %d \nPCR duplicate removal code: %d \nFDR for enriched clusters: %f \nFDR for reliable mutations: %f" % (infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,fdrReliableMutation)
+#BC#		print >> logfile, "There are %d mapped reads in input BAM file. After filtering,%d reads left" % (myClip.originalMapped,myClip.filteredAlignment)
+#BC#		print >> logfile, "%d out of %d clusters are enriched." % (myClip.sigClusterCount,len(myClip.clusters))
+#BC#		print >> logfile, "%d out of %d mutations are reliable." % (myClip.sigMutationCount,myClip.mutationCount)
+#BC#		print >> logfile, "%d crosslinking site candidates are found, with %d supporting reliable mutations." % (len(myClip.crosslinking.keys()),len(myClip.crosslinkingMutations))
+#BC#		logfile.close()
+#BC#		logging.info("PIPE-CLIP finished the job, please check your results. :)")	
 	else:
 		logging.error("File corruputed, program exit.")
 		sys.exit(0)

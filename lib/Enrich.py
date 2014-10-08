@@ -25,8 +25,11 @@ import subprocess
 import OptValidator
 import datetime
 import Utils
+from memory_profiler import profile
+import gc
 
 OptValidator.opt_validate()
+gc.enable()
 
 stats = importr('stats')
 
@@ -45,6 +48,7 @@ def BH(pvalue,pRank,N):
 	qva = max(pvalue, q)
 	return qva
 
+#@profile
 def KMvalue(posmapfile,negmapfile,mufile):
 		'''
 		Calculate K(coverage) value for each mutation location
@@ -90,7 +94,65 @@ def KMvalue(posmapfile,negmapfile,mufile):
 				else:
 					km_pair[pair_name] = 1
 				#km.append(item)
+		gc.collect()
 		return km_pair
+
+@profile
+def KMvalue_test(posmapfile,negmapfile,mufile):
+		'''
+		Calculate K(coverage) value for each mutation location
+		Mutations are already unique.
+		'''
+		km = []#store mutations with updated k value
+		km_pair = {}#Dic of count tuples of (k,m),key:"K_M"
+		count = 0
+		currentChr = ""
+		#logging.debug("make wig %s" % str(datetime.datetime.now()))
+		start_time = datetime.datetime.now()
+		posBAM = pysam.Samfile(posmapfile,"rb")
+		negBAM = pysam.Samfile(negmapfile,"rb")
+		for item in mufile:
+			count += 1
+			if count % 5000 == 0:
+				stop_time = datetime.datetime.now()
+				#logging.debug("Counting K-M for %d mutation sites, using %s" % (count,str(stop_time-start_time)))
+				start_time = stop_time
+			st = []
+			strand = item.strand 
+			M = item.score
+			K = 0
+			if item.chr != currentChr:
+				poswig = Utils.makeWigListByChr(posBAM,item.chr)
+				negwig = Utils.makeWigListByChr(negBAM,item.chr)
+				currentChr = item.chr
+			#logging.debug("Time begin to pileup is %s" % (str(datetime.datetime.now())))
+			if strand == "+":
+				try:
+					K = poswig.valueByPos(item.start)
+				except:
+					continue
+			elif strand == "-":
+				try:
+					K = negwig.valueByPos(item.start)
+				except:
+					contiune
+
+			if K>=M:
+				item.updateK(K)
+
+				pair_name = str(K)+"_"+str(M)
+				if km_pair.has_key(pair_name):
+					km_pair[pair_name] += 1
+				else:
+					km_pair[pair_name] = 1
+				#km.append(item)
+		posBAM.close()
+		negBAM.close()
+		del posBAM
+		del negBAM
+		gc.collect()
+		return km_pair
+
 
 def KMvalue_ignore(posmapfile,negmapfile,mufile):
 		'''
@@ -100,7 +162,6 @@ def KMvalue_ignore(posmapfile,negmapfile,mufile):
 		km = []#store mutations with updated k value
 		km_pair = {}#Dic of count tuples of (k,m),key:"K_M"
 		count = 0
-
 		start_time = datetime.datetime.now()
 		for item in mufile:
 			count += 1
@@ -143,12 +204,12 @@ def uniq(b): #b is a list
 	uniqElements.sort()
 	return uniqElements
 
-
+#@profile
 def mutationEnrich(clip,threshold=0.01):
 	coverage = clip.coverage *1.0
 	totalMuCount = clip.mutationCount
 	#(original_KM,KM_test) = KMvalue(clip.originalBAM, clip.mutations)
-	KM_test = KMvalue(clip.posfilteredBAM,clip.negfilteredBAM, clip.mutations.values())#check after doing KM, if clip.mutations changed
+	KM_test = KMvalue_test(clip.posfilteredBAM,clip.negfilteredBAM, clip.mutations)#check after doing KM, if clip.mutations changed
 	clip.posfilteredBAM = None
 	clip.negfilteredBAM = None
 	#logging.info("Finished K-M counting, starting fitting.")
@@ -164,7 +225,7 @@ def mutationEnrich(clip,threshold=0.01):
 		km_p[k]=p
 	pCount = dict(Counter(pvalues))
 	pRank = freqRank(pCount,True)
-	total_test = len(clip.mutations.keys())
+	total_test = len(clip.mutations)
 	pqDic={}
 	for i in pRank.keys():
 		try:
@@ -175,7 +236,7 @@ def mutationEnrich(clip,threshold=0.01):
 			print >> sys.stderr,"Cannot find p value in dictionary"
 			continue
 	count = 0
-	for mu in clip.mutations.values():
+	for mu in clip.mutations:#.values():
 		name = str(mu.kvalue)+"_"+str(mu.score)
 		try:
 			mu.pvalue = km_p[name]
@@ -190,6 +251,7 @@ def mutationEnrich(clip,threshold=0.01):
 			mu.sig = True
 			clip.sigMutationCount += 1
 			clip.addSigToDic(clip.sigMutations,mu)
+	clip.mutations = None
 	#logging.info("There are %d reliable mutations" % clip.sigMutationCount)
 
 
@@ -255,6 +317,7 @@ def clusterEnrich(clip,threshold=0.01):
 				clip.clusters[i].sig = True
 				clip.sigClusterCount += 1
 			#clip.addSigToDic(clip.sigClusters,clip.clusters[i])
+		nbDic = None
 		if clip.sigClusterCount == 0:
 			return False
 		else:
@@ -273,42 +336,5 @@ def fisherTest(clusterp,mutationp):
 		fp = R.pchisq(xsq,**{'df':4,'lower.tail':False,'log.p':True})[0]
 		fps = math.exp(fp)
 	return fps
-
-
-def mutationEnrich_ignore(clip):
-		coverage = clip.coverage
-		if self.isPar: #input is a par,no need to split the file
-			filename = self.outputRoot+".bed"
-			outputfile = open(filename,"wa")
-			print >> outputfile,"#chr\tstart\tend\tname\tp\tstrand\ttype\tk\tm"
-			for reliable_mu in self.muEvaluate(self.bamFile,self.mutationFile,coverage,self.fdr):
-				print >>outputfile,'\t'.join(reliable_mu)
-		else: #splitfile to insertion, deletion, substitution
-			insertion = []
-			deletion = []
-			substitution = []
-			for item in self.mutationFile:
-				if item[-1].count("Deletion")>0:
-					deletion.append(item)
-				elif item[-1].count("Insertion")>0:
-					insertion.append(item)
-				else:
-					substitution.append(item)
-			del_name = self.outputRoot+"_deletion.bed"
-			ins_name = self.outputRoot+"_insertion.bed"
-			sub_name = self.outputRoot+"_substitution.bed"
-
-			outfile_del = open(del_name,"wa")
-			outfile_ins = open(ins_name,"wa")
-			outfile_sub = open(sub_name,"wa")
-			print >> outfile_ins,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
-			print >> outfile_del,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
-			print >> outfile_sub,"#chr\tstart\tend\tname\t-log(q)\tstrand\ttype\tk\tm"
-			for reliable_mu in self.muEvaluate(self.bamFile,insertion,coverage,self.fdr):
-				print >> outfile_ins,'\t'.join(reliable_mu)
-			for reliable_mu in self.muEvaluate(self.bamFile,deletion,coverage,self.fdr):
-				print >> outfile_del,'\t'.join(reliable_mu)
-			for reliable_mu in self.muEvaluate(self.bamFile,substitution,coverage,self.fdr):
-				print >> outfile_sub,'\t'.join(reliable_mu)
 
 

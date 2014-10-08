@@ -79,15 +79,18 @@ class CrosslinkingBed(BED):
 		self.fisherP = fp
 
 
+class wiglist:
+	def __init__(self):
+		self.pos = []
+		self.value = []
 
-class BAM:
-	def __init__(self,filepath):
-		self.filePath = filePath
-		self.header = None
-		self.sorted = None
+	def valueByPos(self,p):
+		try:
+			return self.value[self.pos.index(p)]
+		except:
+			return False
 
-	def checkHeader(self):
-		'''Use gzip package to check if this is a bam or sam'''
-		pass
-
+	def update(self,p,v):
+		self.pos.append(p)
+		self.value.append(v)
 
