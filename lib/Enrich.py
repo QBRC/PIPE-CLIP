@@ -26,7 +26,7 @@ import OptValidator
 import datetime
 import time
 import Utils
-from os
+import os
 import gc
 import Alignment
 import os
@@ -150,49 +150,6 @@ def KMvalue_test(clip,mutations,chr,chrlen):
 		del negBAM
 		gc.collect()
 
-
-def KMvalue_ignore(posmapfile,negmapfile,mufile):
-		'''
-		Calculate K(coverage) value for each mutation location
-		Mutations are already unique.
-		'''
-		km = []#store mutations with updated k value
-		km_pair = {}#Dic of count tuples of (k,m),key:"K_M"
-		count = 0
-		start_time = datetime.datetime.now()
-		for item in mufile:
-			count += 1
-			if count % 5000 == 0:
-				stop_time = datetime.datetime.now()
-				logging.info("Counting K-M for %d mutation sites, using %s" % (count,str(stop_time-start_time)))
-				start_time = stop_time
-			st = []
-			strand = item.strand 
-			M = item.score
-			K = 0
-			logging.debug("Time begin to pileup is %s, mutation %d" % (str(datetime.datetime.now()),count))
-			if strand == "+":
-				for pileupColumn in posmapfile.pileup(item.chr,int(item.start),int(item.stop)):
-					if pileupColumn == int(item.start):
-						K = pileupColumn.n
-						break
-			elif strand == "-":
-				for pileupColumn in negmapfile.pileup(item.chr,int(item.start),int(item.stop)):
-					if pileupColumn == int(item.start):
-						K = pileupColumn.n
-						break
-			if K>=M:
-				item.updateK(K)
-				#logging.debug("K value for item %s is %d" % (item, K))
-				pair_name = str(K)+"_"+str(M)
-				if km_pair.has_key(pair_name):
-					km_pair[pair_name] += 1
-				else:
-					km_pair[pair_name] = 1
-				#km.append(item)
-		return km_pair
-
-
 def uniq(b): #b is a list
 	uniqElements = []
 	for i in b:
@@ -217,8 +174,18 @@ def mutationEnrich(clip,threshold=0.01):
 			info = record.rstrip().split("\t")
 			new_mu = Alignment.MutationBed(info[0],int(info[1]),int(info[2]),info[3],int(info[4]),info[5],info[6])
 			mutations.append(new_mu)
-			os.remove(clip.outprefix+"."+chr+".mutations.bed")
+			try:
+				os.remove(clip.outprefix+"."+chr+".mutations.bed")
+			except:
+				pass
 		KM_test = KMvalue_test(clip,mutations,chr,chrlen)#check after doing KM, if clip.mutations changed
+	try:
+		os.remove(clip.posfilteredBAM)
+		os.remove(clip.negfilteredBAM)
+		os.remove(clip.posfilteredBAM+".bai")
+		os.remove(clip.negfilteredBAM+".bai")
+	except:
+		pass
 	del clip.posfilteredBAM 
 	del clip.negfilteredBAM 
 	gc.collect()#logging.info("Finished K-M counting, starting fitting.")
@@ -317,6 +284,10 @@ def clusterEnrich(clip,threshold=0.01):
 				clip.clusters[i].sig = True
 				clip.sigClusterCount += 1
 		nbDic = None
+		try:
+			os.remove(cluster_filename)
+		except:
+			pass
 		if clip.sigClusterCount == 0:
 			return False
 		else:
