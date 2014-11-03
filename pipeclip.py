@@ -34,10 +34,10 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 		logging.info("Input file OK,start to run PIPE-CLIP")
 		logging.info("Species info %s" % species)
 		if myClip.readfile():
-			myClip.filter(matchLength,mismatch,clipType,rmdup)
+			myClip.filter2(matchLength,mismatch,clipType,rmdup)
 			#myClip.printClusters()
-		#	myClip.printMutations()
-#BC#			if len(myClip.clusters)>0:
+			#myClip.printMutations()
+#BC#			if myClip.clusterCount>0:
 #BC#				logging.info("Get enriched clusters")
 #BC#				status = Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
 #BC#				if status:
@@ -50,7 +50,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 #BC#				logging.error("There is no clusters found. Please check input.Exit program.")
 #BC#				sys.exit(1)
 			
-			if len(myClip.mutations)>0:
+			if myClip.mutationCount>0:
 				logging.info("Get reliable mutations")
 				Enrich.mutationEnrich(myClip,fdrReliableMutation)
 				logging.info("There are %d reliable mutations" % myClip.sigMutationCount)
