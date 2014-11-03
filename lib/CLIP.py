@@ -12,7 +12,11 @@ import Mutation2
 import OptValidator
 import subprocess
 import datetime
+import time
+import gc
+import os
 
+gc.enable()
 OptValidator.opt_validate()
 
 
@@ -21,6 +25,7 @@ class CLIP:
 		self.filepath = fileaddr
 		self.originalBAM = None
 		self.originalMapped = 0
+		self.refInfo = []
 		self.posfilteredBAM = None
 		self.negfilteredBAM = None
 		self.filteredAlignment = 0
@@ -29,15 +34,20 @@ class CLIP:
 		self.currentGroupKey = "None"
 		self.currentGroup = [] #Used in rmdup
 		self.previousQul = [0,0,0]#for rmdup,[matchlen,mapq,mismatch]
-		self.clusters = [] 
-		self.currentCluster = Alignment.BED("",0,0,"",0,".")
+		self.clusters = []
+		self.clusters_plus = []
+		self.clusters_minus = []
+		self.clusterCount = 0
+		self.currentCluster_plus = Alignment.BED("",0,0,"",0,"+")
+		self.currentCluster_minus = Alignment.BED("",0,0,"",0,"-")
 		#self.sigClusters = {}
 		self.mutations = {} #Dictionary of bed instance
 		self.mutationCount = 0
+		self.mutationList = []
 		self.sigMutations = {}#same as sigClusters
+		self.kmpair = {}
 		self.sigMutationCount = 0
 		self.sigClusterCount = 0
-		self.wig = None
 		self.coverage = 0 #"reads coverage of this sample"
 		self.bamheader = None
 		self.crosslinking = {}
@@ -91,6 +101,7 @@ class CLIP:
 	def readfile(self):
 		try:
 			self.originalBAM = pysam.Samfile(self.filepath,"rb")
+			self.refInfo = zip(self.originalBAM.references,self.originalBAM.lengths)
 			return True
 		except IOError,message:
 			logging.error("Cannot open input file"+message)
@@ -100,14 +111,40 @@ class CLIP:
 #		for i in self.filteredAlignment:
 #			print i
 	
-#	def printClusters(self):
-#		for i in self.clusters:
-#			print i
+	def printClusters(self):
+		outfile = open(self.outprefix+".clusters.bed","w")
+		for i in [self.clusters_plus,self.clusters_minus]:
+			for j in i:
+				print >>outfile,j
+		outfile.close()
 
 	def printMutations(self):
+		outfile = open(self.outprefix+".mutations.bed","w")
 		for i in self.mutations.values():
-			print i
+			print >>outfile,i
+		outfile.close()
 
+
+	def printMutations_chr(self):
+		fhs = {}#file handle dic, key is chr, value is file handle
+		for chr,chrlen in self.refInfo:
+			outfile = open(self.outprefix+"."+chr+".mutations.bed","w")
+			fhs[chr] = outfile
+		for i in self.mutations.itervalues():
+			print >>fhs[i.chr],i
+		#clean up
+		for fh in fhs.itervalues():
+			fh.close()
+		del fhs
+
+
+	def printMutationSingleChr(self,chr):
+		outfile = open(self.outprefix+"."+chr+".mutations.bed","w")
+		for i in self.mutations.itervalues():
+			print >>outfile,i
+		#clean up
+		outfile.close()
+	
 	def printReliableMutations(self):
 		outfile = open(self.outprefix+".reliableMutations.pipeclip.bed","w")
 		header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
@@ -221,19 +258,37 @@ class CLIP:
 	def updateCluster(self,read):
 		'''Cluster new read to known clusters and update cluster reads count'''
 		strandDic = {"True":"-","False":"+"}
-		clusterName = "cluster"+"_"+str(len(self.clusters)+1)
+		clusterName = "cluster"+"_"+str(len(self.clusters_plus)+len(self.clusters_minus)+1)
 		newRead = Alignment.ClusterBed(self.originalBAM.getrname(read.tid),read.pos,read.pos+len(read.seq),clusterName,1,strandDic[str(read.is_reverse)])
-		if self.currentCluster.chr == "": #Initiate cluster
-			self.currentCluster = newRead
-			self.clusters.append(self.currentCluster)
+		if read.is_reverse:
+			if self.currentCluster_minus.chr == "": #Initiate cluster
+				self.currentCluster_minus = newRead
+				self.clusters_minus.append(self.currentCluster_minus)
+				self.clusterCount += 1
+			else:
+				if self.currentCluster_minus.overlap(newRead):
+					self.currentCluster_minus.merge(newRead)
+					self.clusters_minus[-1]=self.currentCluster_minus
+				else:#New read is a new cluster
+					#self.clusters.append(self.currentCluster)
+					self.currentCluster_minus = newRead
+					self.clusters_minus.append(self.currentCluster_minus)
+					self.clusterCount+=1
 		else:
-			if self.currentCluster.overlap(newRead):
-				self.currentCluster.merge(newRead)
-				self.clusters[-1]=self.currentCluster
-			else:#New read is a new cluster
-				#self.clusters.append(self.currentCluster)
-				self.currentCluster = newRead
-				self.clusters.append(self.currentCluster)
+			if self.currentCluster_plus.chr == "": #Initiate cluster
+				self.currentCluster_plus = newRead
+				self.clusters_plus.append(self.currentCluster_plus)
+				self.clusterCount+=1
+			else:
+				if self.currentCluster_plus.overlap(newRead):
+					self.currentCluster_plus.merge(newRead)
+					self.clusters_plus[-1]=self.currentCluster_plus
+				else:#New read is a new cluster
+					#self.clusters.append(self.currentCluster)
+					self.currentCluster_plus = newRead
+					self.clusters_plus.append(self.currentCluster_plus)
+					self.clusterCount += 1
+
 	
 	def updateMutation(self,read,mis):
 		mutations = []
@@ -247,6 +302,7 @@ class CLIP:
 			elif self.type ==2:
 				mutation_filter = Utils.filterMutations(mutations,"G->A",True)
 				mutations = mutation_filter
+		#logging.debug("read %s " % read)
 		if len(mutations)>0:
 			for m in mutations:
 				#print m
@@ -301,7 +357,7 @@ class CLIP:
 							self.crosslinking[cross_key] = Alignment.CrosslinkingBed(cluster.chr,cluster.start,cluster.stop,cluster.name,cluster.score,cluster.strand,cluster.pvalue,cluster.qvalue,mutation.start,mutation.name,mutation.pvalue)
 							self.crosslinkingMutations.append(mutation)
 		#start to calculate fisher test p value
-		for k in self.crosslinking.keys():
+		for k in self.crosslinking.iterkeys():
 			self.crosslinking[k].fishertest()
 
 
@@ -313,6 +369,9 @@ class CLIP:
 		logging.info("CLIP type:%s" % (str(cliptype)))
 		logging.info("Rmdup code:%s" % (str(duprm)))
 		logging.info("There are %d reads in origianl input file" % (self.originalBAM.mapped))
+		#print >> sys.stderr,zip(self.originalBAM.references,self.originalBAM.lengths)
+		#sys_info = os.system("free -m")
+		#logging.debug(sys_info)
 		#outBAM = pysam.Samfile(outprefix+".filtered.bam","wb",template=self.originalBAM)
 		self.originalMapped = self.originalBAM.mapped
 		outBAM_pos = pysam.Samfile(self.outprefix+".pos.filtered.bam","wb",template=self.originalBAM)
@@ -387,12 +446,123 @@ class CLIP:
 		#pysam.index(outprefix+".filtered.bam")
 		pysam.index(self.outprefix+".pos.filtered.bam")
 		pysam.index(self.outprefix+".neg.filtered.bam")
-		#self.filteredBAM = pysam.Samfile(outprefix+".filtered.bam","rb")# move file pointer to the file head
-		
-		self.posfilteredBAM = pysam.Samfile(self.outprefix+".pos.filtered.bam","rb")# move file pointer to the file head
-		self.negfilteredBAM = pysam.Samfile(self.outprefix+".neg.filtered.bam","rb")# move file pointer to the file head
-		self.originalBAM = None 
+		self.posfilteredBAM = self.outprefix+".pos.filtered.bam"
+		self.negfilteredBAM = self.outprefix+".neg.filtered.bam"
+		self.clusters = self.clusters_plus + self.clusters_minus
+		self.printClusters()
+		self.printMutations_chr()
+		#Clean up variables
+		self.originalBAM = None
+		self.clusters_plus = None
+		self.clusters_minus = None
+		self.mutations = None
+		gc.collect()
 		logging.debug("After filtering, %d reads left" % (self.filteredAlignment))
-		logging.debug("There are %d clusters in total" % (len(self.clusters)))
-		logging.debug("There are %d mutations in total" % (len(self.mutations)))
+		logging.debug("There are %d clusters in total" % (self.clusterCount))
+		logging.debug("There are %d mutations in total" % (self.mutationCount))
 
+
+	def filter2(self,matchLen,mismatch,cliptype,duprm):
+		'''Filter the input BAM file according to parameters. Make clusters and mutations at the same time'''
+		logging.info("Start to filter alignment using parameters:")
+		logging.info("match length:%d" % (matchLen))
+		logging.info("mismatch count: %d" % (mismatch))
+		logging.info("CLIP type:%s" % (str(cliptype)))
+		logging.info("Rmdup code:%s" % (str(duprm)))
+		logging.info("There are %d reads in origianl input file" % (self.originalBAM.mapped))
+		
+		self.originalMapped = self.originalBAM.mapped
+		outBAM_pos = pysam.Samfile(self.outprefix+".pos.filtered.bam","wb",template=self.originalBAM)
+		outBAM_neg = pysam.Samfile(self.outprefix+".neg.filtered.bam","wb",template=self.originalBAM)
+		self.type = cliptype
+		if cliptype == 3:#make sure there is no rmdup for iCLIP data
+			duprm = 0
+		count = 0
+		start_time = datetime.datetime.now()
+		currentChr = ""
+		for alignment in self.originalBAM:
+			if not alignment.cigar : #reads is unmapped
+				continue
+			c_chr = self.originalBAM.getrname(alignment.tid)
+			if currentChr == "":
+				currentChr = c_chr
+			elif c_chr!=currentChr:
+				#logging.debug("Mutation sites for Current ref %s is %d" % (currentChr,len(self.mutations.keys())))
+				self.printMutationSingleChr(currentChr)
+				self.mutations = None
+				gc.collect()
+				self.mutations = {}
+				currentChr = c_chr
+			count += 1
+			if count % 5000000 ==0:
+				stop_time = datetime.datetime.now()
+				logging.debug("Processed %d reads in %s" % (count,str(stop_time-start_time)))
+				start_time = stop_time
+			flag,mlen,mis = Utils.readQuaFilter(alignment,matchLen,mismatch)
+			if flag:
+				if duprm > 0:
+					#get group key
+					if duprm == 1:
+						groupkey = Utils.rmdupKey_Start(alignment)
+					elif duprm == 2:
+						groupkey = Utils.rmdupKey_Seq(alignment)
+					#check current group
+					if groupkey == self.currentGroupKey:#overlap with current group, update group
+						self.updateCurrentGroup(alignment,mlen,mis)
+					else:#get read from current group and discard it, use current read to start a new current group
+						if self.currentGroupKey!="None":#current group exists
+							keep = self.rmdup()
+							#logging.debug("Pop out read to keep %s" % keep)
+							self.currentGroup = []
+							self.filteredAlignment += 1
+							flag,mlen,mis = Utils.readQuaFilter(keep,matchLen,mismatch)
+							self.updateCLIPinfo(keep,mlen,mis)
+							#outBAM.write(keep)
+							if keep.is_reverse:
+								outBAM_neg.write(keep)
+							else:
+								outBAM_pos.write(keep)
+						self.iniDupGroupInfo(alignment,groupkey,mlen,mis)#make new group using current alignment
+				else:#there is no rmdup
+					#logging.debug("Good read, update clip info %s" % read.qname)
+					self.filteredAlignment+=1
+					self.updateCLIPinfo(alignment,mlen,mis)
+					#outBAM.write(alignment)
+					if alignment.is_reverse:
+						outBAM_neg.write(alignment)
+					else:
+						outBAM_pos.write(alignment)
+		#clean up the final dupGroup, if rmdup==0, there is no final dupGroup
+		if len(self.currentGroup)>0:
+			keep = self.rmdup()
+			self.currentGroup = []
+			self.filteredAlignment+=1
+			flag,mlen,mis = Utils.readQuaFilter(keep,matchLen,mismatch)
+			self.updateCLIPinfo(keep,mlen,mis)
+			#outBAM.write(alignment)
+			if keep.is_reverse:
+				outBAM_neg.write(keep)
+			else:
+				outBAM_pos.write(keep)
+		#clean up current mutation hash
+		self.printMutationSingleChr(currentChr)
+		self.mutations = None
+		#Logging CLIP sample information
+		#outBAM.close()
+		outBAM_pos.close()
+		outBAM_neg.close()
+		pysam.index(self.outprefix+".pos.filtered.bam")
+		pysam.index(self.outprefix+".neg.filtered.bam")
+		self.posfilteredBAM = self.outprefix+".pos.filtered.bam"
+		self.negfilteredBAM = self.outprefix+".neg.filtered.bam"
+		self.clusters = self.clusters_plus + self.clusters_minus
+		self.printClusters()
+		#Clean up variables
+		self.originalBAM = None
+		self.clusters_plus = None
+		self.clusters_minus = None
+		self.mutations = None
+		gc.collect()
+		logging.debug("After filtering, %d reads left" % (self.filteredAlignment))
+		logging.debug("There are %d clusters in total" % (self.clusterCount))
+		logging.debug("There are %d mutations in total" % (self.mutationCount))

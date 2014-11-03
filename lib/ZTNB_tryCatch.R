@@ -116,11 +116,7 @@ for (i in intercept1)
 {
   for (j in intercept2)
   {
-    #print(paste("Coef start",i,j));
-    #print(paste("Recent likelihood",biggest_likelihood))
-    #print(paste("NB parameters",khat,muhat))
     nb<-tryCatch({vglm(tread_fit ~ 1, posnegbinomial(), weight = twts_fit, maxit = 200, trace = FALSE, step = vglm_step,offset = logmu,epsilon=vglm_epsilon,silent=FALSE,coefstart=c(i,j))},warning = function(w){
-    #print(paste("typeof warning",typeof(w["message"])))
     warnmsg = strsplit(toString(w["message"])," iteration")[[1]][1];
     if(grepl("convergence not obtained",warnmsg))
     {
