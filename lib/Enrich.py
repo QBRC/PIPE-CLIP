@@ -231,6 +231,79 @@ def mutationEnrich(clip,threshold=0.01):
 	mutations = None
 	gc.collect()
 
+def mutationEnrichWCtrl(clip,ctrlclip,threshold=0.01):
+	coverage = ctrlclip.coverage *1.0
+	totalMuCount = ctrlclip.mutationCount
+	mutations = []
+	total_test = 0
+	for chr,chrlen in clip.refInfo:
+		try:
+			mufile = open(clip.outprefix+"."+chr+".mutations.bed")
+		except:
+			logging.info("Cannot open mutation file %s , move on." % (clip.outprefix+"."+chr+".mutations.bed"))
+			continue
+		for record in mufile:
+			total_test += 1
+			info = record.rstrip().split("\t")
+			new_mu = Alignment.MutationBed(info[0],int(info[1]),int(info[2]),info[3],int(info[4]),info[5],info[6])
+			mutations.append(new_mu)
+			try:
+				os.remove(clip.outprefix+"."+chr+".mutations.bed")
+				os.remove(controlclip.outprefix+"."+chr+".mutations.bed")
+			except:
+				pass
+		KM_test = KMvalue_test(clip,mutations,chr,chrlen)#check after doing KM, if clip.mutations changed
+	try:
+		os.remove(clip.posfilteredBAM)
+		os.remove(clip.negfilteredBAM)
+		os.remove(clip.posfilteredBAM+".bai")
+		os.remove(clip.negfilteredBAM+".bai")
+	except:
+		pass
+	del clip.posfilteredBAM 
+	del clip.negfilteredBAM 
+	gc.collect()#logging.info("Finished K-M counting, starting fitting.")
+	
+	R = robject.r
+	reliableList = []
+	P = totalMuCount/coverage
+	km_p = {}#store km and corresponding p value
+	pvalues = []
+	for k in clip.kmpair:#KM_test:
+		parameters = k.split("_")
+		p = R.pbinom(int(parameters[1])-1,int(parameters[0]),P,False)[0]	
+		pvalues.append(p)
+		km_p[k]=p
+	pCount = dict(Counter(pvalues))
+	pRank = freqRank(pCount,True)
+	pqDic={}
+	for i in pRank.keys():
+		try:
+			p_rank = pRank[i]
+			q_value = BH(i,p_rank,total_test)
+			pqDic[i]=q_value
+		except:
+			print >> sys.stderr,"Cannot find p value in dictionary"
+			continue
+	count = 0
+	for mu in mutations:
+		name = str(mu.kvalue)+"_"+str(mu.score)
+		try:
+			mu.pvalue = km_p[name]
+		except:
+			#logging.debug("Problem with %s" % mu)
+			continue
+		mu.qvalue = pqDic[mu.pvalue]
+		if mu.qvalue <= threshold:
+			count += 1
+			new_mutationName = "Mutation_"+str(count)
+			mu.name = new_mutationName
+			mu.sig = True
+			clip.sigMutationCount+=1
+			clip.addSigToDic(clip.sigMutations,mu)
+			
+	mutations = None
+	gc.collect()
 
 def clusterEnrich(clip,threshold=0.01):
 	cluster_filename = clip.outprefix+".clusters.bed"#clip.filepath.split("/")[-1].split(".")[0]
