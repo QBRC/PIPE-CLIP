@@ -146,9 +146,6 @@ def KMvalue_test(clip,mutations,chr,chrlen):
 						clip.kmpair[pair_name] = 1
 		posBAM.close()
 		negBAM.close()
-		del posBAM
-		del negBAM
-		gc.collect()
 
 def uniq(b): #b is a list
 	uniqElements = []
@@ -178,7 +175,7 @@ def mutationEnrich(clip,threshold=0.01):
 				os.remove(clip.outprefix+"."+chr+".mutations.bed")
 			except:
 				pass
-		KM_test = KMvalue_test(clip,mutations,chr,chrlen)#check after doing KM, if clip.mutations changed
+		KMvalue_test(clip,mutations,chr,chrlen)#check after doing KM, if clip.mutations changed
 	try:
 		os.remove(clip.posfilteredBAM)
 		os.remove(clip.negfilteredBAM)
@@ -365,6 +362,53 @@ def clusterEnrich(clip,threshold=0.01):
 			return False
 		else:
 			return True
+
+def clusterEnrich_outsource(clip, threshold=0.01):
+	cluster_filename = clip.outprefix+".clusters.bed"#clip.filepath.split("/")[-1].split(".")[0]
+	#Call R code and get result
+	#epsilon = [0.01,0.15,0.1]
+	#step = [0.1,0.08,0.05]
+	sh_args = ['sh','runR1.sh',cluster_filename,str(threshold)]
+	p = subprocess.Popen(sh_args)
+	stdout_value = p.communicate()[0]
+	
+	#check ztnb file
+	try:
+		enrich_parameter = open(cluster_filename+".pipeclip.ztnb","r")
+	except IOError,message:
+		logging.error("Cannot open ztnb result file")
+		return False
+	nbDic = {}
+	for item in enrich_parameter:
+		buf = item.rstrip().split("\t")
+		if buf[0]!="#":
+			nb_key = "_".join(buf[0:2]) #reads_length as key
+			#logging.debug("NB_key %s" % nb_key)
+			if not nbDic.has_key(nb_key):
+				nbDic[nb_key]=(buf[2],buf[3])#pvalue and qvalue
+	#logging.info("There are %d read-length pairs" % (len(nbDic.keys())))
+	if len(nbDic.keys())==0:
+		logging.error("There are no read-length pairs found by ZTNB. Exit.")
+		return False
+	else:
+		for i in range(len(clip.clusters)):
+			r_key = str(clip.clusters[i].score)+"_"+str(clip.clusters[i].stop-clip.clusters[i].start)
+			#logging.debug("Keys from clip.clusters,%s" % r_key)
+			if nbDic.has_key(r_key):
+				clip.clusters[i].pvalue = nbDic[r_key][0]
+				clip.clusters[i].qvalue = nbDic[r_key][1]
+				clip.clusters[i].sig = True
+				clip.sigClusterCount += 1
+		nbDic = None
+		try:
+			os.remove(cluster_filename)
+		except:
+			pass
+		if clip.sigClusterCount == 0:
+			return False
+		else:
+			return True
+
 
 def fisherTest(clusterp,mutationp):
 	R = robject.r

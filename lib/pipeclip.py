@@ -12,11 +12,14 @@ import argparse
 import logging
 from subprocess import call
 import os
+import gc
 import CLIP
 import Alignment
 import Utils
 import Enrich
 import OptValidator
+
+gc.enable()
 
 def prepare_argparser():
 	description = "Find mutations"
@@ -44,6 +47,7 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			myClip.printMutations()
 			if len(myClip.clusters)>0:
 				logging.info("Get enriched clusters")
+				gc.collect()
 				status = Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
 				if status:
 					logging.info("Found %d enriched clusters" % myClip.sigClusterCount)

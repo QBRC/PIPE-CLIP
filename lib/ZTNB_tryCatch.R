@@ -156,6 +156,7 @@ if((biggest_likelihood==-99999999) && (khat==0) && (muhat ==0))
 } else {
   # model parameters
 	errmsg = paste("Y:Coverged for this run.",errmsg,sep="\n");
+	write.table(errmsg,"Converge.txt")
   nbsize = khat * mu;
   nbmu = muhat * mu;
   nb.pvalue[cdx] = pnbinom(tread_fit - 1, size = nbsize, mu = nbmu, lower.tail = FALSE) / (1-dnbinom(0, size = nbsize, mu = nbmu))
