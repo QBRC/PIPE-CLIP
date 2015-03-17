@@ -37,7 +37,7 @@ def prepare_argparser():
 	return(argparser)
 
 def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
-	myClip = CLIP.CLIP(infile)
+	myClip = CLIP.CLIP(infile,outputPrefix)
 	logging.info("Start to run")
 	if myClip.testInput():#check input
 		logging.info("Input file OK,start to run PIPE-CLIP")

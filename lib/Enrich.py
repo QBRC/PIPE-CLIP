@@ -172,7 +172,8 @@ def mutationEnrich(clip,threshold=0.01):
 			new_mu = Alignment.MutationBed(info[0],int(info[1]),int(info[2]),info[3],int(info[4]),info[5],info[6])
 			mutations.append(new_mu)
 			try:
-				os.remove(clip.outprefix+"."+chr+".mutations.bed")
+				pass
+        #os.remove(clip.outprefix+"."+chr+".mutations.bed")
 			except:
 				pass
 		KMvalue_test(clip,mutations,chr,chrlen)#check after doing KM, if clip.mutations changed

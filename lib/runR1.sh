@@ -1,6 +1,6 @@
 #!/bin/sh
-filename="test" 
-#pvalue = $2
+filename="../test/test.merge" 
+pvalue = $2
 #declare -a epsilon
 #declare -a steps
 epsilon=(0.01 0.15 0.1)
@@ -39,12 +39,13 @@ for e in "${epsilon[@]}"
 do
 	for s in "${steps[@]}"
 	do
-		if [ -p "Converge.txt" ]
+		echo "$e,$s"
+    if [ -s "$filename.Converge.txt" ]
 		then
 			echo
 		else
 			#echo "$e,$s"
-			/home/bchen4/Download/R-3.1.1/bin/Rscript ZTNB_tryCatch.R $filename 0.01 $e $s
+			Rscript ZTNB_tryCatch.R $filename $pvalue $e $s
 		fi
 		#echo "$filename.$count"
 		count=$((count+1))
