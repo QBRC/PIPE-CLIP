@@ -75,20 +75,20 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 					logging.warning("There is no reliable mutations found. PIPE-CLIP will provide enriched clusters as crosslinking candidates.")
 					outfilelist = myClip.printEnrichClusters()
 			#annotation if possible
-#		if species in ["mm10","mm9","hg19"]:
-#			logging.info("Started to annotate cross-linking sits using HOMER")
-#			for name in outfilelist:
-#				#logging.debug("Start to do annotation for %s" % name)
-#				Utils.annotation(name,species)
+		if species in ["mm10","mm9","hg19"]:
+			logging.info("Started to annotate cross-linking sits using HOMER")
+			for name in outfilelist:
+				#logging.debug("Start to do annotation for %s" % name)
+				Utils.annotation(name,species)
 		#output a status log file
-#		logfile = open(outputPrefix+".pipeclip.summary.log","w")
-#		print >>logfile,"PIPE-CLIP run finished. Parameters are:"
-#		print >> logfile,"Input BAM: %s \nOutput prefix: %s \nMinimum matched length: %d \nMaximum mismatch count: %d \nPCR duplicate removal code: %d \nFDR for enriched clusters: %f \nFDR for reliable mutations: %f" % (infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,fdrReliableMutation)
-#		print >> logfile, "There are %d mapped reads in input BAM file. After filtering,%d reads left" % (myClip.originalMapped,myClip.filteredAlignment)
-#		print >> logfile, "%d out of %d clusters are enriched." % (myClip.sigClusterCount,len(myClip.clusters))
-#		print >> logfile, "%d out of %d mutations are reliable." % (myClip.sigMutationCount,myClip.mutationCount)
-#		print >> logfile, "%d crosslinking site candidates are found, with %d supporting reliable mutations." % (len(myClip.crosslinking.keys()),len(myClip.crosslinkingMutations))
-#		logfile.close()
+		logfile = open(outputPrefix+".pipeclip.summary.log","w")
+		print >>logfile,"PIPE-CLIP run finished. Parameters are:"
+		print >> logfile,"Input BAM: %s \nOutput prefix: %s \nMinimum matched length: %d \nMaximum mismatch count: %d \nPCR duplicate removal code: %d \nFDR for enriched clusters: %f \nFDR for reliable mutations: %f" % (infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,fdrReliableMutation)
+		print >> logfile, "There are %d mapped reads in input BAM file. After filtering,%d reads left" % (myClip.originalMapped,myClip.filteredAlignment)
+		print >> logfile, "%d out of %d clusters are enriched." % (myClip.sigClusterCount,len(myClip.clusters))
+		print >> logfile, "%d out of %d mutations are reliable." % (myClip.sigMutationCount,myClip.mutationCount)
+		print >> logfile, "%d crosslinking site candidates are found, with %d supporting reliable mutations." % (len(myClip.crosslinking.keys()),len(myClip.crosslinkingMutations))
+		logfile.close()
 		logging.info("PIPE-CLIP finished the job, please check your results. :)")	
 	else:
 		logging.error("File corruputed, program exit.")

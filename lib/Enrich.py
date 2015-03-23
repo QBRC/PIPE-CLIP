@@ -130,20 +130,20 @@ def KMvalue_test(clip,mutations,chr,chrlen):
 				try:
 					K = poswig[item.start]
 				except:
+					log.warning("Did not find mutation in poswig")
 					continue
 			elif strand == "-":
 				try:
 					K = negwig[item.start]
 				except:
 					continue
-				if K>=M:
-					item.updateK(K)
-
-					pair_name = str(K)+"_"+str(M)
-					if clip.kmpair.has_key(pair_name):
-						clip.kmpair[pair_name] += 1
-					else:
-						clip.kmpair[pair_name] = 1
+			if K>=M:
+				item.updateK(K)
+				pair_name = str(K)+"_"+str(M)
+				if clip.kmpair.has_key(pair_name):
+					clip.kmpair[pair_name] += 1
+				else:
+					clip.kmpair[pair_name] = 1
 		posBAM.close()
 		negBAM.close()
 
@@ -161,6 +161,7 @@ def mutationEnrich(clip,threshold=0.01):
 	mutations = []
 	total_test = 0
 	for chr,chrlen in clip.refInfo:
+		logging.debug(chr)
 		try:
 			mufile = open(clip.outprefix+"."+chr+".mutations.bed")
 		except:
@@ -176,6 +177,7 @@ def mutationEnrich(clip,threshold=0.01):
         #os.remove(clip.outprefix+"."+chr+".mutations.bed")
 			except:
 				pass
+		logging.debug(len(mutations))
 		KMvalue_test(clip,mutations,chr,chrlen)#check after doing KM, if clip.mutations changed
 	try:
 		os.remove(clip.posfilteredBAM)
