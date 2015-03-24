@@ -30,7 +30,7 @@ def prepare_argparser():
 
 def runPipeClip(infile,control,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
 	myClip = CLIP.CLIP(infile,outputPrefix)
-	contrlFlag = False
+	controlFlag = False
 	if control != None:
 		controlClip = CLIP.CLIP(control,outputPrefix+"Control")
 	logging.info("Start to run")

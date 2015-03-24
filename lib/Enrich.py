@@ -130,7 +130,7 @@ def KMvalue_test(clip,mutations,chr,chrlen):
 				try:
 					K = poswig[item.start]
 				except:
-					log.warning("Did not find mutation in poswig")
+					#log.warning("Did not find mutation in poswig")
 					continue
 			elif strand == "-":
 				try:
@@ -161,7 +161,7 @@ def mutationEnrich(clip,threshold=0.01):
 	mutations = []
 	total_test = 0
 	for chr,chrlen in clip.refInfo:
-		logging.debug(chr)
+		#logging.debug(chr)
 		try:
 			mufile = open(clip.outprefix+"."+chr+".mutations.bed")
 		except:
@@ -371,7 +371,7 @@ def clusterEnrich_outsource(clip, threshold=0.01):
 	#Call R code and get result
 	#epsilon = [0.01,0.15,0.1]
 	#step = [0.1,0.08,0.05]
-	sh_args = ['sh','runR1.sh',cluster_filename,str(threshold)]
+	sh_args = ['sh','lib/runR1.sh',cluster_filename,str(threshold)]
 	p = subprocess.Popen(sh_args)
 	stdout_value = p.communicate()[0]
 	

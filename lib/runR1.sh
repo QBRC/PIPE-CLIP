@@ -1,6 +1,6 @@
 #!/bin/sh
-filename="../test/test.merge" 
-pvalue = $2
+filename=$1
+pvalue=$2
 #declare -a epsilon
 #declare -a steps
 epsilon=(0.01 0.15 0.1)
@@ -45,7 +45,7 @@ do
 			echo
 		else
 			#echo "$e,$s"
-			Rscript ZTNB_tryCatch.R $filename $pvalue $e $s
+			Rscript lib/ZTNB_tryCatch.R $filename $pvalue $e $s
 		fi
 		#echo "$filename.$count"
 		count=$((count+1))
