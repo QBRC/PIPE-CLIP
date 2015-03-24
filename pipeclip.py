@@ -17,6 +17,7 @@ def prepare_argparser():
 	epilog = "For command line options of each command, type %(prog)s COMMAND -h"
 	argparser = argparse.ArgumentParser(description=description, epilog = epilog)
 	argparser.add_argument("-i","--input",dest = "infile", type = str, required = True, help = "input bam file")
+	argparser.add_argument("-t","--control",dest="ctrlfile",type=str,required=False, help = "control bam file")
 	argparser.add_argument("-o","--output",dest = "outfile", type = str,required = True, help = "output file, default is stdout")
 	argparser.add_argument("-l","--matchLength",dest = "matchLength", type = int ,required = True, help = "shorted matched segment length")
 	argparser.add_argument("-m","--mismatch",dest = "mismatch", type = int,required = True, help = "maximum mismatch number")
@@ -27,14 +28,27 @@ def prepare_argparser():
 	argparser.add_argument("-s","--species",dest = "species", type = str, help = "Species [\"mm10\",\"hg19\"]",choices=["mm10","hg19"])
 	return(argparser)
 
-def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
+def runPipeClip(infile,control,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
 	myClip = CLIP.CLIP(infile,outputPrefix)
+	contrlFlag = False
+	if control != None:
+		controlClip = CLIP.CLIP(control,outputPrefix+"Control")
 	logging.info("Start to run")
 	if myClip.testInput():#check input
 		logging.info("Input file OK,start to run PIPE-CLIP")
 		logging.info("Species info %s" % species)
+		if control != None: #test control file
+			if controlClip.testInput():
+				logging.info("Control file OK. Use control in mutation enrichment.")
+				controlFlag = True
+			else:
+				logging.info("Control file format error. Continue without control.")
 		if myClip.readfile():
 			myClip.filter2(matchLength,mismatch,clipType,rmdup)
+			if controlFlag:
+				logging.info("Read in control file")
+				controlClip.readfile()
+				controlClip.filter2(matchLength,mismatch,clipType,rmdup)
 			#myClip.printClusters()
 			#myClip.printMutations()
 			if myClip.clusterCount>0:
@@ -52,7 +66,10 @@ def runPipeClip(infile,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluste
 			
 			if myClip.mutationCount>0:
 				logging.info("Get reliable mutations")
-				Enrich.mutationEnrich(myClip,fdrReliableMutation)
+				if controlFlag: #use control
+					Enrich.mutationEnrichWCtrl(myClip,controlClip,fdrReliableMutation)
+				else:
+					Enrich.mutationEnrich(myClip,fdrReliableMutation)
 				logging.info("There are %d reliable mutations" % myClip.sigMutationCount)
 				myClip.printReliableMutations()
 			else:
@@ -101,6 +118,7 @@ if __name__=="__main__":
 	args = arg_parser.parse_args()
 	OptValidator.opt_validate()
 	infile = args.infile                  # Input SAM/BAM file
+	control = args.ctrlfile
 	outputPrefix = args.outfile           # Output prefix
 	matchLength = args.matchLength        # Shorted matched segment length
 	mismatch = args.mismatch              # Maximum mismatch number
@@ -109,4 +127,4 @@ if __name__=="__main__":
 	clipType =args.clipType               # CLIP type (0)HITS-CLIP; (1)PAR-4SU; (2)PAR-6SG; (3)iCLIP
 	fdrReliableMutation = args.fdrMutation# FDR for reliable mutations
 	species = args.species                # Species ["mm10","hg19"]
-	runPipeClip(infile,outputPrefix,matchLength,mismatch,rmcode,fdrEnrichedCluster,clipType,fdrReliableMutation,species)
+	runPipeClip(infile,control,outputPrefix,matchLength,mismatch,rmcode,fdrEnrichedCluster,clipType,fdrReliableMutation,species)
