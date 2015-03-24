@@ -30,7 +30,7 @@ def prepare_argparser():
 
 def runPipeClip(infile,control,outputPrefix,matchLength,mismatch,rmdup,fdrEnrichedCluster,clipType,fdrReliableMutation,species):
 	myClip = CLIP.CLIP(infile,outputPrefix)
-	contrlFlag = False
+	controlFlag = False
 	if control != None:
 		controlClip = CLIP.CLIP(control,outputPrefix+"Control")
 	logging.info("Start to run")
@@ -53,7 +53,7 @@ def runPipeClip(infile,control,outputPrefix,matchLength,mismatch,rmdup,fdrEnrich
 			#myClip.printMutations()
 			if myClip.clusterCount>0:
 				logging.info("Get enriched clusters")
-				status = Enrich.clusterEnrich(myClip,fdrEnrichedCluster)
+				status = Enrich.clusterEnrich_outsource(myClip,fdrEnrichedCluster)
 				if status:
 					logging.info("Found %d enriched clusters" % myClip.sigClusterCount)
 					myClip.printEnrichedClusters()

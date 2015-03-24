@@ -104,7 +104,7 @@ class CLIP:
 			self.refInfo = zip(self.originalBAM.references,self.originalBAM.lengths)
 			return True
 		except IOError,message:
-			logging.error("Cannot open input file"+message)
+			logging.error("Cannot open input file")
 			return False
 
 #	def printFilteredReads(self):
