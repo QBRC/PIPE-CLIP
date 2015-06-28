@@ -371,7 +371,7 @@ def clusterEnrich_outsource(clip, threshold=0.01):
 	#Call R code and get result
 	#epsilon = [0.01,0.15,0.1]
 	#step = [0.1,0.08,0.05]
-	sh_args = ['sh','lib/runR1.sh',cluster_filename,str(threshold)]
+	sh_args = ['lib/runR1.sh',cluster_filename,str(threshold)]
 	p = subprocess.Popen(sh_args)
 	stdout_value = p.communicate()[0]
 	

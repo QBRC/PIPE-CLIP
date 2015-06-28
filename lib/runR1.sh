@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 filename=$1
 pvalue=$2
 #declare -a epsilon
