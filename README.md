@@ -21,7 +21,7 @@ Installation tips:
  
 How to use:
 
-- After unzip the package, you cd into the lib folder and run PIPE-CLIP by typing:
+- After unzip the package, you cd into the program folder and run PIPE-CLIP by typing:
 - python pipeclip.py -i input.bam -o output_prefix -c CLIP_type -l minimum_matchlength -m maximum_mismatchcount  -r Remove_PCR_duplicate -M FDR_for_mutations -C FDR_for_clusters -s species
 
 - -i input BAM
