@@ -20,8 +20,9 @@ Installation tips:
 - Make sure HOMER are in your PATH. You can test this by type "annotatePeaks.pl" from anywhere and you should get help information of this command.
  
 How to use:
-After unzip the package, you cd into the lib folder and run PIPE-CLIP by typing:
-python pipeclip.py -i input.bam -o output_prefix -c CLIP_type -l minimum_matchlength -m maximum_mismatchcount  -r Remove_PCR_duplicate -M FDR_for_mutations -C FDR_for_clusters -s species
+
+- After unzip the package, you cd into the lib folder and run PIPE-CLIP by typing:
+- python pipeclip.py -i input.bam -o output_prefix -c CLIP_type -l minimum_matchlength -m maximum_mismatchcount  -r Remove_PCR_duplicate -M FDR_for_mutations -C FDR_for_clusters -s species
 
 - -i input BAM
 - -o output prefix
