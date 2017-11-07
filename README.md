@@ -34,4 +34,4 @@ How to use:
 - -C FDR to get enriched clusters
 - -s species 
 
-Contact: beibei.chen@utsouthwestern.edu
+Contact: mins.kim@utsouthwestern.edu
