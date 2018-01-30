@@ -13,6 +13,8 @@ Requirement:
 -  Perl 5 and above;
 -  Python packages: pysam;
 -  R packages: MASS,VGAM and their dependencies.
+-  pybedtools
+-  rpy2
 -  Other packages: HOMER and annotation files
 
 
@@ -33,5 +35,9 @@ How to use:
 - -M FDR to get significant mutations
 - -C FDR to get enriched clusters
 - -s species 
+
+License
+=======
+PIPE-CLIP can be distributed and modifed under the 3-Clause BSD License. See LICENSE.txt for more information.
 
 Contact: mins.kim@utsouthwestern.edu
