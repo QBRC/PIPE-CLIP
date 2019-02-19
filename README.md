@@ -2,7 +2,7 @@ PIPE-CLIP
 =========
 This is version 1.1.0
 Pipeline for CLIP-seq Analysis.
-- Galaxy site: http://pipeclip.qbrc.org/
+- Galaxy site: http://54.83.194.219:8888 (http://pipeclip.qbrc.org/ does not work now!)
 - Publication: http://genomebiology.com/2014/15/1/R18
 - Google Code site: https://code.google.com/p/pipe-clip/
 
