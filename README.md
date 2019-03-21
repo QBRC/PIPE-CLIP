@@ -2,7 +2,7 @@ PIPE-CLIP
 =========
 This is version 1.1.0
 Pipeline for CLIP-seq Analysis.
-- Galaxy site: the service is not available any longer.
+- Galaxy site: the galaxy service is discontinued in 2019.
 - Publication: http://genomebiology.com/2014/15/1/R18
 - Google Code site: https://code.google.com/p/pipe-clip/
 
