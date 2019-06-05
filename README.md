@@ -11,7 +11,7 @@ Requirement:
 -  Python 2.7; 
 -  R 3.0 and above;
 -  Perl 5 and above;
--  Python packages: pysam;
+-  Python packages: pysam, pybedtools and ghmm;
 -  R packages: MASS,VGAM and their dependencies.
 -  Other packages: HOMER and annotation files
 
@@ -33,5 +33,6 @@ How to use:
 - -M FDR to get significant mutations
 - -C FDR to get enriched clusters
 - -s species 
+Here, species might be hg19.
 
 Contact: Zhiqun.Xie@UTSouthwestern.edu
