@@ -1,4 +1,5 @@
 #!/bin/sh
+
 filename=$1
 pvalue=$2
 #declare -a epsilon
@@ -35,21 +36,21 @@ steps=(0.1 0.08 0.05)
 #Call R function
 r_status="1"
 count=1
-for e in "${epsilon[@]}"
-do
-	for s in "${steps[@]}"
-	do
-		echo "$e,$s"
-    if [ -s "$filename.Converge.txt" ]
-		then
-			echo
-		else
-			#echo "$e,$s"
-			Rscript lib/ZTNB_tryCatch.R $filename $pvalue $e $s
-		fi
-		#echo "$filename.$count"
-		count=$((count+1))
-	done
+SCRIPTPATH="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
+
+for e in "${epsilon[@]}"; do
+  for s in "${steps[@]}"; do
+    echo "$e,$s"
+    if [ -s "$filename.Converge.txt" ]; then
+      echo
+    else
+      #echo "$e,$s"
+      Rscript ${SCRIPTPATH}/ZTNB_tryCatch.R $filename $pvalue $e $s
+    fi
+    #echo "$filename.$count"
+    count=$((count + 1))
+  done
 done
-
-
