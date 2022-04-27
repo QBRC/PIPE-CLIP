@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Define CLIP class."""
 
 import datetime
@@ -85,9 +88,7 @@ class CLIP:
         else:  # sort the BAM
             1 / 0
             LOGGER.info("Input is not sorted, sorting file...")
-            bamsort = (
-                ".".join(self.filepath.split(".")[0:-1]) + "." + "sort.bam"
-            )
+            bamsort = ".".join(self.filepath.split(".")[0:-1]) + "." + "sort.bam"
             pysam.sort("-o", bamsort, self.filepath)
             pysam.index(bamsort)
             self.filepath = bamsort  # change input file path
@@ -152,17 +153,13 @@ class CLIP:
 
     def printEnrichedClusters(self):
         outfile = open(self.outprefix + ".enrichedClusters.pipeclip.bed", "w")
-        header = (
-            "#chr\tstart\tstop\tcluster_name\tread_count\tstrand\tp_value\tfdr"
-        )
+        header = "#chr\tstart\tstop\tcluster_name\tread_count\tstrand\tp_value\tfdr"
         print(header, file=outfile)
         self.printReliableList(self.clusters, outfile)
         return [self.outprefix + ".enrichedClusters.pipeclip.bed"]
 
     def printCrosslinkingMutations(self):
-        outfile = open(
-            self.outprefix + ".crosslinkingMutations.pipeclip.bed", "w"
-        )
+        outfile = open(self.outprefix + ".crosslinkingMutations.pipeclip.bed", "w")
         header = "#chr\tstart\tstop\tmutation_name\tM_value\tstrand\ttype\tK_value\tp_value\tfdr"
         print(header, file=outfile)
         self.printReliableList(self.crosslinkingMutations, outfile)
@@ -189,15 +186,9 @@ class CLIP:
         output = self.outprefix
         header = "#chr\tstart\tstop\tcluster_name\treads_count\tstrand\tcluster_fdr\tcrosslinking_fisherP\tmutation_pos\tmutation_name"
         if self.type == 0:  # HITS-CLIP, three output
-            output_del = open(
-                output + "_deletion_crosslinking.pipeclip.txt", "w"
-            )
-            output_sub = open(
-                output + "_substitution_crosslinking.pipeclip.txt", "w"
-            )
-            output_ins = open(
-                output + "_insertion_crosslinking.pipeclip.txt", "w"
-            )
+            output_del = open(output + "_deletion_crosslinking.pipeclip.txt", "w")
+            output_sub = open(output + "_substitution_crosslinking.pipeclip.txt", "w")
+            output_ins = open(output + "_insertion_crosslinking.pipeclip.txt", "w")
             print(header, file=output_del)
             print(header, file=output_sub)
             print(header, file=output_ins)
@@ -332,14 +323,10 @@ class CLIP:
         else:
             mutations = Mutation2.getMutations(self.originalBAM, read)
             if self.type == 1:
-                mutation_filter = Utils.filterMutations(
-                    mutations, "T->C", True
-                )
+                mutation_filter = Utils.filterMutations(mutations, "T->C", True)
                 mutations = mutation_filter
             elif self.type == 2:
-                mutation_filter = Utils.filterMutations(
-                    mutations, "G->A", True
-                )
+                mutation_filter = Utils.filterMutations(mutations, "G->A", True)
                 mutations = mutation_filter
         # LOGGER.debug("read %s " % read)
         if len(mutations) > 0:
@@ -392,9 +379,7 @@ class CLIP:
                             self.crosslinking[cross_key].addMutation(mutation)
                             self.crosslinkingMutations.append(mutation)
                         else:
-                            self.crosslinking[
-                                cross_key
-                            ] = Alignment.CrosslinkingBed(
+                            self.crosslinking[cross_key] = Alignment.CrosslinkingBed(
                                 cluster.chr,
                                 cluster.start,
                                 cluster.stop,
@@ -423,8 +408,7 @@ class CLIP:
         LOGGER.info("CLIP type:%s" % (str(cliptype)))
         LOGGER.info("Rmdup code:%s" % (str(duprm)))
         LOGGER.info(
-            "There are %d reads in origianl input file"
-            % (self.originalBAM.mapped)
+            "There are %d reads in origianl input file" % (self.originalBAM.mapped)
         )
         # print >> sys.stderr,zip(self.originalBAM.references,self.originalBAM.lengths)
         # sys_info = os.system("free -m")
@@ -454,13 +438,10 @@ class CLIP:
             if count % 500000 == 0:
                 stop_time = datetime.datetime.now()
                 LOGGER.debug(
-                    "Processed %d reads in %s"
-                    % (count, str(stop_time - start_time))
+                    "Processed %d reads in %s" % (count, str(stop_time - start_time))
                 )
                 start_time = stop_time
-            flag, mlen, mis = Utils.readQuaFilter(
-                alignment, matchLen, mismatch
-            )
+            flag, mlen, mis = Utils.readQuaFilter(alignment, matchLen, mismatch)
             if flag:
                 # print "Qualified read"
                 # print	alignment
@@ -477,9 +458,7 @@ class CLIP:
                     ):  # overlap with current group, update group
                         self.updateCurrentGroup(alignment, mlen, mis)
                     else:  # get read from current group and discard it, use current read to start a new current group
-                        if (
-                            self.currentGroupKey != "None"
-                        ):  # current group exists
+                        if self.currentGroupKey != "None":  # current group exists
                             keep = self.rmdup()
                             # LOGGER.debug("Pop out read to keep %s" % keep)
                             self.currentGroup = []
@@ -535,9 +514,7 @@ class CLIP:
         self.clusters_minus = None
         self.mutations = None
         gc.collect()
-        LOGGER.debug(
-            "After filtering, %d reads left" % (self.filteredAlignment)
-        )
+        LOGGER.debug("After filtering, %d reads left" % (self.filteredAlignment))
         LOGGER.debug("There are %d clusters in total" % (self.clusterCount))
         LOGGER.debug("There are %d mutations in total" % (self.mutationCount))
 
@@ -552,8 +529,7 @@ class CLIP:
         LOGGER.info("CLIP type:%s" % (str(cliptype)))
         LOGGER.info("Rmdup code:%s" % (str(duprm)))
         LOGGER.info(
-            "There are %d reads in origianl input file"
-            % (self.originalBAM.mapped)
+            "There are %d reads in origianl input file" % (self.originalBAM.mapped)
         )
 
         self.originalMapped = self.originalBAM.mapped
@@ -590,13 +566,10 @@ class CLIP:
             if count % 5000000 == 0:
                 stop_time = datetime.datetime.now()
                 LOGGER.debug(
-                    "Processed %d reads in %s"
-                    % (count, str(stop_time - start_time))
+                    "Processed %d reads in %s" % (count, str(stop_time - start_time))
                 )
                 start_time = stop_time
-            flag, mlen, mis = Utils.readQuaFilter(
-                alignment, matchLen, mismatch
-            )
+            flag, mlen, mis = Utils.readQuaFilter(alignment, matchLen, mismatch)
             if flag:
                 if duprm > 0:
                     # get group key
@@ -610,9 +583,7 @@ class CLIP:
                     ):  # overlap with current group, update group
                         self.updateCurrentGroup(alignment, mlen, mis)
                     else:  # get read from current group and discard it, use current read to start a new current group
-                        if (
-                            self.currentGroupKey != "None"
-                        ):  # current group exists
+                        if self.currentGroupKey != "None":  # current group exists
                             keep = self.rmdup()
                             # LOGGER.debug("Pop out read to keep %s" % keep)
                             self.currentGroup = []
@@ -669,8 +640,6 @@ class CLIP:
         self.clusters_minus = None
         self.mutations = None
         gc.collect()
-        LOGGER.debug(
-            "After filtering, %d reads left" % (self.filteredAlignment)
-        )
+        LOGGER.debug("After filtering, %d reads left" % (self.filteredAlignment))
         LOGGER.debug("There are %d clusters in total" % (self.clusterCount))
         LOGGER.debug("There are %d mutations in total" % (self.mutationCount))

@@ -16,6 +16,7 @@
 """
 
 
+import pathlib
 import sys
 
 import click
@@ -25,8 +26,7 @@ from .lib import CLIP, Enrich, Utils
 LOGGER = Utils.get_logger(__name__)
 
 
-
-@click.command(help="PIPECLIP v2.0.6", no_args_is_help=True)
+@click.command(help="PIPECLIP v2.0.7", no_args_is_help=True)
 @click.option(
     "--infile", "-i", "infile", help="Input bam file.", required=True
 )
@@ -108,6 +108,9 @@ def runPipeClip(
     fdrReliableMutation,
     species,
 ):
+    # make output directory
+    pathlib.Path(output_prefix).parent.mkdir(parents=True, exist_ok=True)
+    # run clip analysis
     myClip = CLIP.CLIP(infile, output_prefix)
     controlFlag = False
     if control != None:

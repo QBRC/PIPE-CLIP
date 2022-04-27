@@ -9,6 +9,7 @@ from . import Alignment, Utils
 
 LOGGER = Utils.get_logger(__name__)
 
+
 def countMatchNumber(b):
     myList = b
     m = 0
@@ -76,9 +77,7 @@ def parseCIGAR(ci):  # calculate match segment length list
             matchSeg.append(ci[index][1])
             if index > 0:  # M is not the first tag
                 s = 0
-                for i in range(
-                    preIndex - 1, index
-                ):  # check all the tags before M
+                for i in range(preIndex - 1, index):  # check all the tags before M
                     if ci[i][0] == 4:
                         s += ci[i][1]
                 matchSeg[-1] += s
@@ -113,9 +112,7 @@ def parseMD(b):
 
             counter = 1
             afterAlpha = 0
-            for i in j[
-                1
-            ]:  # walk thought MD string to record mutation and deletion
+            for i in j[1]:  # walk thought MD string to record mutation and deletion
                 if i.isalpha() or i == "^":
                     buf.append(i)
                     afterAlpha = 1
@@ -139,9 +136,7 @@ def insertionLocation(entry, num):  # sam entry and insertion total number
             seq_offset[-1] += i[1]
         elif i[0] == 2:  # deletion counts on ref but not on read seq
             ref_offset += i[1]
-        elif (
-            i[0] == 1
-        ):  # record this insertion tag and prepare for the next one
+        elif i[0] == 1:  # record this insertion tag and prepare for the next one
             preInsertion += i[1]
             for ins in range(1, i[1]):
                 newloc = seq_offset[-1] + 1
@@ -173,9 +168,7 @@ def mutationLocation(entry, insertLoc):  # return mutation location in
     mutations = []
     match = entry
     myList = match.tags
-    S_count = SBeforeFirstM(
-        match.cigar
-    )  # hard clip will cut the seq, doesn't count
+    S_count = SBeforeFirstM(match.cigar)  # hard clip will cut the seq, doesn't count
     mis = countMismatch(myList)
     mdlist = parseMD(myList)
     mdtag = "".join(mdlist)
@@ -199,9 +192,7 @@ def mutationLocation(entry, insertLoc):  # return mutation location in
                     origin = ch
                     index = st_seq + S_count + offset
                     insertionBefore = countInsertionBefore(index, insertLoc)
-                    loc = (
-                        st_genome + match.pos + offset
-                    )  # -insertionBefore #0-based
+                    loc = st_genome + match.pos + offset  # -insertionBefore #0-based
                     index += (
                         insertionBefore - set_insertion
                     )  # add on 9 Oct,modify 9,9 2014
