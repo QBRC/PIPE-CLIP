@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipeclip"
-version = "2.0.3"
+version = "2.0.4"
 description = "PIPELINE FOR CLIP SEQ DATA"
 readme = "README.md"
 keywords = ["bioinformatics", "CLIP", "PAR-CLIP", "iCLIP", "RNA-protein interaction"]
