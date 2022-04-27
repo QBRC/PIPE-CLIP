@@ -24,7 +24,7 @@ import click
 from .lib import CLIP, Enrich, Utils
 
 
-@click.command(help="PIPECLIP v2.0.4", no_args_is_help=True)
+@click.command(help="PIPECLIP v2.0.5", no_args_is_help=True)
 @click.option(
     "--infile", "-i", "infile", help="Input bam file.", required=True
 )
@@ -43,6 +43,7 @@ from .lib import CLIP, Enrich, Utils
     "-l",
     "matchLength",
     help="Minimum matched segment length.",
+    type=int,
     required=True,
 )
 @click.option(
@@ -50,6 +51,7 @@ from .lib import CLIP, Enrich, Utils
     "-m",
     "mismatch",
     help="Maximum mismatch number.",
+    type=int,
     required=True,
 )
 @click.option(
