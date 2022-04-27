@@ -1,5 +1,8 @@
 # PIPE-CLIP
 
+[![Pypi Releases](https://img.shields.io/pypi/v/pipeclip.svg)](https://pypi.python.org/pypi/pipeclip)
+[![Downloads](https://pepy.tech/badge/pipeclip)](https://pepy.tech/project/pipeclip)
+
 Pipeline for CLIP-seq Analysis.
 This is a fork version (2.0.x) of [PIPE-CLIP](https://github.com/QBRC/PIPE-CLIP).
 
@@ -41,5 +44,5 @@ pipeclip -i input.bam -o output_prefix -c CLIP_type -l minimum_matchlength -m ma
 ## Footnote
 
 > Cite:
-
-- Chen, B., Yun, J., Kim, M.S. et al. PIPE-CLIP: a comprehensive online tool for CLIP-seq data analysis. Genome Biol 15, R18 (2014). https://doi.org/10.1186/gb-2014-15-1-r18
+>
+> - Chen, B., Yun, J., Kim, M.S. et al. PIPE-CLIP: a comprehensive online tool for CLIP-seq data analysis. Genome Biol 15, R18 (2014). https://doi.org/10.1186/gb-2014-15-1-r18
