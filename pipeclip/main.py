@@ -90,7 +90,7 @@ from .lib import CLIP, Enrich, Utils
     "species",
     help="Species (hg19, mm9, mm10...)",
     type=click.Choice(["mm9", "mm10", "hg19"]),
-    required=True,
+    required=False,
 )
 def runPipeClip(
     infile,
