@@ -24,17 +24,17 @@ import click
 from .lib import CLIP, Enrich, Utils
 
 
-@click.command(help="PIPECLIP v2.0.1", no_args_is_help=True)
+@click.command(help="PIPECLIP v2.0.2", no_args_is_help=True)
 @click.option(
     "--infile", "-i", "infile", help="Input bam file.", required=True
 )
 @click.option(
-    "--control", "-t", "ctrlfile", help="Control bam file.", required=False
+    "--control", "-t", "control", help="Control bam file.", required=False
 )
 @click.option(
     "--output",
     "-o",
-    "outfile",
+    "output_prefix",
     help="Output file, default is stdout.",
     required=True,
 )
@@ -63,7 +63,7 @@ from .lib import CLIP, Enrich, Utils
 @click.option(
     "--rmdup",
     "-r",
-    "dupRemove",
+    "rmdup",
     help="Remove PCR duplicate (0)No removal; (1)Remove by read start; (2)Remove by sequence;",
     type=click.IntRange(0, 2),
     required=True,
@@ -71,7 +71,7 @@ from .lib import CLIP, Enrich, Utils
 @click.option(
     "--fdrMutation",
     "-M",
-    "fdrMutation",
+    "fdrReliableMutation",
     help="FDR for reliable mutations.",
     type=float,
     required=True,
@@ -79,7 +79,7 @@ from .lib import CLIP, Enrich, Utils
 @click.option(
     "--fdrCluster",
     "-C",
-    "fdrCluster",
+    "fdrEnrichedCluster",
     help="FDR for enriched clusters.",
     type=float,
     required=True,
@@ -95,7 +95,7 @@ from .lib import CLIP, Enrich, Utils
 def runPipeClip(
     infile,
     control,
-    outputPrefix,
+    output_prefix,
     matchLength,
     mismatch,
     rmdup,
@@ -104,10 +104,10 @@ def runPipeClip(
     fdrReliableMutation,
     species,
 ):
-    myClip = CLIP.CLIP(infile, outputPrefix)
+    myClip = CLIP.CLIP(infile, output_prefix)
     controlFlag = False
     if control != None:
-        controlClip = CLIP.CLIP(control, outputPrefix + "Control")
+        controlClip = CLIP.CLIP(control, output_prefix + "Control")
     logging.info("Start to run")
     if myClip.testInput():  # check input
         logging.info("Input file OK,start to run PIPE-CLIP")
@@ -176,7 +176,7 @@ def runPipeClip(
                     logging.warning(
                         "There is no crosslinking found. May be caused by no reliable mutations in enriched clusters. Print out enriched clusters instead."
                     )
-                    outfilelist = myClip.printEnrichClusters()
+                    outfilelist = myClip.printEnrichedClusters()
             else:
                 if myClip.sigClusterCount <= 0:
                     logging.error(
@@ -187,7 +187,7 @@ def runPipeClip(
                     logging.warning(
                         "There is no reliable mutations found. PIPE-CLIP will provide enriched clusters as crosslinking candidates."
                     )
-                    outfilelist = myClip.printEnrichClusters()
+                    outfilelist = myClip.printEnrichedClusters()
             # annotation if possible
         if species in ["mm10", "mm9", "hg19"]:
             logging.info("Started to annotate cross-linking sits using HOMER")
@@ -195,13 +195,13 @@ def runPipeClip(
                 # logging.debug("Start to do annotation for %s" % name)
                 Utils.annotation(name, species)
         # output a status log file
-        logfile = open(outputPrefix + ".pipeclip.summary.log", "w")
+        logfile = open(output_prefix + ".pipeclip.summary.log", "w")
         print("PIPE-CLIP run finished. Parameters are:", file=logfile)
         print(
             "Input BAM: %s \nOutput prefix: %s \nMinimum matched length: %d \nMaximum mismatch count: %d \nPCR duplicate removal code: %d \nFDR for enriched clusters: %f \nFDR for reliable mutations: %f"
             % (
                 infile,
-                outputPrefix,
+                output_prefix,
                 matchLength,
                 mismatch,
                 rmdup,
