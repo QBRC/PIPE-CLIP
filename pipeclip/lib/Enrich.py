@@ -411,22 +411,28 @@ def clusterEnrich(clip, threshold=0.01):
 
 
 def clusterEnrich_outsource(clip, threshold=0.01):
-    cluster_filename = (
-        clip.outprefix + ".clusters.bed"
-    )  # clip.filepath.split("/")[-1].split(".")[0]
+    cluster_filename = clip.outprefix + ".clusters.bed"
     # Call R code and get result
-    # epsilon = [0.01,0.15,0.1]
-    # step = [0.1,0.08,0.05]
-
-    sh_script = Path(__file__).parent.resolve() / "runR1.sh"
-    sh_args = ["sh", sh_script, cluster_filename, str(threshold)]
-    p = subprocess.Popen(sh_args)
-    stdout_value = p.communicate()[0]
+    epsilon = [0.01, 0.15, 0.1]
+    step = [0.1, 0.08, 0.05]
+    for e in epsilon:
+        for s in step:
+            r_script = Path(__file__).parent.resolve() / "ZTNB_tryCatch.R"
+            r_args = [
+                "Rscript",
+                r_script,
+                cluster_filename,
+                str(threshold),
+                str(e),
+                str(s),
+            ]
+            p = subprocess.Popen(r_args)
+            stdout_value = p.communicate()[0]
 
     # check ztnb file
     try:
         enrich_parameter = open(cluster_filename + ".pipeclip.ztnb", "r")
-    except IOError as message:
+    except IOError:
         LOGGER.error("Cannot open ztnb result file")
         return False
     nbDic = {}
