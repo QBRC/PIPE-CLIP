@@ -5,10 +5,9 @@
 
 import copy
 
-from pysam import *
+from . import Alignment, Utils
 
-from .Alignment import MutationBed
-
+LOGGER = Utils.get_logger(__name__)
 
 def countMatchNumber(b):
     myList = b
@@ -306,7 +305,7 @@ def getMutations(infile, read):
                 else:
                     strand = "+"
                 mutationList.append(
-                    MutationBed(
+                    Alignment.MutationBed(
                         chr,
                         loc,
                         loc + 1,
@@ -321,7 +320,7 @@ def getMutations(infile, read):
         for mu in mutationLocation(read, insertionSeqLoc):
             if read.tid >= 0:
                 chr = infile.getrname(read.tid)
-                newMu = MutationBed(
+                newMu = Alignment.MutationBed(
                     chr, mu[0], mu[1], mu[2], mu[3], mu[4], mu[5]
                 )
                 mutationList.append(newMu)
@@ -341,5 +340,5 @@ def getTruncations(infile, read):
     stop = start + 1
     if read.tid >= 0:
         chr = infile.getrname(read.tid)
-    newTr = MutationBed(chr, start, stop, read.qname, 1, strand, "truncation")
+    newTr = Alignment.MutationBed(chr, start, stop, read.qname, 1, strand, "truncation")
     return [newTr]

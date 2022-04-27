@@ -8,7 +8,6 @@
 
 import datetime
 import gc
-import logging
 import math
 import os
 import subprocess
@@ -18,11 +17,11 @@ from pathlib import Path
 
 import pysam
 import rpy2.robjects as robject
-from pysam import *
-from rpy2.robjects import FloatVector
 from rpy2.robjects.packages import importr
 
 from . import Alignment, Utils
+
+LOGGER = Utils.get_logger(__name__)
 
 gc.enable()
 
@@ -53,16 +52,16 @@ def KMvalue(posmapfile, negmapfile, mufile):
     km = []  # store mutations with updated k value
     km_pair = {}  # Dic of count tuples of (k,m),key:"K_M"
     count = 0
-    logging.debug("make wig %s" % str(datetime.datetime.now()))
+    LOGGER.debug("make wig %s" % str(datetime.datetime.now()))
     poswig = Utils.makeWig(posmapfile)
     negwig = Utils.makeWig(negmapfile)
     start_time = datetime.datetime.now()
-    logging.debug("finish making wig %s" % str(start_time))
+    LOGGER.debug("finish making wig %s" % str(start_time))
     for item in mufile:
         count += 1
         if count % 5000 == 0:
             stop_time = datetime.datetime.now()
-            logging.debug(
+            LOGGER.debug(
                 "Counting K-M for %d mutation sites, using %s"
                 % (count, str(stop_time - start_time))
             )
@@ -71,7 +70,7 @@ def KMvalue(posmapfile, negmapfile, mufile):
         strand = item.strand
         M = item.score
         K = 0
-        # logging.debug("Time begin to pileup is %s" % (str(datetime.datetime.now())))
+        # LOGGER.debug("Time begin to pileup is %s" % (str(datetime.datetime.now())))
         if strand == "+":
             try:
                 K = poswig[item.chr][str(item.start)]
@@ -86,7 +85,7 @@ def KMvalue(posmapfile, negmapfile, mufile):
         if K >= M:
             item.updateK(K)
             # print item
-            # logging.debug("K value for item %s is %d" % (item, K))
+            # LOGGER.debug("K value for item %s is %d" % (item, K))
             pair_name = str(K) + "_" + str(M)
             if pair_name in km_pair:
                 km_pair[pair_name] += 1
@@ -102,20 +101,20 @@ def KMvalue_test(clip, mutations, chr, chrlen):
     already unique."""
     km = []  # store mutations with updated k value
     count = 0
-    # logging.debug("make wig %s" % str(datetime.datetime.now()))
+    # LOGGER.debug("make wig %s" % str(datetime.datetime.now()))
     posBAM = pysam.Samfile(clip.posfilteredBAM, "rb")
     negBAM = pysam.Samfile(clip.negfilteredBAM, "rb")
     start_time = datetime.datetime.now()
     poswig = Utils.makeWigByChr(posBAM, chr)
     negwig = Utils.makeWigByChr(negBAM, chr)
     stop_time = datetime.datetime.now()
-    # logging.debug("Finished making wig for %s using %s" % (chr,str(stop_time-start_time)))
+    # LOGGER.debug("Finished making wig for %s using %s" % (chr,str(stop_time-start_time)))
     start_time = stop_time
     for item in mutations:
         count += 1
         if count % 100000 == 0:
             stop_time = datetime.datetime.now()
-            logging.debug(
+            LOGGER.debug(
                 "Counting K-M for %d mutation sites, using %s"
                 % (count, str(stop_time - start_time))
             )
@@ -161,11 +160,11 @@ def mutationEnrich(clip, threshold=0.01):
     mutations = []
     total_test = 0
     for chr, chrlen in clip.refInfo:
-        # logging.debug(chr)
+        # LOGGER.debug(chr)
         try:
             mufile = open(clip.outprefix + "." + chr + ".mutations.bed")
         except:
-            logging.info(
+            LOGGER.info(
                 "Cannot open mutation file %s , move on."
                 % (clip.outprefix + "." + chr + ".mutations.bed")
             )
@@ -188,7 +187,7 @@ def mutationEnrich(clip, threshold=0.01):
                 # os.remove(clip.outprefix+"."+chr+".mutations.bed")
             except:
                 pass
-        logging.debug(len(mutations))
+        LOGGER.debug(len(mutations))
         KMvalue_test(
             clip, mutations, chr, chrlen
         )  # check after doing KM, if clip.mutations changed
@@ -201,7 +200,7 @@ def mutationEnrich(clip, threshold=0.01):
         pass
     del clip.posfilteredBAM
     del clip.negfilteredBAM
-    gc.collect()  # logging.info("Finished K-M counting, starting fitting.")
+    gc.collect()  # LOGGER.info("Finished K-M counting, starting fitting.")
 
     R = robject.r
     reliableList = []
@@ -230,7 +229,7 @@ def mutationEnrich(clip, threshold=0.01):
         try:
             mu.pvalue = km_p[name]
         except:
-            # logging.debug("Problem with %s" % mu)
+            # LOGGER.debug("Problem with %s" % mu)
             continue
         mu.qvalue = pqDic[mu.pvalue]
         if mu.qvalue <= threshold:
@@ -254,7 +253,7 @@ def mutationEnrichWCtrl(clip, ctrlclip, threshold=0.01):
         try:
             mufile = open(clip.outprefix + "." + chr + ".mutations.bed")
         except:
-            logging.info(
+            LOGGER.info(
                 "Cannot open mutation file %s , move on."
                 % (clip.outprefix + "." + chr + ".mutations.bed")
             )
@@ -274,7 +273,7 @@ def mutationEnrichWCtrl(clip, ctrlclip, threshold=0.01):
             mutations.append(new_mu)
             try:
                 os.remove(clip.outprefix + "." + chr + ".mutations.bed")
-                os.remove(controlclip.outprefix + "." + chr + ".mutations.bed")
+                os.remove(ctrlclip.outprefix + "." + chr + ".mutations.bed")
             except:
                 pass
         KM_test = KMvalue_test(
@@ -289,7 +288,7 @@ def mutationEnrichWCtrl(clip, ctrlclip, threshold=0.01):
         pass
     del clip.posfilteredBAM
     del clip.negfilteredBAM
-    gc.collect()  # logging.info("Finished K-M counting, starting fitting.")
+    gc.collect()  # LOGGER.info("Finished K-M counting, starting fitting.")
 
     R = robject.r
     reliableList = []
@@ -318,7 +317,7 @@ def mutationEnrichWCtrl(clip, ctrlclip, threshold=0.01):
         try:
             mu.pvalue = km_p[name]
         except:
-            # logging.debug("Problem with %s" % mu)
+            # LOGGER.debug("Problem with %s" % mu)
             continue
         mu.qvalue = pqDic[mu.pvalue]
         if mu.qvalue <= threshold:
@@ -357,14 +356,14 @@ def clusterEnrich(clip, threshold=0.01):
         stdout_value = p.communicate()[0]
         try:
             r_output_log = open(cluster_filename + ".pipeclip.ztnblog", "r")
-            # logging.debug("Log file opened")
+            # LOGGER.debug("Log file opened")
             flag = r_output_log.read(1)
             if flag == "Y":  # converged
                 break
             elif flag == "N":
                 continue
         except:
-            logging.info(
+            LOGGER.info(
                 "No log file was produced by R code, continue regression using other parameters anyway."
             )
             continue
@@ -373,19 +372,19 @@ def clusterEnrich(clip, threshold=0.01):
     try:
         enrich_parameter = open(cluster_filename + ".pipeclip.ztnb", "r")
     except IOError as message:
-        logging.error("Cannot open ztnb result file")
+        LOGGER.error("Cannot open ztnb result file")
         return False
     nbDic = {}
     for item in enrich_parameter:
         buf = item.rstrip().split("\t")
         if buf[0] != "#":
             nb_key = "_".join(buf[0:2])  # reads_length as key
-            # logging.debug("NB_key %s" % nb_key)
+            # LOGGER.debug("NB_key %s" % nb_key)
             if nb_key not in nbDic:
                 nbDic[nb_key] = (buf[2], buf[3])  # pvalue and qvalue
-    # logging.info("There are %d read-length pairs" % (len(nbDic.keys())))
+    # LOGGER.info("There are %d read-length pairs" % (len(nbDic.keys())))
     if len(list(nbDic.keys())) == 0:
-        logging.error("There are no read-length pairs found by ZTNB. Exit.")
+        LOGGER.error("There are no read-length pairs found by ZTNB. Exit.")
         return False
     else:
         for i in range(len(clip.clusters)):
@@ -394,7 +393,7 @@ def clusterEnrich(clip, threshold=0.01):
                 + "_"
                 + str(clip.clusters[i].stop - clip.clusters[i].start)
             )
-            # logging.debug("Keys from clip.clusters,%s" % r_key)
+            # LOGGER.debug("Keys from clip.clusters,%s" % r_key)
             if r_key in nbDic:
                 clip.clusters[i].pvalue = nbDic[r_key][0]
                 clip.clusters[i].qvalue = nbDic[r_key][1]
@@ -428,19 +427,19 @@ def clusterEnrich_outsource(clip, threshold=0.01):
     try:
         enrich_parameter = open(cluster_filename + ".pipeclip.ztnb", "r")
     except IOError as message:
-        logging.error("Cannot open ztnb result file")
+        LOGGER.error("Cannot open ztnb result file")
         return False
     nbDic = {}
     for item in enrich_parameter:
         buf = item.rstrip().split("\t")
         if buf[0] != "#":
             nb_key = "_".join(buf[0:2])  # reads_length as key
-            # logging.debug("NB_key %s" % nb_key)
+            # LOGGER.debug("NB_key %s" % nb_key)
             if nb_key not in nbDic:
                 nbDic[nb_key] = (buf[2], buf[3])  # pvalue and qvalue
-    # logging.info("There are %d read-length pairs" % (len(nbDic.keys())))
+    # LOGGER.info("There are %d read-length pairs" % (len(nbDic.keys())))
     if len(list(nbDic.keys())) == 0:
-        logging.error("There are no read-length pairs found by ZTNB. Exit.")
+        LOGGER.error("There are no read-length pairs found by ZTNB. Exit.")
         return False
     else:
         for i in range(len(clip.clusters)):
@@ -449,7 +448,7 @@ def clusterEnrich_outsource(clip, threshold=0.01):
                 + "_"
                 + str(clip.clusters[i].stop - clip.clusters[i].start)
             )
-            # logging.debug("Keys from clip.clusters,%s" % r_key)
+            # LOGGER.debug("Keys from clip.clusters,%s" % r_key)
             if r_key in nbDic:
                 clip.clusters[i].pvalue = nbDic[r_key][0]
                 clip.clusters[i].qvalue = nbDic[r_key][1]

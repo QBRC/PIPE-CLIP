@@ -3,12 +3,13 @@
 import datetime
 import gc
 import gzip
-import logging
 import random
 
 import pysam
 
 from . import Alignment, Mutation2, Utils
+
+LOGGER = Utils.get_logger(__name__)
 
 gc.enable()
 
@@ -60,7 +61,7 @@ class CLIP:
             try:
                 self.header = pysam.view("-SH", self.filepath)
             except:
-                logging.error(
+                LOGGER.error(
                     "Input file does not have header, please check your file. Program quit"
                 )
                 return (False, "None")
@@ -69,7 +70,7 @@ class CLIP:
             infile = gzip.open(self.filepath)
             infile.readline(10)
         except:  # cannot read line, should be sam
-            logging.info("Input is SAM, converting to BAM...")
+            LOGGER.info("Input is SAM, converting to BAM...")
             bamout = ".".join(self.filepath.split(".")[0:-1]) + "." + "bam"
             infile = pysam.Samfile(self.filepath, "r", header=self.header)
             # print >> sys.stderr,pysam.view("-SH",infile)
@@ -83,7 +84,7 @@ class CLIP:
             return True
         else:  # sort the BAM
             1 / 0
-            logging.info("Input is not sorted, sorting file...")
+            LOGGER.info("Input is not sorted, sorting file...")
             bamsort = (
                 ".".join(self.filepath.split(".")[0:-1]) + "." + "sort.bam"
             )
@@ -91,7 +92,7 @@ class CLIP:
             pysam.index(bamsort)
             self.filepath = bamsort  # change input file path
             self.header = pysam.view("-H", bamsort)
-            logging.info("Input file sorted")
+            LOGGER.info("Input file sorted")
             # if Utils.is_sorted(self.header):
             # 	print >> sys.stderr, "The file is sorted"
             return True
@@ -104,7 +105,7 @@ class CLIP:
             )
             return True
         except IOError:
-            logging.error("Cannot open input file")
+            LOGGER.error("Cannot open input file")
             return False
 
     # 	def printFilteredReads(self):
@@ -340,7 +341,7 @@ class CLIP:
                     mutations, "G->A", True
                 )
                 mutations = mutation_filter
-        # logging.debug("read %s " % read)
+        # LOGGER.debug("read %s " % read)
         if len(mutations) > 0:
             for m in mutations:
                 # print m
@@ -353,7 +354,7 @@ class CLIP:
 
     def updateCLIPinfo(self, read, matchlen, miscount):
         """Update sample coverage info, clustering, mutation info."""
-        # logging.debug("read %s, cigar %s,mismatch %d" % (read.qname,read.cigar,miscount))
+        # LOGGER.debug("read %s, cigar %s,mismatch %d" % (read.qname,read.cigar,miscount))
         # update sample coverage info
         self.coverage += matchlen
         # update cluster info
@@ -373,12 +374,12 @@ class CLIP:
         """Merge enriched clusters and reliable mutations together Call
         Enrich.fisherTest() to calculate joint p vlaue."""
         for cluster in self.clusters:
-            # logging.debug("P value of cluster is %f" % cluster.pvalue)
+            # LOGGER.debug("P value of cluster is %f" % cluster.pvalue)
             if cluster.sig and cluster.chr in self.sigMutations:
                 for mutation in self.sigMutations[cluster.chr]:
-                    # logging.debug("Cluster loc %d,%d ; Mutation loc %d,%d, mutation type %s" % (cluster.start,cluster.stop,mutation.start,mutation.stop,mutation.type))
+                    # LOGGER.debug("Cluster loc %d,%d ; Mutation loc %d,%d, mutation type %s" % (cluster.start,cluster.stop,mutation.start,mutation.stop,mutation.type))
                     if cluster.overlap(mutation):
-                        # logging.debug("Overlapped")
+                        # LOGGER.debug("Overlapped")
                         if self.type == 0:  # HITS-CLIP
                             mutation_key = mutation.type.split("->")[0]
                             if mutation_key in ["A", "C", "G", "T"]:
@@ -387,7 +388,7 @@ class CLIP:
                         else:
                             cross_key = cluster.name
                         if cross_key in self.crosslinking:
-                            # logging.debug("Existing mutation pvalue:",self.crosslinking[cluster.name].mutationP)
+                            # LOGGER.debug("Existing mutation pvalue:",self.crosslinking[cluster.name].mutationP)
                             self.crosslinking[cross_key].addMutation(mutation)
                             self.crosslinkingMutations.append(mutation)
                         else:
@@ -416,18 +417,18 @@ class CLIP:
 
         Make clusters and mutations at the same time
         """
-        logging.info("Start to filter alignment using parameters:")
-        logging.info("match length:%d" % (matchLen))
-        logging.info("mismatch count: %d" % (mismatch))
-        logging.info("CLIP type:%s" % (str(cliptype)))
-        logging.info("Rmdup code:%s" % (str(duprm)))
-        logging.info(
+        LOGGER.info("Start to filter alignment using parameters:")
+        LOGGER.info("match length:%d" % (matchLen))
+        LOGGER.info("mismatch count: %d" % (mismatch))
+        LOGGER.info("CLIP type:%s" % (str(cliptype)))
+        LOGGER.info("Rmdup code:%s" % (str(duprm)))
+        LOGGER.info(
             "There are %d reads in origianl input file"
             % (self.originalBAM.mapped)
         )
         # print >> sys.stderr,zip(self.originalBAM.references,self.originalBAM.lengths)
         # sys_info = os.system("free -m")
-        # logging.debug(sys_info)
+        # LOGGER.debug(sys_info)
         # outBAM = pysam.Samfile(outprefix+".filtered.bam","wb",template=self.originalBAM)
         self.originalMapped = self.originalBAM.mapped
         outBAM_pos = pysam.Samfile(
@@ -452,7 +453,7 @@ class CLIP:
             count += 1
             if count % 500000 == 0:
                 stop_time = datetime.datetime.now()
-                logging.debug(
+                LOGGER.debug(
                     "Processed %d reads in %s"
                     % (count, str(stop_time - start_time))
                 )
@@ -480,7 +481,7 @@ class CLIP:
                             self.currentGroupKey != "None"
                         ):  # current group exists
                             keep = self.rmdup()
-                            # logging.debug("Pop out read to keep %s" % keep)
+                            # LOGGER.debug("Pop out read to keep %s" % keep)
                             self.currentGroup = []
                             self.filteredAlignment += 1
                             flag, mlen, mis = Utils.readQuaFilter(
@@ -496,7 +497,7 @@ class CLIP:
                             alignment, groupkey, mlen, mis
                         )  # make new group using current alignment
                 else:  # there is no rmdup
-                    # logging.debug("Good read, update clip info %s" % read.qname)
+                    # LOGGER.debug("Good read, update clip info %s" % read.qname)
                     self.filteredAlignment += 1
                     self.updateCLIPinfo(alignment, mlen, mis)
                     # outBAM.write(alignment)
@@ -516,7 +517,7 @@ class CLIP:
                 outBAM_neg.write(keep)
             else:
                 outBAM_pos.write(keep)
-        # Logging CLIP sample information
+        # LOGGER CLIP sample information
         # outBAM.close()
         outBAM_pos.close()
         outBAM_neg.close()
@@ -534,23 +535,23 @@ class CLIP:
         self.clusters_minus = None
         self.mutations = None
         gc.collect()
-        logging.debug(
+        LOGGER.debug(
             "After filtering, %d reads left" % (self.filteredAlignment)
         )
-        logging.debug("There are %d clusters in total" % (self.clusterCount))
-        logging.debug("There are %d mutations in total" % (self.mutationCount))
+        LOGGER.debug("There are %d clusters in total" % (self.clusterCount))
+        LOGGER.debug("There are %d mutations in total" % (self.mutationCount))
 
     def filter2(self, matchLen, mismatch, cliptype, duprm):
         """Filter the input BAM file according to parameters.
 
         Make clusters and mutations at the same time
         """
-        logging.info("Start to filter alignment using parameters:")
-        logging.info("match length:%d" % (matchLen))
-        logging.info("mismatch count: %d" % (mismatch))
-        logging.info("CLIP type:%s" % (str(cliptype)))
-        logging.info("Rmdup code:%s" % (str(duprm)))
-        logging.info(
+        LOGGER.info("Start to filter alignment using parameters:")
+        LOGGER.info("match length:%d" % (matchLen))
+        LOGGER.info("mismatch count: %d" % (mismatch))
+        LOGGER.info("CLIP type:%s" % (str(cliptype)))
+        LOGGER.info("Rmdup code:%s" % (str(duprm)))
+        LOGGER.info(
             "There are %d reads in origianl input file"
             % (self.originalBAM.mapped)
         )
@@ -579,7 +580,7 @@ class CLIP:
             if currentChr == "":
                 currentChr = c_chr
             elif c_chr != currentChr:
-                # logging.debug("Mutation sites for Current ref %s is %d" % (currentChr,len(self.mutations.keys())))
+                # LOGGER.debug("Mutation sites for Current ref %s is %d" % (currentChr,len(self.mutations.keys())))
                 self.printMutationSingleChr(currentChr)
                 self.mutations = None
                 gc.collect()
@@ -588,7 +589,7 @@ class CLIP:
             count += 1
             if count % 5000000 == 0:
                 stop_time = datetime.datetime.now()
-                logging.debug(
+                LOGGER.debug(
                     "Processed %d reads in %s"
                     % (count, str(stop_time - start_time))
                 )
@@ -613,7 +614,7 @@ class CLIP:
                             self.currentGroupKey != "None"
                         ):  # current group exists
                             keep = self.rmdup()
-                            # logging.debug("Pop out read to keep %s" % keep)
+                            # LOGGER.debug("Pop out read to keep %s" % keep)
                             self.currentGroup = []
                             self.filteredAlignment += 1
                             flag, mlen, mis = Utils.readQuaFilter(
@@ -629,7 +630,7 @@ class CLIP:
                             alignment, groupkey, mlen, mis
                         )  # make new group using current alignment
                 else:  # there is no rmdup
-                    # logging.debug("Good read, update clip info %s" % read.qname)
+                    # LOGGER.debug("Good read, update clip info %s" % read.qname)
                     self.filteredAlignment += 1
                     self.updateCLIPinfo(alignment, mlen, mis)
                     # outBAM.write(alignment)
@@ -652,7 +653,7 @@ class CLIP:
         # clean up current mutation hash
         self.printMutationSingleChr(currentChr)
         self.mutations = None
-        # Logging CLIP sample information
+        # LOGGER CLIP sample information
         # outBAM.close()
         outBAM_pos.close()
         outBAM_neg.close()
@@ -668,8 +669,8 @@ class CLIP:
         self.clusters_minus = None
         self.mutations = None
         gc.collect()
-        logging.debug(
+        LOGGER.debug(
             "After filtering, %d reads left" % (self.filteredAlignment)
         )
-        logging.debug("There are %d clusters in total" % (self.clusterCount))
-        logging.debug("There are %d mutations in total" % (self.mutationCount))
+        LOGGER.debug("There are %d clusters in total" % (self.clusterCount))
+        LOGGER.debug("There are %d mutations in total" % (self.mutationCount))

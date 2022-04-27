@@ -16,15 +16,17 @@
 """
 
 
-import logging
 import sys
 
 import click
 
 from .lib import CLIP, Enrich, Utils
 
+LOGGER = Utils.get_logger(__name__)
 
-@click.command(help="PIPECLIP v2.0.5", no_args_is_help=True)
+
+
+@click.command(help="PIPECLIP v2.0.6", no_args_is_help=True)
 @click.option(
     "--infile", "-i", "infile", help="Input bam file.", required=True
 )
@@ -110,91 +112,91 @@ def runPipeClip(
     controlFlag = False
     if control != None:
         controlClip = CLIP.CLIP(control, output_prefix + "Control")
-    logging.info("Start to run")
+    LOGGER.info("Start to run")
     if myClip.testInput():  # check input
-        logging.info("Input file OK,start to run PIPE-CLIP")
-        logging.info("Species info %s" % species)
+        LOGGER.info("Input file OK,start to run PIPE-CLIP")
+        LOGGER.info("Species info %s" % species)
         if control != None:  # test control file
             if controlClip.testInput():
-                logging.info(
+                LOGGER.info(
                     "Control file OK. Use control in mutation enrichment."
                 )
                 controlFlag = True
             else:
-                logging.info(
+                LOGGER.info(
                     "Control file format error. Continue without control."
                 )
         if myClip.readfile():
             myClip.filter2(matchLength, mismatch, clipType, rmdup)
             if controlFlag:
-                logging.info("Read in control file")
+                LOGGER.info("Read in control file")
                 controlClip.readfile()
                 controlClip.filter2(matchLength, mismatch, clipType, rmdup)
             # myClip.printClusters()
             # myClip.printMutations()
             if myClip.clusterCount > 0:
-                logging.info("Get enriched clusters")
+                LOGGER.info("Get enriched clusters")
                 status = Enrich.clusterEnrich_outsource(
                     myClip, fdrEnrichedCluster
                 )
                 if status:
-                    logging.info(
+                    LOGGER.info(
                         "Found %d enriched clusters" % myClip.sigClusterCount
                     )
                     myClip.printEnrichedClusters()
                 else:
-                    logging.error(
+                    LOGGER.error(
                         "There is no enriched cluster found. Exit program"
                     )
                     sys.exit(1)
             else:
-                logging.error(
+                LOGGER.error(
                     "There is no clusters found. Please check input.Exit program."
                 )
                 sys.exit(1)
 
             if myClip.mutationCount > 0:
-                logging.info("Get reliable mutations")
+                LOGGER.info("Get reliable mutations")
                 if controlFlag:  # use control
                     Enrich.mutationEnrichWCtrl(
                         myClip, controlClip, fdrReliableMutation
                     )
                 else:
                     Enrich.mutationEnrich(myClip, fdrReliableMutation)
-                logging.info(
+                LOGGER.info(
                     "There are %d reliable mutations" % myClip.sigMutationCount
                 )
                 myClip.printReliableMutations()
             else:
-                logging.warning("There is no mutation found in this BAM file.")
+                LOGGER.warning("There is no mutation found in this BAM file.")
             # Start to get crosslinking sites
             if myClip.sigClusterCount > 0 and myClip.sigMutationCount > 0:
-                logging.info("Get cross-linking sites")
+                LOGGER.info("Get cross-linking sites")
                 myClip.getCrosslinking()
                 if len(list(myClip.crosslinking.keys())) > 0:
                     outfilelist = myClip.printCrosslinkingSites()
                     myClip.printCrosslinkingMutations()
                 else:
-                    logging.warning(
+                    LOGGER.warning(
                         "There is no crosslinking found. May be caused by no reliable mutations in enriched clusters. Print out enriched clusters instead."
                     )
                     outfilelist = myClip.printEnrichedClusters()
             else:
                 if myClip.sigClusterCount <= 0:
-                    logging.error(
+                    LOGGER.error(
                         "There is no enriched clusters for this sample, please check your input file. Exit."
                     )
                     sys.exit(2)
                 elif myClip.sigMutationCount <= 0:
-                    logging.warning(
+                    LOGGER.warning(
                         "There is no reliable mutations found. PIPE-CLIP will provide enriched clusters as crosslinking candidates."
                     )
                     outfilelist = myClip.printEnrichedClusters()
             # annotation if possible
         if species in ["mm10", "mm9", "hg19"]:
-            logging.info("Started to annotate cross-linking sits using HOMER")
+            LOGGER.info("Started to annotate cross-linking sits using HOMER")
             for name in outfilelist:
-                # logging.debug("Start to do annotation for %s" % name)
+                # LOGGER.debug("Start to do annotation for %s" % name)
                 Utils.annotation(name, species)
         # output a status log file
         logfile = open(output_prefix + ".pipeclip.summary.log", "w")
@@ -236,11 +238,11 @@ def runPipeClip(
             file=logfile,
         )
         logfile.close()
-        logging.info(
+        LOGGER.info(
             "PIPE-CLIP finished the job, please check your results. :)"
         )
     else:
-        logging.error("File corruputed, program exit.")
+        LOGGER.error("File corruputed, program exit.")
         sys.exit(0)
 
 

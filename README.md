@@ -1,7 +1,7 @@
 # PIPE-CLIP
 
 Pipeline for CLIP-seq Analysis.
-This is a fork version (2.0.0) of [PIPE-CLIP](https://github.com/QBRC/PIPE-CLIP).
+This is a fork version (2.0.x) of [PIPE-CLIP](https://github.com/QBRC/PIPE-CLIP).
 
 ## Requirement:
 

@@ -2,9 +2,34 @@
 # programmer: beibei.chen@utsouthwestern.edu
 # Usage: definition of utilities to handel pysam classes
 
+import logging
 import subprocess
+import sys
 
 from . import Alignment
+
+try:
+    assert sys.version_info > (3, 6)
+except AssertionError:
+    raise RuntimeError("Requires Python 3.6+!")
+
+
+def get_logger(name: str) -> logging.Logger:
+    """global logging."""
+    logger: logging.Logger = logging.getLogger(name)
+    if not logger.handlers:
+        handler: logging.StreamHandler = logging.StreamHandler()
+        formatter: logging.Formatter = logging.Formatter(
+            "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"
+        )
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        #  logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
+    return logger
+
+
+LOGGER: logging.Logger = get_logger(__name__)
 
 
 def is_sorted(header):
@@ -26,10 +51,10 @@ def is_sorted(header):
 def readQuaFilter(read, mlen, mis):
     matchlen = 0
     mismatch = 0
-    # logging.debug("read %s,cigar %s,tags %s" % (read.qname,read.cigar,read.tags))
+    # LOGGER.debug("read %s,cigar %s,tags %s" % (read.qname,read.cigar,read.tags))
     try:
         for i in read.cigar:
-            # logging.debug(i)
+            # LOGGER.debug(i)
             if i[0] == 0:
                 matchlen += i[1]
             elif i[0] == 1:
@@ -38,9 +63,9 @@ def readQuaFilter(read, mlen, mis):
             if j[0] == "NM":
                 mismatch += j[1]
                 break
-        # logging.debug("matchlen %d,mismatch %d" % (matchlen,mismatch))
+        # LOGGER.debug("matchlen %d,mismatch %d" % (matchlen,mismatch))
     except:
-        # logging.debug("Problematic read %s" % (read))
+        # LOGGER.debug("Problematic read %s" % (read))
         pass
     if matchlen >= mlen and mismatch <= mis:
         return (True, matchlen, mismatch)
@@ -114,7 +139,7 @@ def makeWigListByChr(bamfile, chr):
 
 def makeWigListByChr_array(bamfile, chr, chrlen):
     wig = []
-    for i in range(chrlen):
+    for _ in range(chrlen):
         wig.append(0)
     for pileupColumn in bamfile.pileup(chr):
         wig[pileupColumn.pos] = pileupColumn.n
