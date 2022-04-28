@@ -21,7 +21,7 @@ import sys
 
 import click
 
-from .lib import CLIP, Enrich, Utils
+from . import CLIP, Enrich, Utils
 
 LOGGER = Utils.get_logger(__name__)
 
