@@ -26,7 +26,7 @@ from . import CLIP, Enrich, Utils
 LOGGER = Utils.get_logger(__name__)
 
 
-@click.command(help="PIPECLIP v2.0.9", no_args_is_help=True)
+@click.command(help="PIPECLIP v2.0.10", no_args_is_help=True)
 @click.option(
     "--infile", "-i", "infile", help="Input bam file.", required=True
 )
