@@ -4,7 +4,7 @@ version = "2.0.10"
 description = "PIPELINE FOR CLIP SEQ DATA"
 readme = "README.md"
 keywords = ["bioinformatics", "CLIP", "PAR-CLIP", "iCLIP", "RNA-protein interaction", "mutation", "truncation"]
-authors = ["Chang Ye <yech1990@gmail.com>"]
+authors = ["Zhiqun Xie<Zhiqun.Xie@UTSouthwestern.edu>"]
 repository = "https://github.com/y9c/PIPE-CLIP"
 
 [tool.poetry.dependencies]
